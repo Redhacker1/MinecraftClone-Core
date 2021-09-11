@@ -1,9 +1,9 @@
 using System;
 using Engine.MathLib;
-using MinecraftClone.World_CS.Generation.Noise;
+using MCClone_Core.World_CS.Generation.Noise;
 using Random = Engine.Random.Random;
 
-namespace MinecraftClone.World_CS.Generation.Chunk_Generator_cs
+namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
 	internal class ForestGenerator : BaseGenerator
 	{

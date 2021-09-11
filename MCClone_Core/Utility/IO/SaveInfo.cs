@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Vector2 = System.Numerics.Vector2;
 
-namespace MinecraftClone.Utility.IO
+namespace MCClone_Core.Utility.IO
 {
     public struct SaveInfo
     {

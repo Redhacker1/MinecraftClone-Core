@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 
-namespace MinecraftClone.World_CS.Blocks
+namespace MCClone_Core.World_CS.Blocks
 {
 	public struct BlockStruct
 	{

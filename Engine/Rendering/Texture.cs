@@ -1,12 +1,14 @@
+using System;
+using System.Runtime.InteropServices;
 using Silk.NET.OpenGL;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using System;
-using System.Runtime.InteropServices;
 
-namespace Tutorial
+namespace Engine.Rendering
 {
+    
+    //TODO: Expose options in constructor for materials (eg, flipmode, texture filtering, clamp mode, etc)
     public class Texture : IDisposable
     {
         private uint _handle;
@@ -15,7 +17,7 @@ namespace Tutorial
         public unsafe Texture(GL gl, string path)
         {
             Image<Rgba32> img = (Image<Rgba32>) Image.Load(path);
-            img.Mutate(x => x.Flip(FlipMode.Vertical | FlipMode.Horizontal));
+            img.Mutate(x => x.Flip((FlipMode) 3));
 
             fixed (void* data = &MemoryMarshal.GetReference(img.GetPixelRowSpan(0)))
             {

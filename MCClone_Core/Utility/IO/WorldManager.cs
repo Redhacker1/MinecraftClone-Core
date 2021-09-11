@@ -4,7 +4,7 @@ using Environment = System.Environment;
 using File = System.IO.File;
 using Path = System.IO.Path;
 
-namespace MinecraftClone.Utility.IO
+namespace MCClone_Core.Utility.IO
 {
 
     public struct WorldData
@@ -69,7 +69,7 @@ namespace MinecraftClone.Utility.IO
 
         public static WorldData CreateWorld(string worldname = "New World")
         {
-            var world = new WorldData();
+            WorldData world = new WorldData();
             world.Name = worldname;
             if (!WorldExists(worldname))
             {

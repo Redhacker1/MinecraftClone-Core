@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MCClone_Core", "MCClone_Cor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Engine", "Engine\Engine.csproj", "{9102FDDC-AED7-4861-A96B-D65E82D73915}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LevelLoaderTest", "LevelLoaderTest\LevelLoaderTest.csproj", "{7F9461AD-E74A-4FB3-9D2F-76CF3C601B89}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ObjDemo", "ObjDemo\ObjDemo.csproj", "{CD8D0185-54AE-466D-A653-D9C7FBEA25E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,10 +23,10 @@ Global
 		{9102FDDC-AED7-4861-A96B-D65E82D73915}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9102FDDC-AED7-4861-A96B-D65E82D73915}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9102FDDC-AED7-4861-A96B-D65E82D73915}.Release|Any CPU.Build.0 = Release|Any CPU
-		{7F9461AD-E74A-4FB3-9D2F-76CF3C601B89}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F9461AD-E74A-4FB3-9D2F-76CF3C601B89}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F9461AD-E74A-4FB3-9D2F-76CF3C601B89}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F9461AD-E74A-4FB3-9D2F-76CF3C601B89}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD8D0185-54AE-466D-A653-D9C7FBEA25E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD8D0185-54AE-466D-A653-D9C7FBEA25E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD8D0185-54AE-466D-A653-D9C7FBEA25E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD8D0185-54AE-466D-A653-D9C7FBEA25E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

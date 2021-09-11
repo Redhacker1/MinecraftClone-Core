@@ -9,11 +9,11 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
 using Engine.Rendering;
-using MinecraftClone.World_CS.Blocks;
-using MinecraftClone.World_CS.Generation;
+using MCClone_Core.World_CS.Blocks;
+using MCClone_Core.World_CS.Generation;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
 
-namespace MinecraftClone.Player_CS
+namespace MCClone_Core.Player_CS
 {
 	//[Tool]
 	public class Player: CharacterEntity
@@ -147,7 +147,7 @@ namespace MinecraftClone.Player_CS
 			double py = Pos.Y;
 			double pz = Pos.Z - cz * ChunkCs.Dimension.Z;
 			//var forward_cam;
-			var forward = Vector3.UnitZ;
+			Vector3 forward = Vector3.UnitZ;
 			
 		#else
 			float cx = (float) Math.Floor((Translation.x ) / ChunkCs.Dimension.X);

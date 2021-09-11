@@ -1,18 +1,4 @@
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using Engine;
-using Engine.MathLib;
-using Engine.Objects;
-using MinecraftClone.Debug_and_Logging;
-using MinecraftClone.World_CS.Blocks;
-using MinecraftClone.World_CS.Generation.Chunk_Generator_cs;
 #if Core
-using Array = System.Collections.Generic.List<object>;
 #else
 using Array = Godot.Collections.Array;
 #endif
@@ -21,11 +7,21 @@ using Array = Godot.Collections.Array;
 #else
 	using Godot;
 #endif
-
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using Engine.MathLib;
+using Engine.Objects;
+using Engine.Renderable;
+using MCClone_Core.Debug_and_Logging;
+using MCClone_Core.World_CS.Blocks;
+using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
 using Vector2 = System.Numerics.Vector2;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
-namespace MinecraftClone.World_CS.Generation
+namespace MCClone_Core.World_CS.Generation
 {
 	#if(Core)
 	public class ChunkCs : GameObject
@@ -113,15 +109,9 @@ namespace MinecraftClone.World_CS.Generation
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void Update()
 		{
-#if Core
-			List<System.Numerics.Vector3> blocks = new List<System.Numerics.Vector3>();
-			List<System.Numerics.Vector3> blocksNormals = new List<System.Numerics.Vector3>();
-			List<System.Numerics.Vector2>  uVs = new List<System.Numerics.Vector2>();
-			#else
-			List<Godot.Vector3> blocks = new List<Godot.Vector3>();
-			List<Godot.Vector3> blocksNormals = new List<Godot.Vector3>();
-			List<Godot.Vector2>  uVs = new List<Godot.Vector2>();
-			#endif
+			List<System.Numerics.Vector3> blocks = new();
+			List<System.Numerics.Vector3> blocksNormals = new();
+			List<Vector2>  uVs = new();
 
 			//Making use of multidimensional arrays allocated on creation
 			
@@ -138,35 +128,14 @@ namespace MinecraftClone.World_CS.Generation
 					_create_block(check, x, y, z, block, blocks, blocksNormals, uVs);	
 				}
 			}
+			Chunkreference?.Dispose();
+			Mesh chunkmesh = new Mesh(blocks, uVs, this);
 
-			
-		#if !Core
-			ArrayMesh blockArrayMesh = new ArrayMesh();
 
-			Array meshInstance = new Array();
-			meshInstance.Resize((int) ArrayMesh.ArrayType.Max);
-			
-			meshInstance[(int)ArrayMesh.ArrayType.Vertex] = blocks.ToArray(); 
-			meshInstance[(int)ArrayMesh.ArrayType.TexUv] = uVs.ToArray();
-			meshInstance[(int)ArrayMesh.ArrayType.Normal] = blocksNormals.ToArray();
-			blockArrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, meshInstance);
-			blockArrayMesh.SurfaceSetMaterial(0, Mat);
-			
-			_blockMeshInstance.Mesh = blockArrayMesh;
-			
-		#else
-			var chunkmesh = new Mesh(blocks, uVs, this);
-
-			//chunkmesh.Position = Pos;
-			//chunkmesh.Rotation = Quaternion.Identity;
-			//chunkmesh.Scale = 1f;
-			
-			Chunkreference?.RemoveVBO();
 			chunkmesh.QueueVAORegen();
 			Chunkreference = chunkmesh;
 
 			// Do Render stuff here
-#endif
 			ConsoleLibrary.DebugPrint(watch.ElapsedMilliseconds);
 
 		}
@@ -252,7 +221,7 @@ namespace MinecraftClone.World_CS.Generation
 			Vector3 coord = new Vector3(x, y, z);
 			if (blockTypes[block].TagsList.Contains("Flat"))
 			{
-				var tempvar = blockTypes[block].Only;
+				Vector2 tempvar = blockTypes[block].Only;
 				create_face(Cross1, ref coord, tempvar, blocks, blocksNormals, uVs);
 				create_face(Cross2, ref coord, tempvar, blocks, blocksNormals, uVs);
 				create_face(Cross3, ref coord, tempvar, blocks, blocksNormals, uVs);

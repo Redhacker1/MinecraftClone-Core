@@ -1,11 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using MinecraftClone.World_CS.Generation;
+using MCClone_Core.World_CS.Generation;
 using File = System.IO.File;
 using Path = System.IO.Path;
 using Vector2 = System.Numerics.Vector2;
 
-namespace MinecraftClone.Utility.IO
+namespace MCClone_Core.Utility.IO
 {
     public abstract class BaseFileHandler
     {

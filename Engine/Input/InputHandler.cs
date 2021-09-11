@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Rendering;
@@ -34,9 +33,9 @@ namespace Engine.Input
             AllInputDevices.AddRange(inputContext.Mice);
             AllInputDevices.AddRange(inputContext.OtherDevices);
 
-            foreach (var Gamepad in inputContext.Gamepads)
+            foreach (IGamepad Gamepad in inputContext.Gamepads)
             {
-                foreach (var button in Gamepad.Buttons)
+                foreach (Button button in Gamepad.Buttons)
                 {
                     bool ButtonPressed = button.Pressed;
                     AllButtons[button] = ButtonPressed;
@@ -48,7 +47,7 @@ namespace Engine.Input
             }
             
             
-            foreach (var Keyboard in inputContext.Keyboards)
+            foreach (IKeyboard Keyboard in inputContext.Keyboards)
             {
                 foreach (Key Keys in Keyboard.SupportedKeys)
                 {
@@ -59,7 +58,7 @@ namespace Engine.Input
                 }
             }
             
-            foreach (var Mouse in inputContext.Mice)
+            foreach (IMouse Mouse in inputContext.Mice)
             {
                 Mouse.IsButtonPressed(0);
                 Mouse.Cursor.CursorMode = CursorMode.Raw;
@@ -119,25 +118,29 @@ namespace Engine.Input
         
         private static unsafe void OnMouseMove(IMouse mouse, Vector2 position)
         {
-            var lookSensitivity = 0.1f;
+            float lookSensitivity = 0.1f;
             if (LastMousePosition == default) { LastMousePosition = position; }
             else
             {
-                var xOffset = (position.X - LastMousePosition.X) * lookSensitivity;
-                var yOffset = (position.Y - LastMousePosition.Y) * lookSensitivity;
+                float xOffset = (position.X - LastMousePosition.X) * lookSensitivity;
+                float yOffset = (position.Y - LastMousePosition.Y) * lookSensitivity;
                 LastMousePosition = position;
 
-                Camera.MainCamera.Yaw += xOffset;
-                Camera.MainCamera.Pitch -= yOffset;
-
-                //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
-                Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
+                if (Camera.MainCamera != null)
+                {
+                    Camera.MainCamera.Yaw += xOffset;
+                    Camera.MainCamera.Pitch -= yOffset;
+                    
+                    //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
+                    Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
                 
-                var CameraDirection = Vector3.Zero;
-                CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
+                    Vector3 CameraDirection = Vector3.Zero;
+                    CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+                    CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+                    CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+                    Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
+                }
+                
             }
         }
 

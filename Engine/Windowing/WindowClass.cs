@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Engine.Input;
-using Engine.MathLib;
 using Engine.Objects;
+using Engine.Renderable;
 using Engine.Rendering;
 using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
-using Texture = Tutorial.Texture;
+using Texture = Engine.Rendering.Texture;
 using Shader = Engine.Rendering.Shader;
 
 namespace Engine.Windowing
@@ -29,6 +29,23 @@ namespace Engine.Windowing
         
         //Used to track change in mouse movement to allow for moving of the Camera
         private static Vector2 LastMousePosition;
+        
+        DebugProc messageHandler = ((source, type, id, severity, length, message, param) =>
+        {
+            if (severity ==GLEnum.DebugSeverityHigh)
+            {
+                Console.WriteLine(Marshal.PtrToStringAnsi(message,  length + 1));
+                // Useful if you want to pause after message is printed.
+                int a = 0;
+                //Only Really useful if we cannot debug the application, otherwise, not worth using
+                //TODO: Move Logging and console system over to engine, so we can log problems like this! (Console requires UI to be implemented and preferably an actual input system put in place)
+                #if !DEBUG 
+                Console.WriteLine(Environment.StackTrace);
+                #endif
+            }
+            //Environment.Exit(1);
+        });
+        
         public WindowClass(Glfw GLFWHandle, IWindow windowHandle, Game GameClass)
         {
             GlfwHandle = GLFWHandle;
@@ -73,19 +90,24 @@ namespace Engine.Windowing
             GlHandle.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
             GlHandle.Enable(EnableCap.DepthTest);
             GlHandle.Enable(EnableCap.CullFace);
+            GlHandle.Enable(EnableCap.DebugOutput);
             GlHandle.DepthFunc(DepthFunction.Lequal);
-            
-            Mesh[] meshes = Mesh.Meshes.ToArray();
-            
+            GlHandle.Enable(GLEnum.DebugOutputSynchronous);
+            GlHandle.DebugMessageCallback(messageHandler, new ReadOnlySpan<int>());
+
+
 
             //Console.WriteLine($"{Meshes.Count}, meshes compared to {Mesh.Meshes.Count} Total");
-            
-            Shader?.SetUniform("uView", Camera.MainCamera.GetViewMatrix());
-            Shader?.SetUniform("uProjection", Camera.MainCamera.GetProjectionMatrix());
+
+            if (Camera.MainCamera != null)
+            {
+                Shader?.SetUniform("uView", Camera.MainCamera.GetViewMatrix());
+                Shader?.SetUniform("uProjection", Camera.MainCamera.GetProjectionMatrix());
+            }
             for (int i = 0; i < Mesh.OutofDateMeshes.Count; i++)
             {
 
-                var mesh = Mesh.OutofDateMeshes[i];
+                Mesh mesh = Mesh.OutofDateMeshes[i];
 
                 if (mesh != null)
                 {
@@ -95,7 +117,7 @@ namespace Engine.Windowing
             }
             for (int i = 0; i < Mesh.QueuedForRemoval.Count; i++)
             {
-                var mesh = Mesh.QueuedForRemoval[i];
+                VertexArrayObject<float, uint> mesh = Mesh.QueuedForRemoval[i];
                 if (mesh != null)
                 {
                     mesh?.Dispose();
@@ -105,29 +127,26 @@ namespace Engine.Windowing
                 
                 
             }
-            
             //Console.WriteLine($"{Mesh.Meshes.Count} meshes to draw");
-            for (int meshindex = 0; meshindex < meshes.Length; meshindex++)
+            for (int meshindex = 0; meshindex < Mesh.Meshes.Count; meshindex++)
             {
 
 
                 GlHandle.CullFace(CullFaceMode.Front);
-                Mesh mesh = meshes[meshindex];
+                Mesh mesh = Mesh.Meshes[meshindex];
                 Texture?.Bind();
                 Shader?.Use();
                 
-                if (mesh?.MeshReference != null)
+                if (mesh?.MeshReference?.validVAO == true)
                 {
                     mesh.MeshReference.Bind();
                     Shader?.SetUniform("uModel", mesh.ViewMatrix);
                     Shader?.SetUniform("uTexture0", 0);
                     GlHandle.DrawArrays(GLEnum.Triangles, 0, mesh.MeshReference.Vertexcount);
                 }
-
-
-                //mesh.
+                
             }
-            
+
         }
         
 

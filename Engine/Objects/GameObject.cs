@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Engine.MathLib.DoublePrecision_Numerics;
 
 namespace Engine.Objects
 {

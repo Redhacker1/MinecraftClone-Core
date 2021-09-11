@@ -6,7 +6,7 @@ using System.Text;
 #if !Core
 using Godot;
 #endif
-namespace MinecraftClone.Debug_and_Logging
+namespace MCClone_Core.Debug_and_Logging
 {
     public static class ConsoleLibrary
     {

@@ -4,6 +4,7 @@ using Engine.MathLib;
 
 namespace Engine.Rendering
 {
+    // TODO: More elegant Camera class, preferably one that can more easily accommodate more than one camera. 
     public class Camera
     {
         public static Camera MainCamera;
@@ -50,7 +51,7 @@ namespace Engine.Rendering
             //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
             Pitch = Math.Clamp(Pitch, -89f, 89f);
 
-            var cameraDirection = Vector3.Zero;
+            Vector3 cameraDirection = Vector3.Zero;
             cameraDirection.X = (float)Math.Cos(MathHelper.DegreesToRadians(Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Pitch));
             cameraDirection.Y = (float)Math.Sin(MathHelper.DegreesToRadians(Pitch));
             cameraDirection.Z = (float)Math.Sin(MathHelper.DegreesToRadians(Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Pitch));

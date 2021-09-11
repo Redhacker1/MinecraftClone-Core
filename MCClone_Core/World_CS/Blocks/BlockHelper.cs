@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-namespace MinecraftClone.World_CS.Blocks
+namespace MCClone_Core.World_CS.Blocks
 {
     public static class BlockHelper
     {

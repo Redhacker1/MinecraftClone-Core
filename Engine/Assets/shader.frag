@@ -12,7 +12,8 @@ void main()
         discard;
     }
     
-    //FragColor = vec4(vec3(gl_FragCoord.z), 1.0);
     FragColor = texture(uTexture0, fUv);
+  
+
     
 }

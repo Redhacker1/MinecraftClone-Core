@@ -1,14 +1,13 @@
-using MinecraftClone.Debug_and_Logging;
-using MinecraftClone.Player_CS;
-using MinecraftClone.Utility.IO;
-using MinecraftClone.World_CS.Blocks;
-using MinecraftClone.World_CS.Generation;
-using MinecraftClone.World_CS.Utility.Debug;
 using System;
 using System.Numerics;
 using Engine.Objects;
+using MCClone_Core.Debug_and_Logging;
+using MCClone_Core.Player_CS;
+using MCClone_Core.Utility.IO;
+using MCClone_Core.World_CS.Blocks;
+using MCClone_Core.World_CS.Generation;
 
-namespace MinecraftClone.Utility
+namespace MCClone_Core.Utility
 {
 	#if Core
 	public class WorldScript : GameObject

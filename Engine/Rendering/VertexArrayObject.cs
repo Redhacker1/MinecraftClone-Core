@@ -1,5 +1,7 @@
 using System;
 using System.Numerics;
+using Engine.Renderable;
+using Engine.Windowing;
 using Silk.NET.OpenGL;
 
 namespace Engine.Rendering
@@ -10,28 +12,60 @@ namespace Engine.Rendering
     {
         private uint _handle;
         public readonly uint Vertexcount;
-        private GL _gl;
+        private GL _gl = WindowClass.GlHandle;
         Mesh meshinstance;
 
-        public Matrix4x4 ModelMatrix =>
-            Matrix4x4.CreateFromQuaternion(meshinstance.Rotation) * Matrix4x4.CreateScale(meshinstance.Scale) *
-            Matrix4x4.CreateTranslation(meshinstance.Position);
-        
-        public AABB CullingBox;
+        /// <summary>
+        /// If VAO is properly bound this will be true.
+        /// </summary>
+        public bool validVAO = false;
 
-        public VertexArrayObject(GL gl, BufferObject<TVertexType> vbo, BufferObject<TIndexType> ebo, AABB CullingMesh, Mesh boundmesh)
+        public Matrix4x4 ModelMatrix
         {
-            _gl = gl;
+            get =>
+                Matrix4x4.CreateFromQuaternion(meshinstance.Rotation) * Matrix4x4.CreateScale(meshinstance.Scale) *
+                Matrix4x4.CreateTranslation(meshinstance.Position);
+
+        }
+
+        BufferObject<TVertexType> vertexBufferObject;
+        BufferObject<TIndexType> indexBufferObject;
+
+        
+
+        public VertexArrayObject(BufferObject<TVertexType> vbo, BufferObject<TIndexType> ebo)
+        {
 
             _handle = _gl.GenVertexArray();
+            Console.WriteLine(_handle);
+            Bind();
+
+            vertexBufferObject = vbo;
+            vbo.Bind();
+            indexBufferObject = ebo;
+            ebo.Bind();
+            Unbind();
+            validVAO = true;
+            
+            Vertexcount = vbo.Length;
+
+        }
+        
+        public VertexArrayObject(GL gl, BufferObject<TVertexType> vbo, BufferObject<TIndexType> ebo, Mesh mesh)
+        {
+            _gl = gl;
+            
+            _handle = _gl.GenVertexArray();
+            Console.WriteLine(_handle);
+            Bind();
             vbo.Bind();
             ebo.Bind();
+            Unbind();
+            validVAO = true;
 
+            meshinstance = mesh;
             Vertexcount = vbo.Length;
             
-
-            this.meshinstance = boundmesh;
-            this.CullingBox = CullingMesh;
         }
         
 
@@ -45,11 +79,20 @@ namespace Engine.Rendering
         {
             _gl.BindVertexArray(_handle);
         }
+        
+        public void Unbind()
+        {
+            _gl.DisableVertexAttribArray(_handle);
+        }
 
         
         public void Dispose()
         {
+            validVAO = false;
             _gl.DeleteVertexArray(_handle);
+            indexBufferObject.Dispose();
+            vertexBufferObject.Dispose();
+
         }
         
         

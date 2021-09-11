@@ -7,7 +7,7 @@ using File = System.IO.File;
 using Path = System.IO.Path;
 using Thread = System.Threading.Thread;
 
-namespace MinecraftClone.Debug_and_Logging
+namespace MCClone_Core.Debug_and_Logging
 {
     public enum LogLevel
     {

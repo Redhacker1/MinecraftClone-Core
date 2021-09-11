@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-
+using MCClone_Core.World_CS.Generation;
 using Vector2 = System.Numerics.Vector2;
-using MinecraftClone.World_CS.Generation;
 using File = System.IO.File;
 
-namespace MinecraftClone.Utility.IO
+namespace MCClone_Core.Utility.IO
 {
     public static class SaveFileHandler
     {

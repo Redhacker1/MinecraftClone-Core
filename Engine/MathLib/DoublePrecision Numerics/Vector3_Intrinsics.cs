@@ -160,7 +160,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 Abs(Vector3 value)
         {
-            return new Vector3(System.Math.Abs(value.X), System.Math.Abs(value.Y), System.Math.Abs(value.Z));
+            return new Vector3(Math.Abs(value.X), Math.Abs(value.Y), Math.Abs(value.Z));
         }
 
         /// <summary>
@@ -171,7 +171,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 SquareRoot(Vector3 value)
         {
-            return new Vector3((Double)System.Math.Sqrt(value.X), (Double)System.Math.Sqrt(value.Y), (Double)System.Math.Sqrt(value.Z));
+            return new Vector3((Double)Math.Sqrt(value.X), (Double)Math.Sqrt(value.Y), (Double)Math.Sqrt(value.Z));
         }
         #endregion Public Static Methods
 

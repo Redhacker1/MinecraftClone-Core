@@ -2,7 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
-namespace MinecraftClone.Utility.Threading
+namespace MCClone_Core.Utility.Threading
 {
     public class ThreadPoolClass
     {

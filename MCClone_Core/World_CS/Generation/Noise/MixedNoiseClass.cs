@@ -1,4 +1,4 @@
-﻿namespace MinecraftClone.World_CS.Generation.Noise
+﻿namespace MCClone_Core.World_CS.Generation.Noise
 {
     public class MixedNoiseClass
     {
@@ -8,7 +8,7 @@
 
         public MixedNoiseClass(int iterations, NoiseUtil noise)
         {
-            this._iterations = iterations;
+            _iterations = iterations;
             _noiseFilters = new NoiseUtil[iterations];
             long seed = noise.GetSeed();
 
@@ -22,7 +22,7 @@
         public MixedNoiseClass(NoiseUtil[] noiseFilters)
         {
             _iterations = noiseFilters.Length;
-            this._noiseFilters = noiseFilters;
+            _noiseFilters = noiseFilters;
         }
 
         public float GetMixedNoiseSimplex(float x, float y, float z)

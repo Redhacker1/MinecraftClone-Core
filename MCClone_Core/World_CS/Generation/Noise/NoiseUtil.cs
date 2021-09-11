@@ -5,7 +5,7 @@ using FN_DECIMAL = System.Double;
 #endif
 using System;
 
-namespace MinecraftClone.World_CS.Generation.Noise
+namespace MCClone_Core.World_CS.Generation.Noise
 {
     public class NoiseUtil
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MinecraftClone.Utility.Threading
+namespace MCClone_Core.Utility.Threading
 {
     public class ThreadTaskRequest
     {

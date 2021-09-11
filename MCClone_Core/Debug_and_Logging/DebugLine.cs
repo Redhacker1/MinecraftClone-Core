@@ -2,7 +2,7 @@
 using Godot;
 #endif
 
-namespace MinecraftClone.World_CS.Utility.Debug
+namespace MCClone_Core.Debug_and_Logging
 {
     #if Core
         public class DebugLines

@@ -12,7 +12,7 @@ namespace Engine.Rendering
 
         public Shader(GL gL, string vertexPath, string fragmentPath)
         {
-            this._gl = gL;
+            _gl = gL;
 
             uint vertex = LoadShader(ShaderType.VertexShader, vertexPath);
             uint fragment = LoadShader(ShaderType.FragmentShader, fragmentPath);
@@ -20,7 +20,7 @@ namespace Engine.Rendering
             _gl.AttachShader(_handle, vertex);
             _gl.AttachShader(_handle, fragment);
             _gl.LinkProgram(_handle);
-            _gl.GetProgram(_handle, GLEnum.LinkStatus, out var status);
+            _gl.GetProgram(_handle, GLEnum.LinkStatus, out int status);
             if (status == 0)
             {
                 throw new Exception($"Program failed to link with error: {_gl.GetProgramInfoLog(_handle)}");

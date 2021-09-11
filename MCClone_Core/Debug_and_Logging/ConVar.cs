@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace MinecraftClone.Debug_and_Logging
+namespace MCClone_Core.Debug_and_Logging
 {
     public class Convar
     {

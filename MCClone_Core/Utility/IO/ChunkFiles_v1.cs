@@ -1,18 +1,17 @@
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-
 #if !Core
 using Godot;
 #endif
-using MinecraftClone.World_CS.Generation;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using MCClone_Core.World_CS.Generation;
 using File = System.IO.File;
 using Path = System.IO.Path;
 
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Vector2 = System.Numerics.Vector2;
 
-namespace MinecraftClone.Utility.IO
+namespace MCClone_Core.Utility.IO
 {
     public class ChunkFilesV1 : BaseFileHandler
     {
@@ -110,7 +109,7 @@ namespace MinecraftClone.Utility.IO
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
             
-            var chunkdat = new MemoryStream();
+            MemoryStream chunkdat = new MemoryStream();
             
             BinaryWriter fileWriter = new BinaryWriter(chunkdat);
 
@@ -147,7 +146,7 @@ namespace MinecraftClone.Utility.IO
                     File.Delete(uncompressedPath);
                 }
 
-                var cdat = Compress(chunkdat.ToArray());
+                byte[] cdat = Compress(chunkdat.ToArray());
                 fs.Write(cdat, 0, cdat.Length);
             }
             else

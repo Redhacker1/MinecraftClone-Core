@@ -4,11 +4,11 @@ using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Engine;
 using Engine.Initialization;
 using Engine.Windowing;
-using MinecraftClone.Debug_and_Logging;
-using MinecraftClone.Player_CS;
-using MinecraftClone.Utility;
-using MinecraftClone.Utility.IO;
-using MinecraftClone.World_CS.Generation;
+using MCClone_Core.Debug_and_Logging;
+using MCClone_Core.Player_CS;
+using MCClone_Core.Utility;
+using MCClone_Core.Utility.IO;
+using MCClone_Core.World_CS.Generation;
 
 namespace MCClone_Core
 {

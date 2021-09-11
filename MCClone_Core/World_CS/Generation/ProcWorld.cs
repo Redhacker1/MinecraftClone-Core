@@ -1,47 +1,29 @@
 /* TODO: This is starting to become a SuperClass with catch-all functionality, might be best to separate it out.
 	Might be best to move some of the more chunk oriented methods into the chunkCS class that do not use the chunk class statically.
  */
-
-#if Core
-	// Dependencies used in .net Core exclusively
-
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using System.Threading;
-	using System.Numerics;
-	using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
-#else
-	// Dependencies used in Godot standard library exclusively
-	using Godot;
-
-	using AABB = MinecraftClone.Utility.Physics.AABB;
-	using MinecraftClone.World_CS.Utility;
-	using MinecraftClone.Utility.CoreCompatibility;
-
-	using Thread = System.Threading.Thread;
-	using  Vector2 = System.Numerics.Vector2;
-	using Vector3 = System.Numerics.Vector3;
-#endif
-	// Dependencies used Regardless
-	using System;
-	using System.Collections.Concurrent;
-	using System.Collections.Generic;
-	using System.Linq;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
-using MinecraftClone.Debug_and_Logging;
-using MinecraftClone.Utility.IO;
-using MinecraftClone.Utility.Threading;
-	using MinecraftClone.World_CS.Blocks;
-	using Random = Engine.Random.Random;
+using MCClone_Core.Debug_and_Logging;
+using MCClone_Core.Utility.IO;
+using MCClone_Core.Utility.Threading;
+using MCClone_Core.World_CS.Blocks;
+// Dependencies used Regardless
+using Random = Engine.Random.Random;
 
-namespace MinecraftClone.World_CS.Generation
+namespace MCClone_Core.World_CS.Generation
 {
-	#if Core
 	public class ProcWorld : Level
-	#else
-	public class ProcWorld : Spatial
-	#endif
 	{
+		int ChunksPerFrame = 1;
+
+		public static bool Threaded = true;
 
 		public static ProcWorld Instance;
 
@@ -96,7 +78,10 @@ namespace MinecraftClone.World_CS.Generation
 			ConsoleLibrary.DebugPrint("Creating Terrain Gen thread");
 			// Preparing static terrain thread 
 			_terrainThread = new Thread(_thread_gen);
-			_terrainThread.Start();
+			if (Threaded)
+			{
+				_terrainThread.Start();	
+			}
 
 			ConsoleLibrary.DebugPrint("Binding Console Commands");
 			// Console Binds
@@ -106,12 +91,24 @@ namespace MinecraftClone.World_CS.Generation
 			
 		}
 
-		void _thread_gen()
+		public override void _PhysicsProcess(float delta)
 		{
-			ConsoleLibrary.DebugPrint("ThreadGen Thread Running");
-			while (!_bKillThread)
+			if (!Threaded)
 			{
-				bool playerPosUpdated = _newChunkPos != _chunkPos;
+				for (int i = 0; i < ChunksPerFrame; i++)
+				{
+					GenerationProcess();	
+				}
+			}
+		}
+
+
+
+
+
+		void GenerationProcess()
+		{
+			bool playerPosUpdated = _newChunkPos != _chunkPos;
 
 				_chunkPos = _newChunkPos;
 
@@ -137,13 +134,13 @@ namespace MinecraftClone.World_CS.Generation
 					{
 						// Either go right or up
 						// Prioritize going right
-						if ((deltaPos.Y == _currentLoadRadius) && (-deltaPos.X != _currentLoadRadius))
+						if ((Math.Abs(deltaPos.Y - _currentLoadRadius) < float.Epsilon) && (Math.Abs(-deltaPos.X - _currentLoadRadius) > float.Epsilon))
 						{
 							//Go right
 							_lastChunk = _load_chunk((int)_lastChunk.X - 1, (int) _lastChunk.Y);
 						}
 						// Either moving in constant x or we just reached bottom right. Addendum by donovan: this looping on the X axis has happened to me actually
-						else if ((-deltaPos.X == _currentLoadRadius) || (-deltaPos.X == deltaPos.Y))
+						else if ((Math.Abs(-deltaPos.X - _currentLoadRadius) < float.Epsilon) || (Math.Abs(-deltaPos.X - deltaPos.Y) < float.Epsilon))
 						{
 							// Go up
 							_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y - 1);
@@ -161,12 +158,12 @@ namespace MinecraftClone.World_CS.Generation
 					{
 						//Either go left or down
 						//Prioritize going left
-						if ((-deltaPos.Y == _currentLoadRadius) && (deltaPos.X != _currentLoadRadius))
+						if ((Math.Abs(-deltaPos.Y - _currentLoadRadius) < float.Epsilon) && (Math.Abs(deltaPos.X - _currentLoadRadius) > float.Epsilon))
 						{
 							//Go left
 							_lastChunk = _load_chunk((int) _lastChunk.X + 1, (int) _lastChunk.Y);	
 						}
-						else if ((deltaPos.X == _currentLoadRadius) || (deltaPos.X == -deltaPos.Y))
+						else if ((Math.Abs(deltaPos.X - _currentLoadRadius) < float.Epsilon) || (Math.Abs(deltaPos.X - (-deltaPos.Y)) < float.Epsilon))
 						{
 							// Go down
 							// Stop the last one where we'd go over the limit
@@ -177,6 +174,16 @@ namespace MinecraftClone.World_CS.Generation
 						}
 					}
 				}
+		}
+		
+		
+
+		void _thread_gen()
+		{
+			ConsoleLibrary.DebugPrint("ThreadGen Thread Running");
+			while (!_bKillThread)
+			{
+				GenerationProcess();
 			}
 		}
 
@@ -200,13 +207,7 @@ namespace MinecraftClone.World_CS.Generation
 				}
 				
 				LoadedChunks[cpos] = c;
-				#if !Core
-				if (c != null)
-				{
-					AddChild(c);
-				}			
-				#endif
-				
+
 				c?.UpdateVisMask();
 				_update_chunk(cx, cz);
 			}
@@ -227,7 +228,7 @@ namespace MinecraftClone.World_CS.Generation
 		public override List<Aabb> GetAabbs(int collisionlayer, Aabb aabb)
 		{
 			List<Aabb> aabbs = new List<Aabb>();
-			Vector3 a = new Vector3(aabb.MinLoc.X - 1, aabb.MinLoc.Y - 1, aabb.MinLoc.Z - 1);
+			Vector3 a = new Vector3((float) (aabb.MinLoc.X - 1), (float) (aabb.MinLoc.Y - 1), (float) (aabb.MinLoc.Z - 1));
 			Vector3 b = aabb.MaxLoc;
 
 			for (int z = (int) a.Z; z < b.Z; z++)
@@ -317,15 +318,25 @@ namespace MinecraftClone.World_CS.Generation
 		{
 			Vector2 cpos = new Vector2(cx, cz);
 
-			_threads.AddRequest(() =>
+			if (Threaded)
+			{
+				_threads.AddRequest(() =>
+				{
+					if (LoadedChunks.ContainsKey(cpos))
+					{
+						LoadedChunks[cpos]?.Update();
+					}
+
+					return null;
+				});	
+			}
+			else
 			{
 				if (LoadedChunks.ContainsKey(cpos))
 				{
 					LoadedChunks[cpos]?.Update();
 				}
-
-				return null;
-			});
+			}
 		}
 
 		void enforce_render_distance(Vector2 currentChunkPos)
@@ -367,14 +378,6 @@ namespace MinecraftClone.World_CS.Generation
 		{
 			// Shuts down the old threadpool and saves the game state.
 			SaveAndQuit();
-
-			#if !Core
-				if ( GetTree()  != null)
-				{
-
-					GetTree().ChangeSceneTo(GD.Load<PackedScene>("res://Scenes/Spatial.tscn"));
-				}
-			#endif
 			return "Restarting...";
 			
 		}
@@ -416,13 +419,6 @@ namespace MinecraftClone.World_CS.Generation
 		            
 			}
 			kill_thread();
-
-		#if !Core
-			if (tree != null)
-			{
-				tree.Paused = false;
-			}
-		#endif
 		}
 	}
 }

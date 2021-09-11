@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using MinecraftClone.World_CS.Generation;
+using MCClone_Core.World_CS.Generation;
 using File = System.IO.File;
 using Path = System.IO.Path;
 
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Vector2 = System.Numerics.Vector2;
 
-namespace MinecraftClone.Utility.IO
+namespace MCClone_Core.Utility.IO
 {
     public class ReigonFile : BaseFileHandler
     {

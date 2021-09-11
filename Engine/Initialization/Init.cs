@@ -9,7 +9,7 @@ namespace Engine.Initialization
     {
         public static void InitEngine(int x, int y, int width, int height, string WindowName, Game gameclass)
         {
-            var window = InitGame(x, y, width, height, WindowName, gameclass);
+            WindowClass window = InitGame(x, y, width, height, WindowName, gameclass);
             window.handle.Run();
             
         }
@@ -18,7 +18,7 @@ namespace Engine.Initialization
         {
             Glfw GlfwHandle = Glfw.GetApi();
 
-            var options = WindowOptions.Default;
+            WindowOptions options = WindowOptions.Default;
             options.Size = new Vector2D<int>(width, height);
             options.Position = new Vector2D<int>(x, y);
             options.Title = WindowName;

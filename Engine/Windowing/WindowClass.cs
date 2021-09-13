@@ -65,9 +65,9 @@ namespace Engine.Windowing
         {
             GlHandle = GL.GetApi(handle);
             
-            //Shader = new Shader(GlHandle, @"Assets\shader.vert", @"Assets/shader.frag");
+            Shader = new Shader(GlHandle, @"Assets\shader.vert", @"Assets/shader.frag");
 
-            //Texture = new Texture(GlHandle, @"Assets\TextureAtlas.tga");
+            Texture = new Texture(GlHandle, @"Assets\TextureAtlas.tga");
 
             IInputContext context = handle.CreateInput();
             InputHandler.InitInputHandler(context);

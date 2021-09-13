@@ -32,38 +32,16 @@ namespace Engine.Input
 
         public static void PollInputs()
         {
-
-        }
-
-
-        // TODO: Port over to player class, moving away from hardcoded input handling
-        private static void OnMouseMove(IMouse mouse, Vector2 position)
-        {
-            float lookSensitivity = 0.1f;
-            if (LastMousePosition == default) { LastMousePosition = position; }
-            else
+            for (int i = 0; i < _keyboards.Count; i++)
             {
-                float xOffset = (position.X - LastMousePosition.X) * lookSensitivity;
-                float yOffset = (position.Y - LastMousePosition.Y) * lookSensitivity;
-                LastMousePosition = position;
-
-                if (Camera.MainCamera != null)
-                {
-                    Camera.MainCamera.Yaw += xOffset;
-                    Camera.MainCamera.Pitch -= yOffset;
-                    
-                    //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
-                    Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
-                
-                    Vector3 CameraDirection = Vector3.Zero;
-                    CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                    CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                    CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                    Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
-                }
-                
+                _keyboards[i].Poll();
+            }
+            for (int i = 0; i < _mice.Count; i++)
+            {
+                _mice[i].Poll();
             }
         }
+        
 
         public static Vector2 MousePos(int id)
         {
@@ -73,6 +51,11 @@ namespace Engine.Input
         public static Vector2 MouseDelta(int id)
         {
             return _mice[id].Delta;
+        }
+
+        public static void SetMouseMode(int id, CursorMode mode)
+        {
+            _mice[id].SetMouseMode(mode);
         }
         
         

@@ -92,7 +92,7 @@ namespace Engine.Renderable
         internal void Dispose()
         {
             Console.WriteLine("Mesh Deleted");
-            MeshReference.Dispose();
+            MeshReference?.Dispose();
         }
 
         public void QueueDeletion()

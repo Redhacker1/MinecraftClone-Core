@@ -12,6 +12,7 @@ using Engine.Physics;
 using Engine.Rendering;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
+using Silk.NET.Input;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
 
 namespace MCClone_Core.Player_CS
@@ -67,7 +68,7 @@ namespace MCClone_Core.Player_CS
 			FPCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,16f/9f, true );
 			//.FOV = 100;
 			#if Core
-
+			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			#else
 				SetPos(new Vector3(Translation.x, Translation.y, Translation.z));
 			#endif
@@ -97,6 +98,7 @@ namespace MCClone_Core.Player_CS
 		{
 			FPCam.Position = Pos;
 #if Core
+			Freelook();
 #else
 			if (!Engine.EditorHint)
 			{
@@ -192,7 +194,7 @@ namespace MCClone_Core.Player_CS
 					Vector3 norm = result.Normal;
 					
 					#if Core
-					// TODO: Implement Block breaking in way the homebrew allows.
+					// TODO: Implement Line tracing and debug lines before re-enabling this code!
 					#else
 					_on_Player_highlight_block(pos, norm, delta);
 
@@ -283,14 +285,22 @@ namespace MCClone_Core.Player_CS
 		{
 			if (!_paused && Camera.MainCamera != null)
 			{
-				Rotation.Y += (MathHelper.DegreesToRadians(-(InputHandler.MouseDelta(0).Z * MouseSensitivity)));
-				float xDelta = mouseEvent.Relative.y * MouseSensitivity;
+				float xOffset = InputHandler.MouseDelta(0).X * 0.1f;
+				float yOffset = InputHandler.MouseDelta(0).Y * 0.1f;
 
-				if (_cameraXRotation + xDelta > -90 && _cameraXRotation + xDelta < 90)
+				if (Camera.MainCamera != null)
 				{
-					_fpCam?.RotateX(MathHelper.DegreesToRadians(-xDelta));
-					Camdir.Y = _fpCam.RotationDegrees.x;
-					_cameraXRotation += xDelta;
+					Camera.MainCamera.Yaw += xOffset;
+					Camera.MainCamera.Pitch -= yOffset;
+                    
+					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
+					Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
+                
+					Vector3 CameraDirection = Vector3.Zero;
+					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
 				}
 			}
 		}

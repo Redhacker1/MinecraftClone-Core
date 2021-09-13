@@ -12,9 +12,10 @@ namespace Engine.Input.Default_Devices
         public Vector2 Delta;
         Vector2 LastPos;
         
-        Dictionary<MouseButton, bool> AllMouseKeys = new Dictionary<MouseButton, bool>();
-        Dictionary<MouseButton, bool> MouseKeysJustPressed = new Dictionary<MouseButton, bool>();
-        Dictionary<MouseButton, bool> MouseKeysJustReleased = new Dictionary<MouseButton, bool>();
+
+        readonly Dictionary<MouseButton, bool> AllMouseKeys = new();
+        readonly Dictionary<MouseButton, bool> _mouseKeysJustPressed = new();
+        readonly Dictionary<MouseButton, bool> MouseKeysJustReleased = new();
         
         
         IMouse InputDevice;
@@ -25,6 +26,19 @@ namespace Engine.Input.Default_Devices
             ID = id;
             InputDevice = mouse;
 
+            foreach (MouseButton buttons in mouse.SupportedButtons)
+            {
+                AllMouseKeys.Add(buttons, false);
+                _mouseKeysJustPressed.Add(buttons, false);
+                MouseKeysJustReleased.Add(buttons, false);
+            }
+            
+
+        }
+
+        internal void SetMouseMode(CursorMode mode)
+        {
+            InputDevice.Cursor.CursorMode = mode;
         }
 
         internal bool MouseButtonDown(MouseButton key)
@@ -46,6 +60,7 @@ namespace Engine.Input.Default_Devices
             foreach (MouseButton mouseButtons in InputDevice.SupportedButtons)
             {
                 bool KeyPressed = InputDevice.IsButtonPressed(mouseButtons);
+                
                 if (MouseKeysJustReleased[mouseButtons] == false && KeyPressed == true)
                 {
                     MouseKeysJustReleased[mouseButtons] = true;   

@@ -17,7 +17,13 @@ namespace Engine.Input.Default_Devices
             DeviceName = name;
             ID = id;
             keyboardDevice = keyboard;
-
+            
+            foreach (Key key in keyboardDevice.SupportedKeys)
+            {
+                AllKeys.Add(key, false);
+                KeysJustPressed.Add(key, false);
+                KeysJustReleased.Add(key, false);
+            }
         }
         
         

@@ -1,12 +1,17 @@
-﻿using System;
+﻿using Engine.Initialization;
 
 namespace Engine
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
-            Console.WriteLine("Hello World!");
+            Init.InitEngine(0,0, 1024,768, "BaseEngine", new GameTest());
         }
+    }
+
+    class GameTest : Game
+    {
+        
     }
 }

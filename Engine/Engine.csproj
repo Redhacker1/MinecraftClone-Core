@@ -1,15 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>9</LangVersion>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Silk.NET.Assimp" Version="2.8.0" />
       <PackageReference Include="Silk.NET.Input" Version="2.8.0" />
       <PackageReference Include="Silk.NET.OpenGL" Version="2.8.0" />
+      <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.8.0" />
       <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
     </ItemGroup>
 

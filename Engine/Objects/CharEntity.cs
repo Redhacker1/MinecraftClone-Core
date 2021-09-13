@@ -18,7 +18,7 @@ namespace Engine.Objects
     {
         public bool OnGround;
         public double EyeOffset = 1.6f;
-        public bool Noclip = true;
+        public bool Noclip = false;
 
         public Level Level;
 

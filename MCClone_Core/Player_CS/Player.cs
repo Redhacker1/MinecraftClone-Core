@@ -5,6 +5,7 @@ using Godot;
 
 using System;
 using System.Numerics;
+using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
@@ -277,26 +278,21 @@ namespace MCClone_Core.Player_CS
 			
 		}
 		
-#if !Core
-		public override void _Input(InputEvent @event)
+
+		public void Freelook()
 		{
-			if (!_paused)
+			if (!_paused && Camera.MainCamera != null)
 			{
-				if (@event is InputEventMouseMotion mouseEvent)
+				Rotation.Y += (MathHelper.DegreesToRadians(-(InputHandler.MouseDelta(0).Z * MouseSensitivity)));
+				float xDelta = mouseEvent.Relative.y * MouseSensitivity;
+
+				if (_cameraXRotation + xDelta > -90 && _cameraXRotation + xDelta < 90)
 				{
-					Rotation.Y += (MathHelper.DegreesToRadians(-(mouseEvent.Relative.x * MouseSensitivity)));
-					float xDelta = mouseEvent.Relative.y * MouseSensitivity;
-
-					if (_cameraXRotation + xDelta > -90 && _cameraXRotation + xDelta < 90)
-					{
-						_fpCam?.RotateX(MathHelper.DegreesToRadians(-xDelta));
-						Camdir.Y = _fpCam.RotationDegrees.x;
-						_cameraXRotation += xDelta;
-					}
-
+					_fpCam?.RotateX(MathHelper.DegreesToRadians(-xDelta));
+					Camdir.Y = _fpCam.RotationDegrees.x;
+					_cameraXRotation += xDelta;
 				}
 			}
-		}	
-#endif
+		}
 	}
 }

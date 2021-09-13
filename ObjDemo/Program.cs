@@ -41,7 +41,7 @@ namespace ObjDemo
         
 
             Mesh gameDemoMesh = new Mesh(obj.VertexList, obj.TextureList, this);
-            gameDemoMesh.QueueVAORegen();
+            gameDemoMesh.QueueVaoRegen();
         }
     }
 }

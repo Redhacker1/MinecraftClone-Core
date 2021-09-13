@@ -23,18 +23,13 @@ using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.World_CS.Generation
 {
-	#if(Core)
+
 	public class ChunkCs : GameObject
-	#else
-	public class ChunkCs : Spatial
-	#endif
 	{
-		Mesh Chunkreference;
+		Mesh _chunkreference;
 		//bool NeedsSaved;
 
 		public Vector2 ChunkCoordinate;
-
-		
 
 		public readonly Dictionary<Vector2, ChunkCs> NeighbourChunks = new Dictionary<Vector2, ChunkCs>();
 		
@@ -51,19 +46,6 @@ namespace MCClone_Core.World_CS.Generation
 		#endif
 
 
-#if !Core
-		static readonly Godot.Vector3[] V =
-		{
-			new Godot.Vector3(0, 0, 0), //0
-			new Godot.Vector3(1, 0, 0), //1
-			new Godot.Vector3(0, 1, 0), //2
-			new Godot.Vector3(1, 1, 0), //3
-			new Godot.Vector3(0, 0, 1), //4
-			new Godot.Vector3(1, 0, 1), //5
-			new Godot.Vector3(0, 1, 1), //6
-			new Godot.Vector3(1, 1, 1)  //7
-		};
-		#else
 		static readonly Vector3[] V =
 		{
 			new Vector3(0, 0, 0), //0
@@ -75,7 +57,6 @@ namespace MCClone_Core.World_CS.Generation
 			new Vector3(0, 1, 1), //6
 			new Vector3(1, 1, 1)  //7
 		};
-		#endif
 
 		static readonly int[] Top = {2, 3, 7, 6};
 		static readonly int[] Bottom = {0, 4, 5, 1};
@@ -128,12 +109,12 @@ namespace MCClone_Core.World_CS.Generation
 					_create_block(check, x, y, z, block, blocks, blocksNormals, uVs);	
 				}
 			}
-			Chunkreference?.Dispose();
+			_chunkreference?.QueueDeletion();
 			Mesh chunkmesh = new Mesh(blocks, uVs, this);
 
 
-			chunkmesh.QueueVAORegen();
-			Chunkreference = chunkmesh;
+			chunkmesh.QueueVaoRegen();
+			_chunkreference = chunkmesh;
 
 			// Do Render stuff here
 			ConsoleLibrary.DebugPrint(watch.ElapsedMilliseconds);
@@ -176,11 +157,8 @@ namespace MCClone_Core.World_CS.Generation
 			else
 			{
 				//GD.Print("External Chunk Write");
-				#if Core
-					Vector3 worldCoordinates = new Vector3(x + Pos.X, y, z + Pos.Z);
-				#else
-					Vector3 worldCoordinates = new Vector3(x + Translation.x, y, z + Translation.z);
-				#endif
+
+				Vector3 worldCoordinates = new Vector3(x + Pos.X, y, z + Pos.Z);
 				int localX = (int) (MathHelper.Modulo((float) Math.Floor(worldCoordinates.X), Dimension.X) + 0.5);
 				int localY = (int) (MathHelper.Modulo((float) Math.Floor(worldCoordinates.Y), Dimension.Y) + 0.5);
 				int localZ = (int) (MathHelper.Modulo((float) Math.Floor(worldCoordinates.Z), Dimension.Z) + 0.5);
@@ -211,11 +189,7 @@ namespace MCClone_Core.World_CS.Generation
 			};
 		}
 
-		#if Core
 		void _create_block(IReadOnlyList<bool> check, int x, int y, int z, byte block, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs)
-		#else
-		public void _create_block(bool[] check, int x, int y, int z, byte block, List<Godot.Vector3> blocks, List<Godot.Vector3> blocksNormals, List<Godot.Vector2>  uVs)
-		#endif
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			Vector3 coord = new Vector3(x, y, z);
@@ -237,46 +211,25 @@ namespace MCClone_Core.World_CS.Generation
 				if (check[5]) create_face(Front, ref coord, blockTypes[block].Front, blocks, blocksNormals, uVs);
 			}
 		}
-	#if Core
+
 		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs)
-	#else
-		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Godot.Vector2 textureAtlasOffset, List<Godot.Vector3> blocks, List<Godot.Vector3> blocksNormals, List<Godot.Vector2>  uVs)
-	#endif
 		{
-		#if Core
 			System.Numerics.Vector3 a = V[I[0]] + offset;
 			System.Numerics.Vector3 b = V[I[1]] + offset;
 			System.Numerics.Vector3 c = V[I[2]] + offset;
 			System.Numerics.Vector3 d = V[I[3]] + offset;
-		#else
-			Godot.Vector3 a = V[I[0]] + offset.CastToGodot();
-			Godot.Vector3 b = V[I[1]] + offset.CastToGodot();
-			Godot.Vector3 c = V[I[2]] + offset.CastToGodot();
-			Godot.Vector3 d = V[I[3]] + offset.CastToGodot();
-		#endif
 
-		#if Core
+
+
 			Vector2 uvOffset = new Vector2(
 				textureAtlasOffset.X / TextureAtlasSize.X,
 				textureAtlasOffset.Y / TextureAtlasSize.Y
 			);
-		#else
-			Godot.Vector2 uvOffset = new Godot.Vector2(
-				textureAtlasOffset.x / TextureAtlasSize.X,
-				textureAtlasOffset.y / TextureAtlasSize.Y
-			);
-		#endif
 
 			// the f means float, there is another type called double it defaults to that has better accuracy at the cost of being larger to store, but vector3 does not use it.
-		#if Core
 			Vector2 uvB = new Vector2(uvOffset.X, Sizey + uvOffset.Y);
 			Vector2 uvC = new Vector2(Sizex, Sizey) + uvOffset;
 			Vector2 uvD = new Vector2(Sizex + uvOffset.X, uvOffset.Y);
-			#else
-			Godot.Vector2 uvB = new Godot.Vector2(uvOffset.x, Sizey + uvOffset.y);
-			Godot.Vector2 uvC = new Godot.Vector2(Sizex, Sizey) + uvOffset;
-			Godot.Vector2 uvD = new Godot.Vector2(Sizex + uvOffset.x, uvOffset.y);
-		#endif
 
 
 			blocks.AddRange(new[] {a, b, c, a, c, d});
@@ -286,7 +239,6 @@ namespace MCClone_Core.World_CS.Generation
 			//blocksNormals.AddRange(NormalGenerate(a, b, c, d));
 		}
 		
-		#if Core
 		static IEnumerable<Vector3> NormalGenerate(Vector3 a, Vector3 b, Vector3 c, Vector3 d)
 		{
 			// HACK: Actually calculate normals as this only works for cubes
@@ -299,20 +251,6 @@ namespace MCClone_Core.World_CS.Generation
 			return new[] {normal, normal, normal, normal, normal, normal};
 
 		}
-		#else
-		static IEnumerable<Godot.Vector3> NormalGenerate(Godot.Vector3 a, Godot.Vector3 b, Godot.Vector3 c, Godot.Vector3 d)
-		{
-			// HACK: Actually calculate normals as this only works for cubes
-
-			Godot.Vector3 qr = c - a;
-			Godot.Vector3 qs = b - a;
-
-			Godot.Vector3 normal = new Godot.Vector3((qr.y * qs.z) - (qr.z * qs.y),(qr.z * qs.x) - (qr.x * qs.z), (qr.x * qs.y) - (qr.y * qs.x) );
-
-			return new[] {normal, normal, normal, normal, normal, normal};
-
-		}
-		#endif
 
 		public static int GetFlattenedDimension(int x, int y, int z)
 		{
@@ -351,8 +289,7 @@ namespace MCClone_Core.World_CS.Generation
 		protected override void OnFree()
 		{
 			base.OnFree();
-			Chunkreference?.ClearMesh(true);
-			Chunkreference?.RemoveVBO();
+			_chunkreference?.QueueDeletion();
 		}
 	}
 }

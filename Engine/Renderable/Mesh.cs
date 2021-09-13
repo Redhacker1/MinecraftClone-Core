@@ -9,10 +9,9 @@ using Silk.NET.OpenGL;
 
 namespace Engine.Renderable
 {
-    public class Mesh : IDisposable
+    public class Mesh
     {
-
-        public static Mutex MeshLock = new Mutex();
+        internal bool Deleted = false;
         List<Vector3> Verticies;
         List<Vector2> Uvs;
         List<uint> Indicies = new();
@@ -20,7 +19,7 @@ namespace Engine.Renderable
         public VertexArrayObject<float, uint> MeshReference;
         public static List<Mesh> Meshes = new();
         public static List<Mesh> OutofDateMeshes = new List<Mesh>();
-        public static List<VertexArrayObject<float, uint>> QueuedForRemoval = new();
+        public static List<Mesh> QueuedForRemoval = new();
         bool _hasIndicies = false;
         
 
@@ -34,37 +33,6 @@ namespace Engine.Renderable
 
         //Note: The order here does matter.
         public Matrix4x4 ViewMatrix => Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)objectReference.Rotation.X, (float)objectReference.Rotation.Y, (float)objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(objectReference.Pos);
-
-        
-
-        
-
-
-        public Mesh(List<Vector3>vertices, List<Vector2> Uvs,  List<uint> indicies)
-        {
-            _hasIndicies = true;
-            Verticies = vertices;
-            this.Uvs = Uvs;
-            Indicies = indicies;
-
-            MeshLock.WaitOne();
-            Meshes.Add(this);
-            MeshLock.ReleaseMutex();
-
-            objectReference = new MinimalObject();
-        }
-        
-        public Mesh(List<Vector3>vertices, List<Vector2> Uvs)
-        {
-            _hasIndicies = true;
-            Verticies = vertices;
-            this.Uvs = Uvs;
-            objectReference = new MinimalObject();
-            
-            MeshLock.WaitOne();
-            Meshes.Add(this);
-            MeshLock.ReleaseMutex();
-        }
 
         public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector2> uvs, MinimalObject bindingobject)
         {
@@ -97,15 +65,14 @@ namespace Engine.Renderable
             return values.ToArray();
         }
 
-        public void QueueVAORegen()
+        public void QueueVaoRegen()
         {
             OutofDateMeshes.Add(this);
         }
 
 
-        public VertexArrayObject<float, uint> RegenerateVao()
+        internal VertexArrayObject<float, uint> RegenerateVao()
         {
-            QueuedForRemoval.Add(MeshReference);
             uint[] indicies = Indicies.ToArray();
             float[] verticies = CreateVertexArray();
 
@@ -120,33 +87,18 @@ namespace Engine.Renderable
             
             return Vao;
         }
+        
 
-        public void RemoveVBO()
+        internal void Dispose()
         {
-            Meshes?.Remove(this);
-            //MeshReference.Dispose();
-            QueuedForRemoval.Add(MeshReference);
+            Console.WriteLine("Mesh Deleted");
+            MeshReference.Dispose();
         }
 
-
-
-        public void ClearMesh(bool ClearVAO = false)
+        public void QueueDeletion()
         {
-            _hasIndicies = false;
-            Indicies.Clear();
-            Verticies.Clear();
-
-            if (ClearVAO)
-            {
-                QueuedForRemoval.Add(MeshReference);
-            }
-        }
-
-        public void Dispose()
-        {
-            Meshes.Remove(this);
-            QueuedForRemoval.Add(MeshReference);
-            OutofDateMeshes.Remove(this);
+            Deleted = true;
+            QueuedForRemoval.Add(this);
         }
     }
 }

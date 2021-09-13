@@ -29,27 +29,27 @@ namespace MCClone_Core.Player_CS
             Vector3 CameraForward = Camera.MainCamera.Front;
             Vector3 CameraLeft = -Camera.MainCamera.Right;
 
-            if (InputHandler.KeyPressed(Key.W))
+            if (InputHandler.KeyboardKeyDown(0,Key.W))
             {
                 direction += CameraForward;
             }
-            if (InputHandler.KeyPressed(Key.S))
+            if (InputHandler.KeyboardKeyDown(0,Key.S))
             {
                 direction -= CameraForward;
             }
                 
-            if (InputHandler.KeyPressed(Key.A))
+            if (InputHandler.KeyboardKeyDown(0,Key.A))
             {
                 direction -= CameraLeft;
             }
                 
-            if (InputHandler.KeyPressed(Key.D))
+            if (InputHandler.KeyboardKeyDown(0,Key.D))
             {
                 direction += CameraLeft;
             }
 
 
-            if (InputHandler.KeyPressed(Key.Space)&& pawn.OnGround)
+            if (InputHandler.KeyboardKeyDown(0,Key.Space)&& pawn.OnGround)
             {
                 _velocity.Y = 6f * delta;
             }
@@ -91,7 +91,7 @@ namespace MCClone_Core.Player_CS
             }
             else
             {
-                if (InputHandler.KeyPressed(Key.Space))
+                if (InputHandler.KeyboardKeyDown(0,Key.Space))
                 {
                     _velocity.Y = 6f * delta;
                 }

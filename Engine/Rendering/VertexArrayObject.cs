@@ -10,15 +10,10 @@ namespace Engine.Rendering
         where TVertexType : unmanaged
         where TIndexType : unmanaged
     {
-        private uint _handle;
+        public readonly uint _handle;
         public readonly uint Vertexcount;
         private GL _gl = WindowClass.GlHandle;
         Mesh meshinstance;
-
-        /// <summary>
-        /// If VAO is properly bound this will be true.
-        /// </summary>
-        public bool validVAO = false;
 
         public Matrix4x4 ModelMatrix
         {
@@ -37,18 +32,13 @@ namespace Engine.Rendering
         {
 
             _handle = _gl.GenVertexArray();
-            Console.WriteLine(_handle);
             Bind();
-
-            vertexBufferObject = vbo;
             vbo.Bind();
-            indexBufferObject = ebo;
             ebo.Bind();
-            Unbind();
-            validVAO = true;
-            
+            vertexBufferObject = vbo;
+            indexBufferObject = ebo;
             Vertexcount = vbo.Length;
-
+           
         }
         
         public VertexArrayObject(GL gl, BufferObject<TVertexType> vbo, BufferObject<TIndexType> ebo, Mesh mesh)
@@ -60,8 +50,6 @@ namespace Engine.Rendering
             Bind();
             vbo.Bind();
             ebo.Bind();
-            Unbind();
-            validVAO = true;
 
             meshinstance = mesh;
             Vertexcount = vbo.Length;
@@ -79,16 +67,11 @@ namespace Engine.Rendering
         {
             _gl.BindVertexArray(_handle);
         }
-        
-        public void Unbind()
-        {
-            _gl.DisableVertexAttribArray(_handle);
-        }
 
-        
+
         public void Dispose()
         {
-            validVAO = false;
+            Console.WriteLine(_handle);
             _gl.DeleteVertexArray(_handle);
             indexBufferObject.Dispose();
             vertexBufferObject.Dispose();

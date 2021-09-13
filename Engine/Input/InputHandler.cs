@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Engine.Input.Default_Devices;
 using Engine.MathLib;
 using Engine.Rendering;
 using Silk.NET.Input;
@@ -9,114 +10,34 @@ namespace Engine.Input
 {
     public class InputHandler
     {
-        internal static IKeyboard KeyboardHandle;
-        public static IMouse MouseHandle;
+        static List<Keyboard> _keyboards = new List<Keyboard>();
+        static List<Mouse> _mice = new List<Mouse>();
+        static IInputContext _context;
 
-        static List<IInputDevice> AllInputDevices = new List<IInputDevice>();
-
-        static Dictionary<Key, bool> AllKeys = new Dictionary<Key, bool>();
-        static Dictionary<Key, bool> KeysJustPressed = new Dictionary<Key, bool>();
-        static Dictionary<Key, bool> KeysJustReleased = new Dictionary<Key, bool>();
-        
-        static Dictionary<Button, bool> AllButtons = new Dictionary<Button, bool>();
-        static Dictionary<Button, bool> ButtonJustPressed = new Dictionary<Button, bool>();
-        static Dictionary<Button, bool> ButtonJustReleased = new Dictionary<Button, bool>();
-        
-        
-        static Dictionary<MouseButton, bool> AllMouseKeys = new Dictionary<MouseButton, bool>();
-        static Dictionary<MouseButton, bool> MouseKeysJustPressed = new Dictionary<MouseButton, bool>();
-        static Dictionary<MouseButton, bool> MouseKeysJustReleased = new Dictionary<MouseButton, bool>();
-
-        public static void initKeyboardHandler(IInputContext inputContext)
+        public static void InitInputHandler(IInputContext inputContext)
         {
-            AllInputDevices.AddRange(inputContext.Joysticks);
-            AllInputDevices.AddRange(inputContext.Mice);
-            AllInputDevices.AddRange(inputContext.OtherDevices);
-
-            foreach (IGamepad Gamepad in inputContext.Gamepads)
+            _context = inputContext;
+            for (int i = 0; i < inputContext.Keyboards.Count; i++)
             {
-                foreach (Button button in Gamepad.Buttons)
-                {
-                    bool ButtonPressed = button.Pressed;
-                    AllButtons[button] = ButtonPressed;
-                    ButtonJustPressed[button] =  ButtonPressed;
-                    ButtonJustPressed[button] = ButtonPressed;
-                }
-                
-                
+                _keyboards.Add(new Keyboard(i, inputContext.Keyboards[i]));
             }
             
-            
-            foreach (IKeyboard Keyboard in inputContext.Keyboards)
+            for (int i = 0; i < inputContext.Mice.Count; i++)
             {
-                foreach (Key Keys in Keyboard.SupportedKeys)
-                {
-                    bool KeyPressed = KeyboardHandle.IsKeyPressed(Keys);
-                    AllKeys[Keys] = KeyPressed;
-                    KeysJustPressed[Keys] =  KeyPressed;
-                    KeysJustReleased[Keys] = KeyPressed;
-                }
+                _mice.Add(new Mouse(i, inputContext.Mice[i]));
             }
-            
-            foreach (IMouse Mouse in inputContext.Mice)
-            {
-                Mouse.IsButtonPressed(0);
-                Mouse.Cursor.CursorMode = CursorMode.Raw;
-                Mouse.MouseMove += OnMouseMove;
-                foreach (MouseButton mouseButtons in Mouse.SupportedButtons)
-                {
-                    Console.WriteLine(mouseButtons);
-                    bool KeyPressed = Mouse.IsButtonPressed(mouseButtons);
-                    AllMouseKeys[mouseButtons] = KeyPressed;
-                    MouseKeysJustPressed[mouseButtons] =  KeyPressed;
-                    MouseKeysJustReleased[mouseButtons] = KeyPressed;
-                }
-                
-                
-            }
-            
+
 
         }
 
-        public static void PollKeyboard()
+        public static void PollInputs()
         {
-            foreach (Key CurrentKey in AllKeys.Keys)
-            {
-                bool KeyPressed = KeyboardHandle.IsKeyPressed(CurrentKey);
 
-                if (KeysJustPressed[CurrentKey] == false && KeyPressed == true)
-                {
-                    KeysJustPressed[CurrentKey] = true;   
-                }
-                else if (KeyPressed == false && AllKeys[CurrentKey])
-                {
-                    KeysJustReleased[CurrentKey] = false;
-                }
-                else
-                {
-                    KeysJustPressed[CurrentKey] = false;   
-                }
-                AllKeys[CurrentKey] = KeyPressed;
-            }
         }
 
-        public static bool KeyPressed(Key DesiredKey)
-        {
-            return AllKeys[DesiredKey];
-        }
-        
-        public static bool KeyJustPressed(Key DesiredKey)
-        {
-            return KeysJustPressed[DesiredKey];
-        }
-        
-        public static bool KeyJustReleased(Key DesiredKey)
-        {
-            return KeysJustPressed[DesiredKey] == false && AllKeys[DesiredKey] == false;
-        }
-        
-        
-        private static unsafe void OnMouseMove(IMouse mouse, Vector2 position)
+
+        // TODO: Port over to player class, moving away from hardcoded input handling
+        private static void OnMouseMove(IMouse mouse, Vector2 position)
         {
             float lookSensitivity = 0.1f;
             if (LastMousePosition == default) { LastMousePosition = position; }
@@ -144,8 +65,49 @@ namespace Engine.Input
             }
         }
 
-        public static Vector2 LastMousePosition { get; set; }
+        public static Vector2 MousePos(int id)
+        {
+            return _mice[id].Position;
+        }
+        
+        public static Vector2 MouseDelta(int id)
+        {
+            return _mice[id].Delta;
+        }
+        
+        
 
-        Action<InputDevice, Key> Keyboard_Onkeydown;
+        /// <summary>
+        /// Gets if the key is currently pressed or "down" on the desired keyboard
+        /// </summary>
+        /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
+        /// <param name="desiredKey">Key you are testing for</param>
+        /// <returns>Whether the key is currently pressed</returns>
+        public static bool KeyboardKeyDown(int keyboard, Key desiredKey)
+        {
+            return _keyboards[keyboard].KeyPressed(desiredKey);
+        }
+        
+        /// <summary>
+        /// Gets if the key was just pressed on the desired keyboard
+        /// </summary>
+        /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
+        /// <param name="desiredKey">Key you are testing for</param>
+        /// <returns>Whether the key was just pressed</returns>
+        public static bool KeyboardJustKeyPressed(int keyboard, Key desiredKey)
+        {
+           return _keyboards[keyboard].KeyJustPressed(desiredKey);
+        }
+        
+        /// <summary>
+        /// Gets if the key was just released on the desired keyboard
+        /// </summary>
+        /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
+        /// <param name="desiredKey">Key you are testing for</param>
+        /// <returns>Whether the key was just released</returns>
+        public static bool KeyboardJustKeyReleased(int keyboard, Key desiredKey)
+        {
+            return _keyboards[keyboard].KeyJustReleased(desiredKey);
+        }
     }
 }

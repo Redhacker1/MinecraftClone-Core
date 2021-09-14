@@ -37,7 +37,7 @@ namespace Engine.Renderable
         public readonly Quaternion Rotation  = Quaternion.Identity;
 
         //Note: The order here does matter.
-        public Matrix4x4 ViewMatrix => Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)objectReference.Rotation.X, (float)objectReference.Rotation.Y, (float)objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(objectReference.Pos);
+        public Matrix4x4 ViewMatrix => Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)objectReference.Rotation.X, (float)objectReference.Rotation.Y, (float)objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(objectReference.Pos -Camera.MainCamera.Position);
 
         public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector2> uvs, MinimalObject bindingobject)
         {

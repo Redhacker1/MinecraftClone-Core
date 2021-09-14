@@ -43,25 +43,9 @@ namespace Engine.Rendering
             Zoom = Math.Clamp(Zoom - zoomAmount, 1.0f, 45f);
         }
 
-        public void ModifyDirection(float xOffset, float yOffset)
-        {
-            Yaw += xOffset;
-            Pitch -= yOffset;
-
-            //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
-            Pitch = Math.Clamp(Pitch, -89f, 89f);
-
-            Vector3 cameraDirection = Vector3.Zero;
-            cameraDirection.X = (float)Math.Cos(MathHelper.DegreesToRadians(Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Pitch));
-            cameraDirection.Y = (float)Math.Sin(MathHelper.DegreesToRadians(Pitch));
-            cameraDirection.Z = (float)Math.Sin(MathHelper.DegreesToRadians(Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Pitch));
-
-            Front = Vector3.Normalize(cameraDirection);
-        }
-
         public Matrix4x4 GetViewMatrix()
         {
-            return Matrix4x4.CreateLookAt(Position, (Vector3)Position + Front, Up);
+            return Matrix4x4.CreateLookAt(Vector3.Zero, Front, Up);
         }
 
         public Matrix4x4 GetProjectionMatrix()
@@ -71,7 +55,7 @@ namespace Engine.Rendering
 
         public float GetFOV()
         {
-            return MathHelper.DegreesToRadians(90);
+            return MathHelper.DegreesToRadians(110);
         }
     }
 }

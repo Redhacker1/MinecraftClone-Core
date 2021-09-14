@@ -87,7 +87,6 @@ namespace MCClone_Core.World_CS.Generation
 			
 		}
 		
-		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void Update()
 		{
 			List<System.Numerics.Vector3> blocks = new();
@@ -96,7 +95,6 @@ namespace MCClone_Core.World_CS.Generation
 
 			//Making use of multidimensional arrays allocated on creation
 			
-			Stopwatch watch = Stopwatch.StartNew();
 			for (int z = 0; z < Dimension.Z; z++)
 			for (int y = 0; y < Dimension.Y; y++)
 			for (int x = 0; x < Dimension.X; x++)
@@ -109,15 +107,13 @@ namespace MCClone_Core.World_CS.Generation
 					_create_block(check, x, y, z, block, blocks, blocksNormals, uVs);	
 				}
 			}
+			
+			// Do Render stuff here
 			_chunkreference?.QueueDeletion();
 			Mesh chunkmesh = new Mesh(blocks, uVs, this);
-
-
 			chunkmesh.QueueVaoRegen();
 			_chunkreference = chunkmesh;
-
-			// Do Render stuff here
-			ConsoleLibrary.DebugPrint(watch.ElapsedMilliseconds);
+			
 
 		}
 

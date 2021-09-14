@@ -25,7 +25,7 @@ namespace Engine.Windowing
         Game gameinstance;
         Glfw GlfwHandle;
         static public GL GlHandle;
-        public IWindow handle;
+        internal static IWindow Handle;
         static IKeyboard KeyboardHandle;
         
         //Used to track change in mouse movement to allow for moving of the Camera
@@ -33,43 +33,36 @@ namespace Engine.Windowing
         
         DebugProc messageHandler = ((source, type, id, severity, length, message, param) =>
         {
-            if (severity ==GLEnum.DebugSeverityHigh)
-            {
-                Console.WriteLine(Marshal.PtrToStringAnsi(message,  length + 1));
-                // Useful if you want to pause after message is printed.
-                int a = 0;
-                //Only Really useful if we cannot debug the application, otherwise, not worth using
-                //TODO: Move Logging and console system over to engine, so we can log problems like this! (Console requires UI to be implemented and preferably an actual input system put in place)
-                #if !DEBUG 
-                //Console.WriteLine(Environment.StackTrace);
-                #endif
-            }
+            Console.WriteLine(Marshal.PtrToStringAnsi(message,  length + 1));
+            // Useful if you want to pause after message is printed.
+            int a = 0;
             //Environment.Exit(1);
         });
         
         public WindowClass(Glfw GLFWHandle, IWindow windowHandle, Game GameClass)
         {
             GlfwHandle = GLFWHandle;
-            handle = windowHandle;
+            Handle = windowHandle;
 
             //Assign events.
-            handle.Update += Update;
-            handle.Render += OnRender;
-            handle.Load += OnLoad;
-            handle.Closing += OnClose;
+            Handle.Update += Update;
+            Handle.Render += OnRender;
+            Handle.Load += OnLoad;
+            Handle.Closing += OnClose;
 
             gameinstance = GameClass;
         }
 
         void OnLoad()
         {
-            GlHandle = GL.GetApi(handle);
+            GlHandle = GL.GetApi(Handle);
+            //GlHandle.DebugMessageCallback(messageHandler, new ReadOnlySpan<int>());
             
             Shader = new Shader(GlHandle, @"Assets\shader.vert", @"Assets/shader.frag");
 
             Texture = new Texture(GlHandle, @"Assets\TextureAtlas.tga");
 
-            IInputContext context = handle.CreateInput();
+            IInputContext context = Handle.CreateInput();
             InputHandler.InitInputHandler(context);
             
             
@@ -83,7 +76,6 @@ namespace Engine.Windowing
 
         void OnRender(double time)
         {
-            Mesh mesh = null;
             //Console.WriteLine("Running");
 
             // = time;
@@ -92,8 +84,7 @@ namespace Engine.Windowing
             GlHandle.Enable(EnableCap.CullFace);
             GlHandle.Enable(EnableCap.DebugOutput);
             GlHandle.DepthFunc(DepthFunction.Lequal);
-            GlHandle.Enable(GLEnum.DebugOutputSynchronous);
-            GlHandle.DebugMessageCallback(messageHandler, new ReadOnlySpan<int>());
+            //GlHandle.Enable(GLEnum.DebugOutputSynchronous);
 
 
 
@@ -104,53 +95,41 @@ namespace Engine.Windowing
                 Shader?.SetUniform("uProjection", Camera.MainCamera.GetProjectionMatrix());
             }
 
-            for (int i = 0; i < Mesh.OutofDateMeshes.Count; i++)
-            {
-
-                mesh = Mesh.OutofDateMeshes[i];
-
-                if (mesh != null)
-                {
-                    mesh.RegenerateVao();
-                    Mesh.OutofDateMeshes.Remove(mesh);
-                }
-            }
-            
-            // FIXME: This system is not thread safe!
-            for (int i = 0; i < Mesh.QueuedForRemoval.Count; i++)
-            {
-                Mesh meshdata = Mesh.QueuedForRemoval[i];
-                if (meshdata != null)
-                {
-                    meshdata?.Dispose();
-                    Mesh.Meshes.Remove(meshdata);
-                }
-
-                Mesh.QueuedForRemoval.Remove(meshdata);
-            }
-            
-            //Console.WriteLine("Rendering models");
-            //Console.WriteLine($"{Mesh.Meshes.Count} meshes to draw");
             for (int meshindex = 0; meshindex < Mesh.Meshes.Count; meshindex++)
             {
-
-
-                GlHandle.CullFace(CullFaceMode.Front);
-                mesh = Mesh.Meshes[meshindex];
-                Texture?.Bind();
-                Shader?.Use();
-                
-                
-                if (mesh?.Deleted == false && mesh?.MeshReference != null)
+                var mesh = Mesh.Meshes[meshindex];
+                if (mesh != null)
                 {
-                    mesh.MeshReference.Bind();
-                    Shader?.SetUniform("uModel", mesh.ViewMatrix);
-                    Shader?.SetUniform("uTexture0", 0);
-                    GlHandle.DrawArrays(GLEnum.Triangles, 0, mesh.MeshReference.Vertexcount);
-                }
+                    if (mesh.ActiveState == MeshState.Delete)
+                    {
+                        mesh.Dispose();
+                        Mesh.Meshes.Remove(mesh);
+                    }
+                    else if (mesh.ActiveState == MeshState.Dirty)
+                    {
+                        mesh.MeshReference?.Dispose();
+                        mesh.MeshReference = mesh.RegenerateVao();
+                        mesh.ActiveState = MeshState.Normal;
+                    }
+                    if(mesh.ActiveState == MeshState.Normal)
+                    {
+                        GlHandle.CullFace(CullFaceMode.Front);
+                        Texture?.Bind();
+                        Shader?.Use();
                 
+                
+                        if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Normal)
+                        {
+                            mesh.MeshReference.Bind();
+                            Shader?.SetUniform("uModel", mesh.ViewMatrix);
+                            Shader?.SetUniform("uTexture0", 0);
+                            GlHandle.DrawArrays(GLEnum.Triangles, 0, mesh.MeshReference.Vertexcount);
+                        }    
+                    }
+                    
+                }
             }
-            
+
             //TODO: Layered UI/PostProcess
             
 
@@ -182,7 +161,6 @@ namespace Engine.Windowing
                 {
                     
                     // Maybe use a deferred deletion scheme?
-                    //ConsoleLibrary.DebugPrint("TODO: FIXME");
                 }
             }
 

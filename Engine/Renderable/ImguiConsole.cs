@@ -1,6 +1,9 @@
-﻿using Engine.Windowing;
+﻿using Engine.Input;
+using Engine.Windowing;
 using ImGuiNET;
 using Silk.NET.OpenGL.Extensions.ImGui;
+using Silk.NET.Windowing;
+
 namespace Engine.Renderable
 {
     public class ImGUI
@@ -11,7 +14,9 @@ namespace Engine.Renderable
             ImGui.CreateContext();
             io = ImGui.GetIO();
             ImGui.StyleColorsDark();
-            
+            ImGuiController controller =
+                new ImGuiController(WindowClass.GlHandle, WindowClass.Handle, InputHandler._context);
+
         }
         
         void TestGUI()

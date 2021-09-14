@@ -9,18 +9,23 @@ using Silk.NET.OpenGL;
 
 namespace Engine.Renderable
 {
+    internal enum MeshState
+    {
+        Normal,
+        Dirty,
+        Delete
+    }
     public class Mesh
     {
-        internal bool Deleted = false;
         List<Vector3> Verticies;
         List<Vector2> Uvs;
         List<uint> Indicies = new();
 
-        public VertexArrayObject<float, uint> MeshReference;
+        internal VertexArrayObject<float, uint> MeshReference;
         public static List<Mesh> Meshes = new();
-        public static List<Mesh> OutofDateMeshes = new List<Mesh>();
-        public static List<Mesh> QueuedForRemoval = new();
-        bool _hasIndicies = false;
+
+        internal MeshState ActiveState = MeshState.Dirty; 
+        bool _hasIndices = false;
         
 
         public Engine.MathLib.DoublePrecision_Numerics.Vector3 Position => objectReference.Pos;
@@ -67,7 +72,7 @@ namespace Engine.Renderable
 
         public void QueueVaoRegen()
         {
-            OutofDateMeshes.Add(this);
+            ActiveState = MeshState.Dirty;
         }
 
 
@@ -83,22 +88,18 @@ namespace Engine.Renderable
             Vao?.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 5, 0);
             Vao?.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 5, 3);
             
-            MeshReference = Vao;
-            
             return Vao;
         }
         
 
         internal void Dispose()
         {
-            Console.WriteLine("Mesh Deleted");
             MeshReference?.Dispose();
         }
 
         public void QueueDeletion()
         {
-            Deleted = true;
-            QueuedForRemoval.Add(this);
+            ActiveState = MeshState.Delete;
         }
     }
 }

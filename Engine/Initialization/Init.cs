@@ -10,7 +10,7 @@ namespace Engine.Initialization
         public static void InitEngine(int x, int y, int width, int height, string WindowName, Game gameclass)
         {
             WindowClass window = InitGame(x, y, width, height, WindowName, gameclass);
-            window.handle.Run();
+            WindowClass.Handle.Run();
             
         }
 

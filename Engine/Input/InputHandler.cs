@@ -12,7 +12,7 @@ namespace Engine.Input
     {
         static List<Keyboard> _keyboards = new List<Keyboard>();
         static List<Mouse> _mice = new List<Mouse>();
-        static IInputContext _context;
+        static internal IInputContext _context;
 
         public static void InitInputHandler(IInputContext inputContext)
         {

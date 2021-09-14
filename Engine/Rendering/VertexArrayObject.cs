@@ -46,7 +46,6 @@ namespace Engine.Rendering
             _gl = gl;
             
             _handle = _gl.GenVertexArray();
-            Console.WriteLine(_handle);
             Bind();
             vbo.Bind();
             ebo.Bind();
@@ -71,7 +70,6 @@ namespace Engine.Rendering
 
         public void Dispose()
         {
-            Console.WriteLine(_handle);
             _gl.DeleteVertexArray(_handle);
             indexBufferObject.Dispose();
             vertexBufferObject.Dispose();

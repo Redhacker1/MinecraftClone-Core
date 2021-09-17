@@ -18,7 +18,7 @@ namespace Engine.Objects
     {
         public bool OnGround;
         public double EyeOffset = 1.6f;
-        public bool Noclip = false;
+        public bool Noclip = true;
 
         public Level Level;
 
@@ -30,7 +30,7 @@ namespace Engine.Objects
             Vector3 o = _a;
             
             
-            List<Aabb> aabbs = Level.GetAabbs(0, AABB.Expand(_a));
+            List<Aabb> aabbs = Level?.GetAabbs(0, AABB.Expand(_a));
             if (Noclip)
             {
                 aabbs = new List<Aabb>();
@@ -56,14 +56,19 @@ namespace Engine.Objects
 
             OnGround = Math.Abs(o.Y - _a.Y) > double.Epsilon && o.Y < 0;
 
-            if (Math.Abs(o.X - _a.X) > double.Epsilon) PosDelta.X = 0;
-            if (Math.Abs(o.Y - _a.Y) > double.Epsilon) PosDelta.Y = 0;
-            if (Math.Abs(o.Z - _a.Z) > double.Epsilon) PosDelta.Z = 0;
+            if (Math.Abs(o.X - _a.X) > float.Epsilon) PosDelta.X = 0;
+            if (Math.Abs(o.Y - _a.Y) > float.Epsilon) PosDelta.Y = 0;
+            if (Math.Abs(o.Z - _a.Z) > float.Epsilon) PosDelta.Z = 0;
 
             Pos.X = (AABB.MinLoc.X + AABB.MaxLoc.X) / 2.0f;
             Pos.Y = (AABB.MinLoc.Y + EyeOffset);
             Pos.Z = (AABB.MinLoc.Z + AABB.MaxLoc.Z) / 2.0f;
             
+        }
+
+        public void SetLevel(Level desiredLevel)
+        {
+            Level = desiredLevel;
         }
 
         public CharacterEntity(Vector3 position, Vector2 rotation, Level level)
@@ -76,6 +81,16 @@ namespace Engine.Objects
             AABB = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
             Level = level;
+        }
+        
+        public CharacterEntity()
+        {
+            
+            double w = AABBWidth / 2.0;
+            double h = AABBHeight / 2.0;
+            
+            AABB = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            
         }
 
         public virtual void MoveRelative(double dx, double dz, double speed)

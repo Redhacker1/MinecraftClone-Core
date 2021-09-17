@@ -14,7 +14,6 @@ using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
-// Dependencies used Regardless
 using Random = Engine.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation
@@ -91,7 +90,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 		}
 
-		public override void _PhysicsProcess(float delta)
+		public override void _PhysicsProcess(double delta)
 		{
 			if (!Threaded)
 			{

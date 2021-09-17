@@ -1,8 +1,4 @@
-﻿#if FN_USE_DOUBLES
-using FN_DECIMAL = System.Double;
-#else
-
-#endif
+﻿
 using System;
 
 namespace MCClone_Core.World_CS.Generation.Noise
@@ -39,9 +35,9 @@ namespace MCClone_Core.World_CS.Generation.Noise
         NoiseUtil _mCellularNoiseUtilLookup;
         int _mCellularDistanceIndex0;
         int _mCellularDistanceIndex1 = 1;
-        float _mCellularJitter = 0.45f;
+        double _mCellularJitter = 0.45;
 
-        float _mGradientPerturbAmp = (float)1.0;
+        double _mGradientPerturbAmp = 1.0;
 
         public NoiseUtil(long seed = 1337)
         {
@@ -292,7 +288,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
         
         static int FastFloor(double f) { return f >= 0 ? (int)f : (int)f - 1; }
         
-        static int FastRound(double f) { return f >= 0 ? (int)(f + (float)0.5) : (int)(f - (float)0.5); }
+        static int FastRound(double f) { return f >= 0 ? (int)(f + 0.5) : (int)(f - 0.5); }
         
         static double Lerp(double a, double b, double t) { return a + t * (b - a); }
 
@@ -446,20 +442,17 @@ namespace MCClone_Core.World_CS.Generation.Noise
         }
 
 
-        public float GetNoise(float x, float y, float z)
-        {
-            return (float)GetNoise(x, y, (double)z);
-        }
+
         double GetNoise(double x, double y, double z)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;;
-            z *= (float)_mFrequency;;
+            x *= _mFrequency;
+            y *= _mFrequency;;
+            z *= _mFrequency;;
 
             switch (_mNoiseType)
             {
                 case NoiseType.Value:
-                    return (float) SingleValue(_mSeed, x, y, z);
+                    return SingleValue(_mSeed, x, y, z);
 
                 case NoiseType.ValueFractal:
                     switch (_mFractalType)
@@ -527,7 +520,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
                     return GetWhiteNoise(x, y, z);
 
                 case NoiseType.Cubic:
-                    return (float) SingleCubic(_mSeed, x, y, z);
+                    return  SingleCubic(_mSeed, x, y, z);
 
                 case NoiseType.CubicFractal:
                     switch (_mFractalType)
@@ -549,11 +542,6 @@ namespace MCClone_Core.World_CS.Generation.Noise
             }
         }
 
-        public float GetNoise(float x, float y)
-        {
-            return (float)GetNoise(x, (double)y);
-        }
-
         double GetNoise(double x, double y)
         {
             x *= _mFrequency;;
@@ -562,19 +550,19 @@ namespace MCClone_Core.World_CS.Generation.Noise
             switch (_mNoiseType)
             {
                 case NoiseType.Value:
-                    return (float) SingleValue(_mSeed, x, y);
+                    return  SingleValue(_mSeed, x, y);
 
                 case NoiseType.ValueFractal:
                     switch (_mFractalType)
                     {
                         case FractalType.Fbm:
-                            return (float) SingleValueFractalFbm(x, y);
+                            return  SingleValueFractalFbm(x, y);
 
                         case FractalType.Billow:
-                            return (float) SingleValueFractalBillow(x, y);
+                            return  SingleValueFractalBillow(x, y);
 
                         case FractalType.RigidMulti:
-                            return (float) SingleValueFractalRigidMulti(x, y);
+                            return  SingleValueFractalRigidMulti(x, y);
 
                         default:
                             return 0;
@@ -621,7 +609,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
                         case CellularReturnType.CellValue:
                         case CellularReturnType.NoiseLookup:
                         case CellularReturnType.Distance:
-                            return (float) SingleCellular(x, y);
+                            return  SingleCellular(x, y);
 
                         default:
                             return SingleCellular2Edge(x, y);
@@ -657,68 +645,68 @@ namespace MCClone_Core.World_CS.Generation.Noise
         {
             long i = BitConverter.DoubleToInt64Bits(f);
 
-            return (int)(i ^ (i >> 32));
+            return (int)(i ^ (i >> 63));
         }
 
-        public float GetWhiteNoise(float x, float y, float z, float w)
+        public double GetWhiteNoise(double x, double y, double z, float w)
         {
             int xi = FloatCast2Int(x);
             int yi = FloatCast2Int(y);
             int zi = FloatCast2Int(z);
             int wi = FloatCast2Int(w);
 
-            return (float) ValCoord4D(_mSeed, xi, yi, zi, wi);
+            return  ValCoord4D(_mSeed, xi, yi, zi, wi);
         }
 
-        public float GetWhiteNoise(double x, double y, double z)
+        public double GetWhiteNoise(double x, double y, double z)
         {
             int xi = FloatCast2Int(x);
             int yi = FloatCast2Int(y);
             int zi = FloatCast2Int(z);
 
-            return (float) ValCoord3D(_mSeed, xi, yi, zi);
+            return  ValCoord3D(_mSeed, xi, yi, zi);
         }
 
-        public float GetWhiteNoise(double x, double y)
+        public double GetWhiteNoise(double x, double y)
         {
             int xi = FloatCast2Int(x);
             int yi = FloatCast2Int(y);
 
-            return (float) ValCoord2D(_mSeed, xi, yi);
+            return  ValCoord2D(_mSeed, xi, yi);
         }
 
-        public float GetWhiteNoiseInt(int x, int y, int z, int w)
+        public double GetWhiteNoiseInt(int x, int y, int z, int w)
         {
-            return (float) ValCoord4D(_mSeed, x, y, z, w);
+            return  ValCoord4D(_mSeed, x, y, z, w);
         }
 
-        public float GetWhiteNoiseInt(int x, int y, int z)
+        public double GetWhiteNoiseInt(int x, int y, int z)
         {
-            return (float) ValCoord3D(_mSeed, x, y, z);
+            return  ValCoord3D(_mSeed, x, y, z);
         }
 
-        public float GetWhiteNoiseInt(int x, int y)
+        public double GetWhiteNoiseInt(int x, int y)
         {
-            return (float) ValCoord2D(_mSeed, x, y);
+            return  ValCoord2D(_mSeed, x, y);
         }
 
         // Value Noise
-        public float GetValueFractal(float x, float y, float z)
+        public double GetValueFractal(double x, double y, double z)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
-            z *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
+            z *= _mFrequency;
 
             switch (_mFractalType)
             {
                 case FractalType.Fbm:
-                    return (float) SingleValueFractalFbm(x, y, z);
+                    return  SingleValueFractalFbm(x, y, z);
 
                 case FractalType.Billow:
-                    return (float) SingleValueFractalBillow(x, y, z);
+                    return  SingleValueFractalBillow(x, y, z);
 
                 case FractalType.RigidMulti:
-                    return (float) SingleValueFractalRigidMulti(x, y, z);
+                    return  SingleValueFractalRigidMulti(x, y, z);
 
                 default:
                     return 0;
@@ -779,12 +767,12 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum -= (1 - Math.Abs(SingleValue(++seed, x, y, z))) * amp;
             }
 
-            return (float)sum;
+            return sum;
         }
 
-        public float GetValue(float x, float y, float z)
+        public double GetValue(double x, double y, double z)
         {
-            return (float) SingleValue(_mSeed, x * (float)_mFrequency, y * (float)_mFrequency, z * (float)_mFrequency);
+            return  SingleValue(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency);
         }
 
         double SingleValue(long seed, double x, double y, double z)
@@ -830,21 +818,21 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return Lerp(yf0, yf1, zs);
         }
 
-        public float GetValueFractal(float x, float y)
+        public double GetValueFractal(double x, double y)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
 
             switch (_mFractalType)
             {
                 case FractalType.Fbm:
-                    return (float) SingleValueFractalFbm(x, y);
+                    return  SingleValueFractalFbm(x, y);
 
                 case FractalType.Billow:
-                    return (float) SingleValueFractalBillow(x, y);
+                    return  SingleValueFractalBillow(x, y);
 
                 case FractalType.RigidMulti:
-                    return (float) SingleValueFractalRigidMulti(x, y);
+                    return  SingleValueFractalRigidMulti(x, y);
 
                 default:
                     return 0;
@@ -904,9 +892,9 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return sum;
         }
 
-        public float GetValue(float x, float y)
+        public double GetValue(double x, double y)
         {
-            return (float) SingleValue(_mSeed, x * (float)_mFrequency, y * (float)_mFrequency);
+            return  SingleValue(_mSeed, x * _mFrequency, y * _mFrequency);
         }
 
         double SingleValue(long seed, double x, double y)
@@ -944,19 +932,19 @@ namespace MCClone_Core.World_CS.Generation.Noise
         }
 
         // Gradient Noise
-        public float GetPerlinFractal(float x, float y, float z)
+        public double GetPerlinFractal(double x, double y, double z)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
-            z *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
+            z *= _mFrequency;
 
             switch (_mFractalType)
             {
                 case FractalType.Fbm:
-                    return (float) SinglePerlinFractalFbm(x, y, z);
+                    return  SinglePerlinFractalFbm(x, y, z);
 
                 case FractalType.Billow:
-                    return (float) SinglePerlinFractalBillow(x, y, z);
+                    return  SinglePerlinFractalBillow(x, y, z);
 
                 case FractalType.RigidMulti:
                     return SinglePerlinFractalRigidMulti(x, y, z);
@@ -982,7 +970,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum += SinglePerlin(++seed, x, y, z) * amp;
             }
 
-            return (float) (sum * _mFractalBounding);
+            return  (sum * _mFractalBounding);
         }
 
         double SinglePerlinFractalBillow(double x, double y, double z)
@@ -1004,7 +992,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return sum * _mFractalBounding;
         }
 
-        float SinglePerlinFractalRigidMulti(double x, double y, double z)
+        double SinglePerlinFractalRigidMulti(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = 1 - Math.Abs(SinglePerlin(seed, x, y, z));
@@ -1020,15 +1008,15 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum -= (1 - Math.Abs(SinglePerlin(++seed, x, y, z))) * amp;
             }
 
-            return (float) sum;
+            return  sum;
         }
 
-        public float GetPerlin(float x, float y, float z)
+        public double GetPerlin(double x, double y, double z)
         {
-            return SinglePerlin(_mSeed, x * (float)_mFrequency, y * (float)_mFrequency, z * (float)_mFrequency);
+            return SinglePerlin(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency);
         }
 
-        float SinglePerlin(long seed, double x, double y, double z)
+        double SinglePerlin(long seed, double x, double y, double z)
         {
             int x0 = FastFloor(x);
             int y0 = FastFloor(y);
@@ -1077,24 +1065,24 @@ namespace MCClone_Core.World_CS.Generation.Noise
             double yf0 = Lerp(xf00, xf10, ys);
             double yf1 = Lerp(xf01, xf11, ys);
 
-            return (float) Lerp(yf0, yf1, zs);
+            return  Lerp(yf0, yf1, zs);
         }
 
-        public float GetPerlinFractal(float x, float y)
+        public double GetPerlinFractal(double x, double y)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
 
             switch (_mFractalType)
             {
                 case FractalType.Fbm:
-                    return (float) SinglePerlinFractalFbm(x, y);
+                    return  SinglePerlinFractalFbm(x, y);
 
                 case FractalType.Billow:
-                    return (float) SinglePerlinFractalBillow(x, y);
+                    return  SinglePerlinFractalBillow(x, y);
 
                 case FractalType.RigidMulti:
-                    return (float) SinglePerlinFractalRigidMulti(x, y);
+                    return  SinglePerlinFractalRigidMulti(x, y);
 
                 default:
                     return 0;
@@ -1155,9 +1143,9 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return sum;
         }
 
-        public float GetPerlin(float x, float y)
+        public double GetPerlin(double x, double y)
         {
-            return (float) SinglePerlin(_mSeed, x * (float)_mFrequency, y * (float)_mFrequency);
+            return  SinglePerlin(_mSeed, x * _mFrequency, y * _mFrequency);
         }
 
         double SinglePerlin(long seed, double x, double y)
@@ -1198,36 +1186,9 @@ namespace MCClone_Core.World_CS.Generation.Noise
 
             return Lerp(xf0, xf1, ys);
         }
+        
 
-        // Simplex Noise
-        public float GetSimplexFractal(float x, float y, float z)
-        {
-            return (float)GetSimplexFractal(x,y,(double)z);
-        }
-
-        double GetSimplexFractal(double x, double y, double z)
-        {
-            x *= _mFrequency;
-            y *= _mFrequency;
-            z *= _mFrequency;
-
-            switch (_mFractalType)
-            {
-                case FractalType.Fbm:
-                    return SingleSimplexFractalFbm(x, y, z);
-
-                case FractalType.Billow:
-                    return SingleSimplexFractalBillow(x, y, z);
-
-                case FractalType.RigidMulti:
-                    return SingleSimplexFractalRigidMulti(x, y, z);
-
-                default:
-                    return 0;
-            }
-        }
-
-        float SingleSimplexFractalFbm(double x, double y, double z)
+        double SingleSimplexFractalFbm(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = SingleSimplex(seed, x, y, z);
@@ -1243,10 +1204,10 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum += SingleSimplex(++seed, x, y, z) * amp;
             }
 
-            return (float) (sum * _mFractalBounding);
+            return  (sum * _mFractalBounding);
         }
 
-        float SingleSimplexFractalBillow(double x, double y, double z)
+        double SingleSimplexFractalBillow(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = Math.Abs(SingleSimplex(seed, x, y, z)) * 2 - 1;
@@ -1262,10 +1223,10 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum += (Math.Abs(SingleSimplex(++seed, x, y, z)) * 2 - 1) * amp;
             }
 
-            return (float) (sum * _mFractalBounding);
+            return  (sum * _mFractalBounding);
         }
 
-        float SingleSimplexFractalRigidMulti(double x, double y, double z)
+        double SingleSimplexFractalRigidMulti(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = 1 - Math.Abs(SingleSimplex(seed, x, y, z));
@@ -1281,17 +1242,17 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum -= (1 - Math.Abs(SingleSimplex(++seed, x, y, z))) * amp;
             }
 
-            return (float) sum;
+            return  sum;
         }
 
-        public float GetSimplex(float x, float y, float z)
+        public double GetSimplex(double x, double y, double z)
         {
-            return (float) SingleSimplex(_mSeed, x * (float)_mFrequency, y * (float)_mFrequency, z * (float)_mFrequency);
+            return  SingleSimplex(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency);
         }
 
-        const float F3 = (float)(1.0 / 3.0);
-        const float G3 = (float)(1.0 / 6.0);
-        const float G33 = G3 * 3 - 1;
+        const double F3 = (1.0 / 3.0);
+        const double G3 = (1.0 / 6.0);
+        const double G33 = G3 * 3 - 1;
 
         static double SingleSimplex(long seed, double x, double y, double z)
         {
@@ -1386,31 +1347,53 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return 32 * (n0 + n1 + n2 + n3);
         }
 
-        public float GetSimplexFractal(float x, float y)
+
+        public double GetSimplexFractal(double x, double y)
         {
-            return (float)GetSimplexFractal(x, (double) y);
-        }
-        
-        double GetSimplexFractal(double x, double y)
-        {
+            double z = 0;
             x *= _mFrequency;
             y *= _mFrequency;
 
             switch (_mFractalType)
             {
                 case FractalType.Fbm:
-                    return SingleSimplexFractalFbm(x, y);
+                    return SingleSimplexFractalFbm(x, y,z);
 
                 case FractalType.Billow:
-                    return SingleSimplexFractalBillow(x, y);
+                    return SingleSimplexFractalBillow(x, y, z);
 
                 case FractalType.RigidMulti:
-                    return SingleSimplexFractalRigidMulti(x, y);
+                    return SingleSimplexFractalRigidMulti(x, y, z);
 
                 default:
                     return 0;
             }
         }
+        
+        // Simplex Noise
+        public double GetSimplexFractal(double x, double y, double z)
+        {
+            x *= _mFrequency;
+            y *= _mFrequency;
+            z *= _mFrequency;
+
+            switch (_mFractalType)
+            {
+                case FractalType.Fbm:
+                    return SingleSimplexFractalFbm(x, y, z);
+
+                case FractalType.Billow:
+                    return SingleSimplexFractalBillow(x, y, z);
+
+                case FractalType.RigidMulti:
+                    return SingleSimplexFractalRigidMulti(x, y, z);
+
+                default:
+                    return 0;
+            }
+        }
+        
+        
 
         double SingleSimplexFractalFbm(double x, double y)
         {
@@ -1466,13 +1449,13 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return sum;
         }
 
-        public float GetSimplex(float x, float y)
+        public double GetSimplex(double x, double y)
         {
-            return (float) SingleSimplex(_mSeed, x *(float) _mFrequency, y * (float)_mFrequency);
+            return  SingleSimplex(_mSeed, x * _mFrequency, y * _mFrequency);
         }
 
-        const float F2 = (float)(1.0 / 2.0);
-        const float G2 = (float)(1.0 / 4.0);
+        const double F2 = (1.0 / 2.0);
+        const double G2 = (1.0 / 4.0);
 
         static double SingleSimplex(long seed, double x, double y)
         {
@@ -1520,7 +1503,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 n1 = t * t * GradCoord2D(seed, i + i1, j + j1, x1, y1);
             }
 
-            t = (float)0.5 - x2 * x2 - y2 * y2;
+            t = 0.5 - x2 * x2 - y2 * y2;
             if (t < 0) n2 = 0;
             else
             {
@@ -1531,9 +1514,9 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return 50 * (n0 + n1 + n2);
         }
 
-        public float GetSimplex(float x, float y, float z, float w)
+        public double GetSimplex(double x, double y, double z, double w)
         {
-            return (float) SingleSimplex(_mSeed, x * (float)_mFrequency, y * (float)_mFrequency, z * (float)_mFrequency, w * (float)_mFrequency);
+            return  SingleSimplex(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency, w * _mFrequency);
         }
 
         static readonly byte[] Simplex4D =
@@ -1548,10 +1531,10 @@ namespace MCClone_Core.World_CS.Generation.Noise
         2,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,3,1,0,2,0,0,0,0,3,2,0,1,3,2,1,0
     };
 
-        const float F4 = (float)((2.23606797 - 1.0) / 4.0);
-        const float G4 = (float)((5.0 - 2.23606797) / 20.0);
+        const double F4 = ((2.23606797 - 1.0) / 4.0);
+        const double G4 = ((5.0 - 2.23606797) / 20.0);
 
-        double SingleSimplex(long seed, float x, float y, float z, float w)
+        double SingleSimplex(long seed, double x, double y, double z, double w)
         {
             double n0, n1, n2, n3, n4;
             double t = (x + y + z + w) * F4;
@@ -1607,35 +1590,35 @@ namespace MCClone_Core.World_CS.Generation.Noise
             double z4 = z0 - 1 + 4 * G4;
             double w4 = w0 - 1 + 4 * G4;
 
-            t = (float)0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
+            t = 0.6 - x0 * x0 - y0 * y0 - z0 * z0 - w0 * w0;
             if (t < 0) n0 = 0;
             else
             {
                 t *= t;
                 n0 = t * t * GradCoord4D(seed, i, j, k, l, x0, y0, z0, w0);
             }
-            t = (float)0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
+            t = 0.6 - x1 * x1 - y1 * y1 - z1 * z1 - w1 * w1;
             if (t < 0) n1 = 0;
             else
             {
                 t *= t;
                 n1 = t * t * GradCoord4D(seed, i + i1, j + j1, k + k1, l + l1, x1, y1, z1, w1);
             }
-            t = (float)0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
+            t = 0.6 - x2 * x2 - y2 * y2 - z2 * z2 - w2 * w2;
             if (t < 0) n2 = 0;
             else
             {
                 t *= t;
                 n2 = t * t * GradCoord4D(seed, i + i2, j + j2, k + k2, l + l2, x2, y2, z2, w2);
             }
-            t = (float)0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
+            t = 0.6 - x3 * x3 - y3 * y3 - z3 * z3 - w3 * w3;
             if (t < 0) n3 = 0;
             else
             {
                 t *= t;
                 n3 = t * t * GradCoord4D(seed, i + i3, j + j3, k + k3, l + l3, x3, y3, z3, w3);
             }
-            t = (float)0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
+            t = 0.6 - x4 * x4 - y4 * y4 - z4 * z4 - w4 * w4;
             if (t < 0) n4 = 0;
             else
             {
@@ -1647,11 +1630,11 @@ namespace MCClone_Core.World_CS.Generation.Noise
         }
 
         // Cubic Noise
-        public float GetCubicFractal(float x, float y, float z)
+        public double GetCubicFractal(double x, double y, double z)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
-            z *=(float) _mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
+            z *= _mFrequency;
 
             switch (_mFractalType)
             {
@@ -1669,7 +1652,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
             }
         }
 
-        float SingleCubicFractalFbm(double x, double y, double z)
+        double SingleCubicFractalFbm(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = SingleCubic(seed, x, y, z);
@@ -1686,10 +1669,10 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum += SingleCubic(++seed, x, y, z) * amp;
             }
 
-            return (float) (sum * _mFractalBounding);
+            return  (sum * _mFractalBounding);
         }
 
-        float SingleCubicFractalBillow(double x, double y, double z)
+        double SingleCubicFractalBillow(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = Math.Abs(SingleCubic(seed, x, y, z)) * 2 - 1;
@@ -1706,10 +1689,10 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum += (Math.Abs(SingleCubic(++seed, x, y, z)) * 2 - 1) * amp;
             }
 
-            return (float) (sum * _mFractalBounding);
+            return  (sum * _mFractalBounding);
         }
 
-        float SingleCubicFractalRigidMulti(double x, double y, double z)
+        double SingleCubicFractalRigidMulti(double x, double y, double z)
         {
             long seed = _mSeed;
             double sum = 1 - Math.Abs(SingleCubic(seed, x, y, z));
@@ -1726,15 +1709,15 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 sum -= (1 - Math.Abs(SingleCubic(++seed, x, y, z))) * amp;
             }
 
-            return (float)sum;
+            return sum;
         }
 
-        public float GetCubic(float x, float y, float z)
+        public double GetCubic(double x, double y, double z)
         {
-            return (float) SingleCubic(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency);
+            return  SingleCubic(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency);
         }
 
-        const float Cubic3DBounding = 1 / (float)(1.5 * 1.5 * 1.5);
+        const double Cubic3DBounding = 1 / (1.5 * 1.5 * 1.5);
 
         double SingleCubic(long seed, double x, double y, double z)
         {
@@ -1784,21 +1767,21 @@ namespace MCClone_Core.World_CS.Generation.Noise
                 zs) * Cubic3DBounding;
         }
 
-        public float GetCubicFractal(float x, float y)
+        public double GetCubicFractal(double x, double y)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
 
             switch (_mFractalType)
             {
                 case FractalType.Fbm:
-                    return (float) SingleCubicFractalFbm(x, y);
+                    return  SingleCubicFractalFbm(x, y);
 
                 case FractalType.Billow:
-                    return (float) SingleCubicFractalBillow(x, y);
+                    return  SingleCubicFractalBillow(x, y);
 
                 case FractalType.RigidMulti:
-                    return (float) SingleCubicFractalRigidMulti(x, y);
+                    return  SingleCubicFractalRigidMulti(x, y);
 
                 default:
                     return 0;
@@ -1862,15 +1845,15 @@ namespace MCClone_Core.World_CS.Generation.Noise
             return sum;
         }
 
-        public float GetCubic(float x, float y)
+        public double GetCubic(double x, double y)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
 
-            return (float) SingleCubic(0, x, y);
+            return  SingleCubic(0, x, y);
         }
 
-        const float Cubic2DBounding = 1 / (float)(1.5 * 1.5);
+        const double Cubic2DBounding = 1 / (1.5 * 1.5);
 
         double SingleCubic(long seed, double x, double y)
         {
@@ -1900,21 +1883,21 @@ namespace MCClone_Core.World_CS.Generation.Noise
         }
 
         // Cellular Noise
-        public float GetCellular(float x, float y, float z)
+        public double GetCellular(double x, double y, double z)
         {
-            x *= (float)_mFrequency;
-            y *= (float) _mFrequency;
-            z *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *=  _mFrequency;
+            z *= _mFrequency;
 
             switch (_mCellularReturnType)
             {
                 case CellularReturnType.CellValue:
                 case CellularReturnType.NoiseLookup:
                 case CellularReturnType.Distance:
-                    return (float) SingleCellular(x, y, z);
+                    return  SingleCellular(x, y, z);
 
                 default:
-                    return (float) SingleCellular2Edge(x, y, z);
+                    return  SingleCellular2Edge(x, y, z);
             }
         }
 
@@ -2018,10 +2001,10 @@ namespace MCClone_Core.World_CS.Generation.Noise
 
                 case CellularReturnType.NoiseLookup:
                     Float3 vec = Cell3D[Hash3D(_mSeed, xc, yc, zc) & 255];
-                    return (float) _mCellularNoiseUtilLookup.GetNoise(xc + vec.X * _mCellularJitter, yc + vec.Y * _mCellularJitter, zc + vec.Z * _mCellularJitter);
+                    return  _mCellularNoiseUtilLookup.GetNoise(xc + vec.X * _mCellularJitter, yc + vec.Y * _mCellularJitter, zc + vec.Z * _mCellularJitter);
 
                 case CellularReturnType.Distance:
-                    return (float) distance;
+                    return  distance;
 
                 default:
                     return 0;
@@ -2130,20 +2113,20 @@ namespace MCClone_Core.World_CS.Generation.Noise
             }
         }
 
-        public float GetCellular(float x, float y)
+        public double GetCellular(double x, double y)
         {
-            x *= (float)_mFrequency;
-            y *= (float)_mFrequency;
+            x *= _mFrequency;
+            y *= _mFrequency;
 
             switch (_mCellularReturnType)
             {
                 case CellularReturnType.CellValue:
                 case CellularReturnType.NoiseLookup:
                 case CellularReturnType.Distance:
-                    return (float) SingleCellular(x, y);
+                    return  SingleCellular(x, y);
 
                 default:
-                    return (float) SingleCellular2Edge(x, y);
+                    return  SingleCellular2Edge(x, y);
             }
         }
 
@@ -2332,12 +2315,12 @@ namespace MCClone_Core.World_CS.Generation.Noise
             }
         }
 
-        public void GradientPerturb(ref float x, ref float y, ref float z)
+        public void GradientPerturb(ref double x, ref double y, ref double z)
         {
             SingleGradientPerturb(_mSeed, _mGradientPerturbAmp, _mFrequency, ref x, ref y, ref z);
         }
 
-        public void GradientPerturbFractal(ref float x, ref float y, ref float z)
+        public void GradientPerturbFractal(ref double x, ref double y, ref double z)
         {
             long seed = _mSeed;
             double amp = _mGradientPerturbAmp * _mFractalBounding;
@@ -2353,7 +2336,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
             }
         }
 
-        void SingleGradientPerturb(long seed, double perturbAmp, double frequency, ref float x, ref float y, ref float z)
+        void SingleGradientPerturb(long seed, double perturbAmp, double frequency, ref double x, ref double y, ref double z)
         {
             double xf = x * frequency;
             double yf = y * frequency;
@@ -2421,17 +2404,17 @@ namespace MCClone_Core.World_CS.Generation.Noise
             ly1X = Lerp(vec0.Y, vec1.Y, xs);
             lz1X = Lerp(vec0.Z, vec1.Z, xs);
 
-            x += (float)(Lerp(lx0Y, Lerp(lx0X, lx1X, ys), zs) * perturbAmp);
-            y += (float)(Lerp(ly0Y, Lerp(ly0X, ly1X, ys), zs) * perturbAmp);
-            z += (float)(Lerp(lz0Y, Lerp(lz0X, lz1X, ys), zs) * perturbAmp);
+            x += (Lerp(lx0Y, Lerp(lx0X, lx1X, ys), zs) * perturbAmp);
+            y += (Lerp(ly0Y, Lerp(ly0X, ly1X, ys), zs) * perturbAmp);
+            z += (Lerp(lz0Y, Lerp(lz0X, lz1X, ys), zs) * perturbAmp);
         }
 
-        public void GradientPerturb(ref float x, ref float y)
+        public void GradientPerturb(ref double x, ref double y)
         {
             SingleGradientPerturb(_mSeed, _mGradientPerturbAmp, _mFrequency, ref x, ref y);
         }
 
-        public void GradientPerturbFractal(ref float x, ref float y)
+        public void GradientPerturbFractal(ref double x, ref double y)
         {
             long seed = _mSeed;
             double amp = _mGradientPerturbAmp * _mFractalBounding;
@@ -2447,7 +2430,7 @@ namespace MCClone_Core.World_CS.Generation.Noise
             }
         }
 
-        void SingleGradientPerturb(long seed, double perturbAmp, double frequency, ref float x, ref float y)
+        void SingleGradientPerturb(long seed, double perturbAmp, double frequency, ref double x, ref double y)
         {
             double xf = x * frequency;
             double yf = y * frequency;
@@ -2490,8 +2473,8 @@ namespace MCClone_Core.World_CS.Generation.Noise
             double lx1X = Lerp(vec0.X, vec1.X, xs);
             double ly1X = Lerp(vec0.Y, vec1.Y, xs);
 
-            x += (float)(Lerp(lx0X, lx1X, ys) * perturbAmp);
-            y += (float)(Lerp(ly0X, ly1X, ys) * perturbAmp);
+            x += (Lerp(lx0X, lx1X, ys) * perturbAmp);
+            y += (Lerp(ly0X, ly1X, ys) * perturbAmp);
         }
     }
 }

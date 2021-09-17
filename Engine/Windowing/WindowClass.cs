@@ -56,7 +56,7 @@ namespace Engine.Windowing
         void OnLoad()
         {
             GlHandle = GL.GetApi(Handle);
-            //GlHandle.DebugMessageCallback(messageHandler, new ReadOnlySpan<int>());
+            GlHandle.DebugMessageCallback(messageHandler, new ReadOnlySpan<int>());
             
             Shader = new Shader(GlHandle, @"Assets\shader.vert", @"Assets/shader.frag");
 
@@ -81,7 +81,7 @@ namespace Engine.Windowing
             // = time;
             GlHandle.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
             GlHandle.Enable(EnableCap.DepthTest);
-            GlHandle.Enable(EnableCap.CullFace);
+            //GlHandle.Enable(EnableCap.CullFace);
             GlHandle.Enable(EnableCap.DebugOutput);
             GlHandle.DepthFunc(DepthFunction.Lequal);
             //GlHandle.Enable(GLEnum.DebugOutputSynchronous);
@@ -95,9 +95,11 @@ namespace Engine.Windowing
                 Shader?.SetUniform("uProjection", Camera.MainCamera.GetProjectionMatrix());
             }
 
+            int MeshesDrawn = 0;
+            Mesh mesh;
             for (int meshindex = 0; meshindex < Mesh.Meshes.Count; meshindex++)
             {
-                var mesh = Mesh.Meshes[meshindex];
+                mesh = Mesh.Meshes[meshindex];
                 if (mesh != null)
                 {
                     if (mesh.ActiveState == MeshState.Delete)
@@ -109,26 +111,31 @@ namespace Engine.Windowing
                     {
                         mesh.MeshReference?.Dispose();
                         mesh.MeshReference = mesh.RegenerateVao();
-                        mesh.ActiveState = MeshState.Normal;
+                        mesh.ActiveState = MeshState.Render;
                     }
-                    if(mesh.ActiveState == MeshState.Normal)
+                    if(mesh.ActiveState == MeshState.Render)
                     {
                         GlHandle.CullFace(CullFaceMode.Front);
                         Texture?.Bind();
                         Shader?.Use();
                 
                 
-                        if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Normal)
+                        if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Render /*&& IntersectionHandler.MeshInFrustrum(mesh, Camera.MainCamera)*/)
                         {
                             mesh.MeshReference.Bind();
                             Shader?.SetUniform("uModel", mesh.ViewMatrix);
-                            Shader?.SetUniform("uTexture0", 0);
-                            GlHandle.DrawArrays(GLEnum.Triangles, 0, mesh.MeshReference.Vertexcount);
-                        }    
+                            //Shader?.SetUniform("uTexture0", 0);
+                            GlHandle.DrawArrays(mesh.GetRenderMode(), 0, mesh.MeshReference.Vertexcount);
+                        }
+                        else
+                        {
+                            MeshesDrawn += 1;
+                        }
                     }
                     
                 }
             }
+            Console.WriteLine($"{MeshesDrawn}, Removed Meshes");
 
             //TODO: Layered UI/PostProcess
             
@@ -145,22 +152,18 @@ namespace Engine.Windowing
 
             bool physicsProcess = physicsDelta >= 0.0166666;
 
+            GameObject gameObject = null;
             for (int i = 0; i < GameObject.Objects.Count; i++)
             {
-                try 
+                gameObject = GameObject.Objects[i];
+
+                if (gameObject != null)
                 {
-                    GameObject @object = GameObject.Objects[i];
-                        
-                    @object?._Process((float) delta);
+                    gameObject._Process(delta);
                     if (physicsProcess)
                     {
-                        @object?._PhysicsProcess((float) physicsDelta);
+                        gameObject._PhysicsProcess(physicsDelta);
                     }
-                }
-                catch (ArgumentOutOfRangeException)
-                {
-                    
-                    // Maybe use a deferred deletion scheme?
                 }
             }
 

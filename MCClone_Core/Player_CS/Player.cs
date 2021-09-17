@@ -65,7 +65,7 @@ namespace MCClone_Core.Player_CS
 
 		protected override void _Ready()
 		{
-			FPCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,16f/9f, true );
+			FPCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
@@ -94,9 +94,9 @@ namespace MCClone_Core.Player_CS
 			#endif
 		}
 
-		public override void _Process(float delta)
+		public override void _Process(double delta)
 		{
-			FPCam.Position = Pos;
+			FPCam.Pos = Pos;
 #if Core
 			Freelook();
 #else
@@ -139,7 +139,7 @@ namespace MCClone_Core.Player_CS
 
 		}
 
-		public override void _PhysicsProcess(float delta)
+		public override void _PhysicsProcess(double delta)
 		{
 			
 
@@ -150,7 +150,7 @@ namespace MCClone_Core.Player_CS
 			double py = Pos.Y;
 			double pz = Pos.Z - cz * ChunkCs.Dimension.Z;
 			//var forward_cam;
-			Vector3 forward = Vector3.UnitZ;
+			Vector3 forward = -Vector3.UnitZ;
 			
 		#else
 			float cx = (float) Math.Floor((Translation.x ) / ChunkCs.Dimension.X);

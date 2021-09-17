@@ -25,19 +25,19 @@
             _noiseFilters = noiseFilters;
         }
 
-        public float GetMixedNoiseSimplex(float x, float y, float z)
+        public double GetMixedNoiseSimplex(double x, double y, double z)
         {
-            float iterationResults = 0;
+            double iterationResults = 0;
             for (int i = 0; i < _iterations; i++)
             {
                 iterationResults += _noiseFilters[i].GetSimplexFractal(x,y,z);
             }
             return iterationResults / _iterations;
         }
-        
-        public float GetMixedNoiseSimplex(float x, float y)
+
+        public double GetMixedNoiseSimplex(double x, double y)
         {
-            float iterationResults = 0;
+            double iterationResults = 0;
 
             for (int i = 0; i < _iterations; i++)
             {

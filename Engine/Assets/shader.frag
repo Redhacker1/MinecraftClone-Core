@@ -7,12 +7,9 @@ out vec4 FragColor;
 
 void main()
 {
-    if(texture(uTexture0, fUv).a < .5f)
-    {
-        discard;
-    }
     
     FragColor = texture(uTexture0, fUv);
+    //FragColor = vec4(1,1,1,1);
   
 
     

@@ -22,7 +22,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 			HeightNoise.SetFractalOctaves(100);
 
 
-			float noise = HeightNoise.GetSimplex(X + Chunk.ChunkCoordinate.X, seed, Z + Chunk.ChunkCoordinate.Y);
+			double noise = HeightNoise.GetSimplex(X + Chunk.ChunkCoordinate.X, seed, Z + Chunk.ChunkCoordinate.Y);
 			noise /= 2;
 
             int Depth = (int) MathHelper.Lerp(1,6,Math.Abs(noise));

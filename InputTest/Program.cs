@@ -26,7 +26,7 @@ namespace InputTest
 
     class InputObject : GameObject
     {
-        public override void _Process(float delta)
+        public override void _Process(double delta)
         {
             base._Process(delta);
             if (InputHandler.MouseDelta(0) != Vector2.Zero)

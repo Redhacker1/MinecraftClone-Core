@@ -34,8 +34,8 @@ namespace MCClone_Core
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
             
-            Player player = new Player(new Vector3( 10000000 , 50, 10000000), Vector2.Zero, world);
-            player.Pos.Y = 100;
+            Player player = new Player(new Vector3( 100 , 50, 100), Vector2.Zero, world);
+            player.Noclip = true;
             WorldScript script = new WorldScript(world);
             script._player = player;
             

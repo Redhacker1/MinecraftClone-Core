@@ -23,21 +23,21 @@ namespace Engine.Objects
         protected virtual void _Ready()
         {
         }
-        
+
         /// <summary>
         ///  Runs every frame without exception
         /// </summary>
         /// <param name="delta">Time elapsed since last call in milliseconds</param>
-        public virtual void _Process(float delta)
+        public virtual void _Process(double delta)
         {
             //Console.WriteLine("Running");
         }
-        
+
         /// <summary>
         /// Runs at the physics framerate
         /// </summary>
         /// <param name="delta">Time elapsed since last call in milliseconds</param>
-        public virtual void _PhysicsProcess(float delta)
+        public virtual void _PhysicsProcess(double delta)
         {
                     
         }

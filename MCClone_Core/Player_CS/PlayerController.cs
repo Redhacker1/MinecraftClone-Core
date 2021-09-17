@@ -14,101 +14,71 @@ namespace MCClone_Core.Player_CS
     {
         readonly Player pawn;
         Vector3 _velocity;
+
         public PlayerController(Player PawnReference)
         {
             pawn = PawnReference;
         }
 
-        public void Player_move(float delta)
+        public void Player_move(double delta)
         {
             Vector3 direction = new Vector3();
-        #if Core
             //direction.X = 1;
             //direction.Z = 1;
-            
+
             Vector3 CameraForward = Camera.MainCamera.Front;
             Vector3 CameraLeft = -Camera.MainCamera.Right;
 
-            if (InputHandler.KeyboardKeyDown(0,Key.W))
+            if (InputHandler.KeyboardKeyDown(0, Key.W))
             {
                 direction += CameraForward;
             }
-            if (InputHandler.KeyboardKeyDown(0,Key.S))
+
+            if (InputHandler.KeyboardKeyDown(0, Key.S))
             {
                 direction -= CameraForward;
             }
-                
-            if (InputHandler.KeyboardKeyDown(0,Key.A))
+
+            if (InputHandler.KeyboardKeyDown(0, Key.A))
             {
                 direction -= CameraLeft;
             }
-                
-            if (InputHandler.KeyboardKeyDown(0,Key.D))
+
+            if (InputHandler.KeyboardKeyDown(0, Key.D))
             {
                 direction += CameraLeft;
             }
 
 
-            if (InputHandler.KeyboardKeyDown(0,Key.Space)&& pawn.OnGround)
+            if (InputHandler.KeyboardKeyDown(0, Key.Space) && pawn.OnGround)
             {
                 _velocity.Y = 6f * delta;
             }
-            
-        #else
-            Basis cameraBaseBasis = pawn.Transform.basis;
 
-
-            if (Input.IsActionPressed("forward"))
-            {
-                direction -= cameraBaseBasis.z.CastToCore();
-            }
-            if (Input.IsActionPressed("backward"))
-            {
-                direction += cameraBaseBasis.z.CastToCore();
-            }
-                
-            if (Input.IsActionPressed("left"))
-            {
-                direction -= cameraBaseBasis.x.CastToCore();
-            }
-                
-            if (Input.IsActionPressed("right"))
-            {
-                direction += cameraBaseBasis.x.CastToCore();
-            }
-
-
-            if (Input.IsActionPressed("jump") && pawn.OnGround)
-            {
-                _velocity.Y = 6f * delta;
-            }
-        #endif
-            //float xa = 0.0f, ya = 0.0f;
-            
             if (!pawn.OnGround && !pawn.Noclip)
             {
-              _velocity.Y -= .2f * delta;   
+                _velocity.Y -= .2f * delta;
             }
             else
             {
-                if (InputHandler.KeyboardKeyDown(0,Key.Space))
+                if (InputHandler.KeyboardKeyDown(0, Key.Space))
                 {
                     _velocity.Y = 6f * delta;
                 }
                 else
                 {
-                    _velocity.Y = 0;                    
+                    _velocity.Y = 0;
                 }
 
             }
-            
-            _velocity.X = (float) (direction.X * Player.Speed * delta);
-            _velocity.Z = (float) (direction.Z * Player.Speed * delta);
+
+            _velocity.X = (float)(direction.X * Player.Speed * delta);
+            _velocity.Z = (float)(direction.Z * Player.Speed * delta);
             if (pawn.Noclip)
             {
-                _velocity.Y = (float) (direction.Y * Player.Speed * delta);
+                _velocity.Y = (float)(direction.Y * Player.Speed * delta);
             }
-            
+
             pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
             pawn.Move(_velocity);
             //pawn.Pos = _velocity;

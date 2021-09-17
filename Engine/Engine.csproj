@@ -29,10 +29,10 @@
 
     <ItemGroup>
       <None Update="Assets\shader.frag">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Assets\shader.vert">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
       <None Update="Assets\silk.png">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

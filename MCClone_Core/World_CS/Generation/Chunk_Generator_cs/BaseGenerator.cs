@@ -27,7 +27,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             {
                 for (int z = 0; z < ChunkCs.Dimension.Z; z++)
                 {
-                    float hNoise = MathHelper.Clamp(((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z)))/2,  0, 1);
+                    double hNoise = MathHelper.Clamp(((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z)))/2,  0, 1);
                     int yHeight = (int) (hNoise * (GenHeight - 1) + 1);
                     
                     groundHeight[x,z] = yHeight;
@@ -85,7 +85,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
                 {
                     for (int Y = 0 + MinTerrainHeight; Y == Height[X, Z]; Y++)
                     {
-                        float CaveNoise = Math.Abs(Noisegen.GetSimplex(X + LocX, Y, Z + LocZ));
+                       double CaveNoise = Math.Abs(Noisegen.GetSimplex(X + LocX, Y, Z + LocZ));
 
                         if (CaveNoise <= .3f)
                         {

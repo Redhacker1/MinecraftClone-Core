@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Numerics;
 using Engine.MathLib;
+using Engine.Objects;
 
 namespace Engine.Rendering
 {
     // TODO: More elegant Camera class, preferably one that can more easily accommodate more than one camera. 
-    public class Camera
+    public class Camera : MinimalObject
     {
         public static Camera MainCamera;
-
-        public Engine.MathLib.DoublePrecision_Numerics.Vector3 Position { get; set; }
         public Vector3 Front { get; set; }
 
         public Vector3 Right => Vector3.Normalize(Vector3.Cross(Up, Front));
@@ -24,9 +23,9 @@ namespace Engine.Rendering
         public float NearPlane = .1f;
         public float FarPlane = 1000;
 
-        public Camera(Vector3 position, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
+        public Camera(Vector3 pos, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
         {
-            Position = position;
+            Pos = pos;
             AspectRatio = aspectRatio;
             Front = front;
             Up = up;

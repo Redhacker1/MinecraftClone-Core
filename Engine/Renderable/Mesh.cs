@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using Engine.Objects;
@@ -25,7 +26,7 @@ namespace Engine.Renderable
     public class Mesh
     {
         readonly List<Vector3> _vertices;
-        readonly List<Vector2> _uvs;
+        readonly List<Vector3> _uvs;
         readonly List<uint> _indices = new();
 
         internal VertexArrayObject<float, uint> MeshReference;
@@ -57,7 +58,27 @@ namespace Engine.Renderable
             ActiveState = MeshState.DontRender;
             _objectReference = bindingobject;
             _vertices = (List<Vector3>)vertices;
-            _uvs = (List<Vector2>)uvs;
+            _uvs = new List<Vector3>(uvs.Count);
+
+            if (vertices.Count == uvs.Count)
+            {
+                for (int i = 0; i < uvs.Count; i++)
+                {
+                    _uvs.Add( new Vector3(uvs[i].X, uvs[i].Y, 0));
+                }
+                Meshes.Add(this);
+            }
+            else
+            {
+                throw new ArgumentException(message: "Uvs and Vertex List sizes do not match!");
+            }
+        }
+        
+        public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector3> uvs, MinimalObject bindingobject)
+        {
+            _objectReference = bindingobject;
+            _vertices = vertices.ToList();
+            _uvs = uvs.ToList();
             
             if (vertices.Count == uvs.Count)
             {
@@ -68,12 +89,13 @@ namespace Engine.Renderable
                 throw new ArgumentException(message: "Uvs and Vertex List sizes do not match!");
             }
         }
+        
 
         float[] CreateVertexArray()
         {
             var tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             var tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            List<float> values = new List<float>((_vertices.Count * 3) + (_uvs.Count * 2));
+            List<float> values = new List<float>((_vertices.Count * 3) + (_uvs.Count * 3));
             for (int i = 0; i < _vertices?.Count; i++)
             {
                 tempmin.X = Math.Min(tempmin.X, _vertices[i].X);
@@ -90,6 +112,7 @@ namespace Engine.Renderable
                 values.Add(_vertices[i].Z);
                 values.Add(_uvs[i].X);
                 values.Add(_uvs[i].Y);
+                values.Add(_uvs[i].Z);
             }
 
             maxpoint = tempmax;

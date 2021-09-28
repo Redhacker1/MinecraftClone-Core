@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using CullingTests;
 using Engine;
+using Engine.AssetLoading;
 using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
@@ -41,15 +42,20 @@ namespace ObjDemo
             new Player();
         
             Obj obj = new Obj();
-            obj.LoadObj(@".\Assets\Mickey Mouse.obj");
-            Pos = Vector3.One;
+            var meshes = AssimpLoader.LoadMesh("./Assets/Wheel.fbx", this);
 
-            BenchmarkEntity entTest = new BenchmarkEntity();
-            var gameDemoMesh = new Mesh(obj.VertexList, obj.TextureList, this);
+            foreach (var mesh in meshes)
+            {
+                mesh.QueueVaoRegen();
+            }
+            //Pos = Vector3.One;
+
+            //BenchmarkEntity entTest = new BenchmarkEntity();
+            //var gameDemoMesh = new Mesh(obj.VertexList, obj.TextureList, this);
             //gameDemoMesh.QueueVaoRegen();
 
-            FrustrumTest frustrumTest = new FrustrumTest(Camera.MainCamera);
-            frustrumTest.Pos = new Vector3(0, 0, 0);
+            //FrustrumTest frustrumTest = new FrustrumTest(Camera.MainCamera);
+            //frustrumTest.Pos = new Vector3(0, 0, 0);
         }
     }
 

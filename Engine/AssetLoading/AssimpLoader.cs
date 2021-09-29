@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using Engine.Objects;
 using Silk.NET.Assimp;
 using Silk.NET.Core.Contexts;
@@ -16,19 +17,16 @@ namespace Engine.AssetLoading
         public static unsafe Mesh[] LoadMesh(string MeshName, MinimalObject bindingObject)
         {
             var thing = Assimp.GetApi();
+            
+            Console.WriteLine(Path.GetExtension(MeshName));
 
-            if (!File.Exists(MeshName))
+            if ( !File.Exists(MeshName) || thing.IsExtensionSupported(Path.GetExtension(MeshName)) == 0)
             {
-                throw new FileNotFoundException(message: "The specified Model was not found!");
+                throw new FileNotFoundException(message: "The specified Model was not found or the extension is unsupported!");
             } 
-            var pointer = thing.ImportFile(MeshName, 0);
+            var pointer = thing.ImportFile(MeshName,(uint)PostProcessPreset.TargetRealTimeMaximumQuality );
 
-            if (pointer != null)
-            {
-                throw new NullReferenceException("Mesh failed to import");
-            }
-            
-            
+
             Mesh[] Meshes = new Mesh[pointer->MNumMeshes];
             
 
@@ -38,7 +36,10 @@ namespace Engine.AssetLoading
 
                 var meshUvsptr = pointer->MMeshes[meshcount]->MTextureCoords;
                 var meshUvsArr = new Vector3[meshVertCount];
-                Vec3PointerAndOffsetToArray(ref meshUvsArr, meshUvsptr.Element0, meshVertCount);
+                if (meshUvsptr.Element0 != null)
+                {
+                    Vec3PointerAndOffsetToArray(ref meshUvsArr, meshUvsptr.Element0, meshVertCount);
+                }               
 
                 var meshvertsptr = pointer->MMeshes[meshcount]->MVertices;
                 var meshVertsArr = new Vector3[meshVertCount];
@@ -71,6 +72,8 @@ namespace Engine.AssetLoading
                 Meshes[meshcount] = new Mesh(meshVertsArr, meshUvsArr, bindingObject);
 
             }
+            
+            
 
             return Meshes;
         }

@@ -81,10 +81,10 @@ namespace Engine.Windowing
             // = time;
             GlHandle.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
             GlHandle.Enable(EnableCap.DepthTest);
-            //GlHandle.Enable(EnableCap.CullFace);
+            GlHandle.Enable(EnableCap.CullFace);
             GlHandle.Enable(EnableCap.DebugOutput);
             GlHandle.DepthFunc(DepthFunction.Lequal);
-            //GlHandle.Enable(GLEnum.DebugOutputSynchronous);
+            GlHandle.FrontFace(FrontFaceDirection.CW);
 
 
 
@@ -135,7 +135,6 @@ namespace Engine.Windowing
                     
                 }
             }
-            Console.WriteLine($"{MeshesDrawn}, Removed Meshes");
 
             //TODO: Layered UI/PostProcess
             

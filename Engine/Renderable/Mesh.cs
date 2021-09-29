@@ -17,13 +17,22 @@ namespace Engine.Renderable
         Delete,
         DontRender
     }
+
+    public enum MeshFlags
+    {
+        FrontFaceDirectionCw,
+        FrontFaceDirectionCcw,
+        CullFaceModeFront,
+        CullFaceModeBack, 
+        CullFaceModeNone
+    }
     public enum RenderMode
     {
         Triangle,
         Line
     }
     
-    public class Mesh
+    public class Mesh : IRenderable
     {
         readonly List<Vector3> _vertices;
         readonly List<Vector3> _uvs;
@@ -50,7 +59,6 @@ namespace Engine.Renderable
 
         //Note: The order here does matter.
         public Matrix4x4 ViewMatrix => Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)_objectReference.Rotation.X, (float)_objectReference.Rotation.Y, (float)_objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(_objectReference.Pos -Camera.MainCamera.Pos);
-
         
         
         public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector2> uvs, MinimalObject bindingobject)
@@ -110,6 +118,7 @@ namespace Engine.Renderable
                 values.Add(_vertices[i].X);
                 values.Add(_vertices[i].Y);
                 values.Add(_vertices[i].Z);
+                
                 values.Add(_uvs[i].X);
                 values.Add(_uvs[i].Y);
                 values.Add(_uvs[i].Z);
@@ -135,10 +144,19 @@ namespace Engine.Renderable
             BufferObject<float> vbo = new(WindowClass.GlHandle, new Span<float>(vertices), BufferTargetARB.ArrayBuffer);
             VertexArrayObject<float, uint> vao = new(vbo, ebo);
 
-            vao?.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 5, 0);
-            vao?.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 5, 3);
+            vao?.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 6, 0);
+            vao?.VertexAttributePointer(1, 3, VertexAttribPointerType.Float, 6, 3);
             
             return vao;
+        }
+
+
+        internal void DrawMesh(GL glHandle)
+        {
+            if (_indices.Count != 0)
+            {
+                glHandle.
+            }
         }
         
 
@@ -171,6 +189,16 @@ namespace Engine.Renderable
             {
                 return GLEnum.LineLoop;
             }
+        }
+
+        void IRenderable.BindFlags()
+        {
+            
+        }
+
+        void IRenderable.BindResources()
+        {
+            throw new NotImplementedException();
         }
     }
 }

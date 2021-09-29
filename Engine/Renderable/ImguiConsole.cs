@@ -14,8 +14,7 @@ namespace Engine.Renderable
             ImGui.CreateContext();
             io = ImGui.GetIO();
             ImGui.StyleColorsDark();
-            ImGuiController controller =
-                new ImGuiController(WindowClass.GlHandle, WindowClass.Handle, InputHandler._context);
+            ImGuiController controller = new ImGuiController(WindowClass.GlHandle, WindowClass.Handle, InputHandler._context);
 
         }
         
@@ -25,7 +24,6 @@ namespace Engine.Renderable
             ImGui.NewFrame();
             ImGui.CaptureKeyboardFromApp(true);
             ImGui.CaptureMouseFromApp(true);
-            //Im
         }
     }
 }

@@ -42,7 +42,7 @@ namespace ObjDemo
             new Player();
         
             Obj obj = new Obj();
-            var meshes = AssimpLoader.LoadMesh("./Assets/Wheel.fbx", this);
+            var meshes = AssimpLoader.LoadMesh(@".\Assets\Mickey Mouse.obj", this);
 
             foreach (var mesh in meshes)
             {

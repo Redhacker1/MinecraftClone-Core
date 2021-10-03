@@ -1,54 +1,66 @@
-﻿using System;
-using System.Numerics;
+using System;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering;
+using Silk.NET.Input;
+using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
 
 namespace CullingTests
 {
-    public class Player : CharacterEntity
-    {
-        Camera cam;
-        DemoController Controller;
-        protected override void _Ready()
-        {
-            base._Ready();
-            Controller = new DemoController(this);
-            cam = new Camera(Pos, -Vector3.UnitZ, Vector3.UnitY, 1.777778F, true);
-        }
-        
-        public Player()
-        {
-            
-        }
+	//[Tool]
+	public class Player: CharacterEntity
+	{
+		
 
-        public override void _Process(double delta)
-        {
-            base._Process(delta);
-            
-        }
-        
-        
-        public void Freelook()
-        {
-            float xOffset = InputHandler.MouseDelta(0).X * 0.1f;
-            float yOffset = InputHandler.MouseDelta(0).Y * 0.1f;
+		DemoController _controller;
+		
 
-            if (cam != null)
-            {
-                Camera.MainCamera.Yaw += xOffset;
-                Camera.MainCamera.Pitch -= yOffset;
+		Camera _fpCam;
+		
+
+		protected override void _Ready()
+		{
+			_fpCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			InputHandler.SetMouseMode(0, CursorMode.Raw);
+			_controller = new DemoController(this);
+		}
+
+		public override void _Process(double delta)
+		{
+			_fpCam.Pos = Pos;
+			Freelook();
+		}
+
+		public override void _PhysicsProcess(double delta)
+		{
+			_controller.Move(delta);
+		}
+		
+		
+
+		public void Freelook()
+		{
+			if (Camera.MainCamera != null)
+			{
+				float xOffset = InputHandler.MouseDelta(0).X * 0.1f;
+				float yOffset = InputHandler.MouseDelta(0).Y * 0.1f;
+
+				if (Camera.MainCamera != null)
+				{
+					Camera.MainCamera.Yaw += xOffset;
+					Camera.MainCamera.Pitch -= yOffset;
                     
-                //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
-                Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
+					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
+					Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
                 
-                Vector3 CameraDirection = Vector3.Zero;
-                CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-                Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
-            }
-        }
-    }
+					Vector3 cameraDirection = Vector3.Zero;
+					cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
+				}
+			}
+		}
+	}
 }

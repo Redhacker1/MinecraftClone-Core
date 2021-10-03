@@ -34,9 +34,9 @@ namespace Engine.Renderable
     
     public class Mesh : IRenderable
     {
-        readonly List<Vector3> _vertices;
-        readonly List<Vector3> _uvs;
-        readonly List<uint> _indices = new();
+        public Vector3[] _vertices;
+        public Vector3[] _uvs;
+        public uint[] _indices;
 
         internal VertexArrayObject<float, uint> MeshReference;
         public static List<Mesh> Meshes = new();
@@ -65,14 +65,14 @@ namespace Engine.Renderable
         {
             ActiveState = MeshState.DontRender;
             _objectReference = bindingobject;
-            _vertices = (List<Vector3>)vertices;
-            _uvs = new List<Vector3>(uvs.Count);
+            _vertices = vertices.ToArray();
+            _uvs = new Vector3[uvs.Count];
 
             if (vertices.Count == uvs.Count)
             {
                 for (int i = 0; i < uvs.Count; i++)
                 {
-                    _uvs.Add( new Vector3(uvs[i].X, uvs[i].Y, 0));
+                    _uvs[i] = ( new Vector3(uvs[i].X, uvs[i].Y, 0));
                 }
                 Meshes.Add(this);
             }
@@ -85,8 +85,8 @@ namespace Engine.Renderable
         public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector3> uvs, MinimalObject bindingobject)
         {
             _objectReference = bindingobject;
-            _vertices = vertices.ToList();
-            _uvs = uvs.ToList();
+            _vertices = vertices.ToArray();
+            _uvs = uvs.ToArray();
             
             if (vertices.Count == uvs.Count)
             {
@@ -103,8 +103,8 @@ namespace Engine.Renderable
         {
             var tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             var tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            List<float> values = new List<float>((_vertices.Count * 3) + (_uvs.Count * 3));
-            for (int i = 0; i < _vertices?.Count; i++)
+            List<float> values = new List<float>((_vertices.Length * 3) + (_uvs.Length * 3));
+            for (int i = 0; i < _vertices?.Length; i++)
             {
                 tempmin.X = Math.Min(tempmin.X, _vertices[i].X);
                 tempmin.Y = Math.Min(tempmin.Y, _vertices[i].Y);
@@ -137,25 +137,34 @@ namespace Engine.Renderable
 
         internal VertexArrayObject<float, uint> RegenerateVao()
         {
-            uint[] indices = _indices.ToArray();
+            uint[] indices = _indices?.ToArray();
             float[] vertices = CreateVertexArray();
 
             BufferObject<uint> ebo = new(WindowClass.GlHandle, new Span<uint>(indices), BufferTargetARB.ElementArrayBuffer);
             BufferObject<float> vbo = new(WindowClass.GlHandle, new Span<float>(vertices), BufferTargetARB.ArrayBuffer);
-            VertexArrayObject<float, uint> vao = new(vbo, ebo);
+            VertexArrayObject<float, uint> vao = new(WindowClass.GlHandle,vbo, ebo);
 
-            vao?.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 6, 0);
-            vao?.VertexAttributePointer(1, 3, VertexAttribPointerType.Float, 6, 3);
+            vao.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 6, 0);
+            vao.VertexAttributePointer(1, 3, VertexAttribPointerType.Float, 6, 3);
+
+
+            MeshReference = vao;
             
             return vao;
         }
 
 
-        internal void DrawMesh(GL glHandle)
+        internal unsafe void Draw(GL glHandle)
         {
-            if (_indices.Count != 0)
+           // MeshReference._handle
+            MeshReference.Bind();
+            if (_indices?.Length > 0)
             {
-                glHandle.
+                glHandle.DrawElements(GetRenderMode(), (uint)_indices.Length,GLEnum.UnsignedInt, null);
+            }
+            else
+            {
+                glHandle.DrawArrays(GetRenderMode(), 0, (uint)_vertices.Length);
             }
         }
         
@@ -198,7 +207,7 @@ namespace Engine.Renderable
 
         void IRenderable.BindResources()
         {
-            throw new NotImplementedException();
+            MeshReference.Bind();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
@@ -32,6 +33,7 @@ namespace Engine.AssetLoading
 
             for (int meshcount = 0; meshcount < pointer->MNumMeshes; meshcount++)
             {
+                var Mesh = pointer->MMeshes[meshcount];
                 uint meshVertCount = pointer->MMeshes[meshcount]->MNumVertices;
 
                 var meshUvsptr = pointer->MMeshes[meshcount]->MTextureCoords;
@@ -70,6 +72,20 @@ namespace Engine.AssetLoading
                 }
 
                 Meshes[meshcount] = new Mesh(meshVertsArr, meshUvsArr, bindingObject);
+
+                // I fully expect this to fail if the integer rolls over, that being said I want to try and preallocate where I can, might wanna look into it later.
+                var Indicies = new List<uint>((int) Mesh->MNumVertices);
+
+                for (int face = 0; face < Mesh->MNumFaces; face++)
+                {
+                    var currentface = Mesh->MFaces[face];
+                    for (int index = 0; index < currentface.MNumIndices; index++)
+                    {
+                        Indicies.Add(Mesh->MFaces[face].MIndices[index]);
+                    }
+                }
+
+                Meshes[meshcount]._indices = Indicies.ToArray();
 
             }
             

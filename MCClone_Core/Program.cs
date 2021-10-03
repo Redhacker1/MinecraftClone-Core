@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Numerics;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Engine;
 using Engine.Initialization;
+using Engine.Objects;
 using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
@@ -30,6 +32,8 @@ namespace MCClone_Core
         public override void Gamestart()
         {
             base.Gamestart();
+
+            FPSEntity ent = new FPSEntity();
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
@@ -46,6 +50,25 @@ namespace MCClone_Core
         {
             base.GameEnded();
             world.SaveAndQuit();
+        }
+        
+        
+        
+    }
+    
+    class FPSEntity : Entity
+    {
+        Stopwatch fpstimer = Stopwatch.StartNew();
+        int frames = 0;
+        public override void _Process(double delta)
+        {
+            frames+=1;
+            if (fpstimer.Elapsed.Seconds >= 1)
+            {
+                Console.WriteLine($"Frames: {frames}");
+                frames = 0;
+                fpstimer.Restart();
+            }
         }
     }
 }

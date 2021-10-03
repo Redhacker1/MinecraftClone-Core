@@ -42,6 +42,13 @@ namespace Engine.Rendering
             Zoom = Math.Clamp(Zoom - zoomAmount, 1.0f, 45f);
         }
 
+        internal Frustrum GetViewFrustum()
+        {
+            Frustrum frustum = new Frustrum(FrustumFOV(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos);
+
+            return frustum;
+        }
+
         public Matrix4x4 GetViewMatrix()
         {
             return Matrix4x4.CreateLookAt(Vector3.Zero, Front, Up);
@@ -50,6 +57,11 @@ namespace Engine.Rendering
         public Matrix4x4 GetProjectionMatrix()
         {
             return Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90), AspectRatio, NearPlane, FarPlane);
+        }
+
+        private float FrustumFOV()
+        {
+            return MathHelper.DegreesToRadians(110 + 15);
         }
 
         public float GetFOV()

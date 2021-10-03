@@ -1,10 +1,4 @@
-#define Core
-#if !Core
-using Godot;
-#endif
-
 using System;
-using System.Numerics;
 using CullingTests;
 using Engine.Input;
 using Engine.MathLib;
@@ -15,7 +9,6 @@ using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace ObjDemo
 {
-	//[Tool]
 	public class Player: CharacterEntity
 	{
 		

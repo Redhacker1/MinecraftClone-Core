@@ -29,7 +29,7 @@ namespace MCClone_Core.World_CS.Generation
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
 		
 		// Max chunks radius comes out to (_loadRadius*2)^2 
-		readonly int _loadRadius = 16;
+		readonly int _loadRadius = 32;
 
 		public static Random WorldRandom;
 		public static long WorldSeed;

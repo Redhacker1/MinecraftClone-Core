@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Engine.Input;
@@ -27,13 +25,10 @@ namespace Engine.Windowing
         static public GL GlHandle;
         internal static IWindow Handle;
         static IKeyboard KeyboardHandle;
-        
-        //Used to track change in mouse movement to allow for moving of the Camera
-        private static Vector2 LastMousePosition;
-        
+
         DebugProc messageHandler = ((source, type, id, severity, length, message, param) =>
         {
-            Console.WriteLine(Marshal.PtrToStringAnsi(message,  length + 1));
+            //Console.WriteLine(Marshal.PtrToStringAnsi(message,  length + 1));
             // Useful if you want to pause after message is printed.
             int a = 0;
             //Environment.Exit(1);
@@ -76,26 +71,24 @@ namespace Engine.Windowing
 
         void OnRender(double time)
         {
-            //Console.WriteLine("Running");
-
-            // = time;
+            var frustum = Camera.MainCamera.GetViewFrustum();
+            
             GlHandle.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
             GlHandle.Enable(EnableCap.DepthTest);
             GlHandle.Enable(EnableCap.CullFace);
             GlHandle.Enable(EnableCap.DebugOutput);
             GlHandle.DepthFunc(DepthFunction.Lequal);
-            GlHandle.FrontFace(FrontFaceDirection.CW);
+            //GlHandle.FrontFace(FrontFaceDirection.CW);
+
+            int Meshrendered = 0;
 
 
-
-            //Console.WriteLine($"{Meshes.Count}, meshes compared to {Mesh.Meshes.Count} Total");
             if (Camera.MainCamera != null)
             {
                 Shader?.SetUniform("uView", Camera.MainCamera.GetViewMatrix());
                 Shader?.SetUniform("uProjection", Camera.MainCamera.GetProjectionMatrix());
             }
-
-            int MeshesDrawn = 0;
+            
             Mesh mesh;
             for (int meshindex = 0; meshindex < Mesh.Meshes.Count; meshindex++)
             {
@@ -104,8 +97,8 @@ namespace Engine.Windowing
                 {
                     if (mesh.ActiveState == MeshState.Delete)
                     {
-                        mesh.Dispose();
                         Mesh.Meshes.Remove(mesh);
+                        mesh.Dispose();
                     }
                     else if (mesh.ActiveState == MeshState.Dirty)
                     {
@@ -118,23 +111,20 @@ namespace Engine.Windowing
                         GlHandle.CullFace(CullFaceMode.Front);
                         Texture?.Bind();
                         Shader?.Use();
-                
-                
-                        if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Render /*&& IntersectionHandler.MeshInFrustrum(mesh, Camera.MainCamera)*/)
+                        
+                        if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Render && IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
                         {
-                            mesh.MeshReference.Bind();
                             Shader?.SetUniform("uModel", mesh.ViewMatrix);
-                            //Shader?.SetUniform("uTexture0", 0);
-                            GlHandle.DrawArrays(mesh.GetRenderMode(), 0, mesh.MeshReference.Vertexcount);
-                        }
-                        else
-                        {
-                            MeshesDrawn += 1;
+                            Shader?.SetUniform("uTexture0", 0);
+
+                            Meshrendered++;
+                            mesh.Draw(GlHandle);
                         }
                     }
                     
                 }
             }
+            //Console.WriteLine(Meshrendered);
 
             //TODO: Layered UI/PostProcess
             

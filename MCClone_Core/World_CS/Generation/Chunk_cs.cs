@@ -91,29 +91,35 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			List<System.Numerics.Vector3> blocks = new();
 			List<System.Numerics.Vector3> blocksNormals = new();
+			List<uint> ChunkIndices = new();
 			List<Vector2>  uVs = new();
+			uint index = 0;
 
 			//Making use of multidimensional arrays allocated on creation
 			
-			for (int z = 0; z < Dimension.Z; z++)
-			for (int y = 0; y < Dimension.Y; y++)
 			for (int x = 0; x < Dimension.X; x++)
+			for (int y = 0; y < Dimension.Y; y++)
+			for (int z = 0; z < Dimension.Z; z++)
 			{
 				byte block = BlockData[GetFlattenedDimension(x, y, z)];
 				if (block == 0) continue;
 				bool[] check = check_transparent_neighbours(x, y, z);
 				if (check.Contains(true))
 				{
-					_create_block(check, x, y, z, block, blocks, blocksNormals, uVs);	
+					_create_block(check, x, y, z, block, blocks, blocksNormals, uVs, ChunkIndices, ref index);	
 				}
 			}
 			
 			// Do Render stuff here
 			_chunkreference?.QueueDeletion();
-			Mesh chunkmesh = new Mesh(blocks, uVs, this);
-			chunkmesh.QueueVaoRegen();
-			_chunkreference = chunkmesh;
-			
+			_chunkreference = new Mesh(blocks, uVs, this);
+			//chunkmesh._indices = ChunkIndices.ToArray();
+			_chunkreference.QueueVaoRegen();
+			uVs.Clear();
+			ChunkIndices.Clear();
+			blocks.Clear();
+			blocksNormals.Clear();
+
 
 		}
 
@@ -185,36 +191,36 @@ namespace MCClone_Core.World_CS.Generation
 			};
 		}
 
-		void _create_block(IReadOnlyList<bool> check, int x, int y, int z, byte block, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs)
+		void _create_block(IReadOnlyList<bool> check, int x, int y, int z, byte block, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint index)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			Vector3 coord = new Vector3(x, y, z);
 			if (blockTypes[block].TagsList.Contains("Flat"))
 			{
 				Vector2 tempvar = blockTypes[block].Only;
-				create_face(Cross1, ref coord, tempvar, blocks, blocksNormals, uVs);
-				create_face(Cross2, ref coord, tempvar, blocks, blocksNormals, uVs);
-				create_face(Cross3, ref coord, tempvar, blocks, blocksNormals, uVs);
-				create_face(Cross4, ref coord, tempvar, blocks, blocksNormals, uVs);
+				create_face(Cross1, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross2, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross3, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross4, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
 			}
 			else
 			{
-				if (check[0]) create_face(Top, ref coord, blockTypes[block].Top, blocks, blocksNormals, uVs);
-				if (check[1]) create_face(Bottom, ref coord, blockTypes[block].Bottom, blocks, blocksNormals, uVs);
-				if (check[2]) create_face(Left, ref coord, blockTypes[block].Left, blocks, blocksNormals, uVs);
-				if (check[3]) create_face(Right, ref coord, blockTypes[block].Right, blocks, blocksNormals, uVs);
-				if (check[4]) create_face(Back, ref coord, blockTypes[block].Back, blocks, blocksNormals, uVs);
-				if (check[5]) create_face(Front, ref coord, blockTypes[block].Front, blocks, blocksNormals, uVs);
+				if (check[0]) create_face(Top, ref coord, blockTypes[block].Top, blocks, blocksNormals, uVs, indices, ref index);
+				if (check[1]) create_face(Bottom, ref coord, blockTypes[block].Bottom, blocks, blocksNormals, uVs, indices, ref index);
+				if (check[2]) create_face(Left, ref coord, blockTypes[block].Left, blocks, blocksNormals, uVs, indices, ref index);
+				if (check[3]) create_face(Right, ref coord, blockTypes[block].Right, blocks, blocksNormals, uVs, indices, ref index);
+				if (check[4]) create_face(Back, ref coord, blockTypes[block].Back, blocks, blocksNormals, uVs, indices,ref index);
+				if (check[5]) create_face(Front, ref coord, blockTypes[block].Front, blocks, blocksNormals, uVs, indices, ref index);
 			}
 		}
 
-		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs)
+		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint currentindex)
 		{
 			System.Numerics.Vector3 a = V[I[0]] + offset;
 			System.Numerics.Vector3 b = V[I[1]] + offset;
 			System.Numerics.Vector3 c = V[I[2]] + offset;
 			System.Numerics.Vector3 d = V[I[3]] + offset;
-
+			
 
 
 			Vector2 uvOffset = new Vector2(
@@ -228,9 +234,22 @@ namespace MCClone_Core.World_CS.Generation
 			Vector2 uvD = new Vector2(Sizex + uvOffset.X, uvOffset.Y);
 
 
-			blocks.AddRange(new[] {a, b, c, a, c, d});
+			const bool useindices = true;
 
-			uVs.AddRange(new[] {uvOffset, uvB, uvC, uvOffset, uvC, uvD});
+			if (useindices)
+			{
+				blocks.AddRange(new[] {a, b, c, d});
+				indices.AddRange(new uint[] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3});
+				currentindex += 4;
+
+				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvD});	
+			}
+			else
+			{
+				blocks.AddRange(new[] {a, b, c, a, c, d});
+
+				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvOffset, uvC, uvD});
+			}
 
 			//blocksNormals.AddRange(NormalGenerate(a, b, c, d));
 		}

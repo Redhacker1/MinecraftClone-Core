@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Numerics;
-using Engine.MathLib;
+using System.Reflection;
+using System.Reflection.PortableExecutable;
 using Engine.Renderable;
-using Silk.NET.OpenGL;
 
 namespace Engine.Rendering
 {
@@ -49,57 +49,64 @@ namespace Engine.Rendering
     {
         static Mesh[] FrustrumMeshes;
         internal Plane[] Planes;
+        internal MathLib.DoublePrecision_Numerics.Vector3 camerapos;
 
-        public Frustrum(Camera baseCamera)
+        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos)
         {
-            System.Numerics.Vector3 nearCenter = op_Subtraction(baseCamera.Pos, baseCamera.Front) * baseCamera.NearPlane;
-            System.Numerics.Vector3 farCenter = op_Subtraction(baseCamera.Pos, baseCamera.Front) * baseCamera.FarPlane;
+            camerapos = Pos;
+            var thingmat = new Matrix4x4();
+            Matrix4x4.Invert(ViewFrustum, out thingmat);
 
-            float nearHeight = (float)(Math.Tan(baseCamera.GetFOV() / 2) * baseCamera.NearPlane);
-            float farHeight = (float)(Math.Tan(baseCamera.GetFOV() / 2) * baseCamera.FarPlane);
-            float nearWidth = nearHeight * baseCamera.AspectRatio;
-            float farWidth = farHeight * baseCamera.AspectRatio;
+            
+            System.Numerics.Vector3 mat3 = new System.Numerics.Vector3(thingmat.M41, thingmat.M42, thingmat.M43);
+            System.Numerics.Vector3 mat2 = new System.Numerics.Vector3(thingmat.M31, thingmat.M32, thingmat.M33);
+            System.Numerics.Vector3 mat1 = new System.Numerics.Vector3(thingmat.M21, thingmat.M22, thingmat.M23);
+            System.Numerics.Vector3 mat0 = new System.Numerics.Vector3(thingmat.M11, thingmat.M12, thingmat.M13);
+            
+            System.Numerics.Vector3 nearCenter = mat3 - mat2 * near;
+            System.Numerics.Vector3 farCenter = mat3 - mat2 * far;
+            
+            float nearHeight = MathF.Tan(FOV * .5f) * near;
+            float farHeight = MathF.Tan(FOV  * .5f) * far;
+            
+            float nearWidth = nearHeight * AspectRatio;
+            float farWidth = farHeight * AspectRatio;
 
-            Vector3 farTopLeft = farCenter + baseCamera.Up * (farHeight * 0.5f) - baseCamera.Right * (farWidth * 0.5f);
-            Vector3 farTopRight = farCenter + baseCamera.Up * (farHeight * 0.5f) + baseCamera.Right * (farWidth * 0.5f);
-            Vector3 farBottomLeft = farCenter - baseCamera.Up * (farHeight * 0.5f) - baseCamera.Right * (farWidth * 0.5f);
-            Vector3 farBottomRight = farCenter - baseCamera.Up * (farHeight * 0.5f) + baseCamera.Right * (farWidth * 0.5f);
+            Vector3 farTopLeft = farCenter + mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f);
+            Vector3 farTopRight = farCenter + mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f);
+            Vector3 farBottomLeft = farCenter - mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f);
+            Vector3 farBottomRight = farCenter - mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f);
 
-            Vector3 nearTopLeft = new Vector3(-nearWidth, nearHeight, 1); //nearCenter + baseCamera.Up * (nearHeight * 0.5f) - baseCamera.Right * (nearWidth * 0.5f);
-            Vector3 nearTopRight = new Vector3(nearWidth, nearHeight, 1);//nearCenter + baseCamera.Up * (nearHeight * 0.5f) + baseCamera.Right * (nearWidth * 0.5f);
-            Vector3 nearBottomLeft = new Vector3(-nearWidth, -nearHeight, 1);//nearCenter - baseCamera.Up * (nearHeight * 0.5f) - baseCamera.Right * (nearWidth * 0.5f);
-            Vector3 nearBottomRight = new Vector3(nearWidth, nearHeight, 1);//nearCenter - baseCamera.Up * (nearHeight * 0.5f) + baseCamera.Right * (nearWidth * 0.5f);
+            Vector3 nearTopLeft = nearCenter + mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
+            Vector3 nearTopRight = nearCenter + mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
+            Vector3 nearBottomLeft = nearCenter - mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
+            Vector3 nearBottomRight = nearCenter - mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
 
             Planes = new[]
             {
                 //Near
-                new Plane(nearBottomLeft, nearTopRight, nearTopLeft),
+                new Plane(nearTopRight, nearTopLeft, nearBottomLeft),
 
                 //Far
-                new Plane(farTopLeft,farTopRight, farBottomLeft),
+                new Plane(farTopLeft,farTopRight, farBottomRight),
 
                 //Left
-                new Plane(nearBottomLeft, farTopLeft, nearTopLeft ),
+                new Plane(nearTopLeft, farTopLeft, nearBottomLeft),
 
                 //Right
-                new Plane(nearBottomRight, farTopRight, nearTopRight),
+                new Plane(farTopRight, nearTopRight, farBottomRight),
 
                 //Top
-                new Plane(farTopLeft, nearTopRight, nearTopLeft),
+                new Plane(nearTopLeft, nearTopRight, farTopLeft),
                 //Bottom
-                new Plane(farBottomRight , farBottomLeft, nearBottomLeft),
+                new Plane(nearBottomLeft , farBottomLeft, farBottomRight),
             };
-        }
-
-        static Vector3 op_Subtraction(MathLib.DoublePrecision_Numerics.Vector3 first , Vector3 second)
-        {
-            return new Vector3((float)(first.X - second.X), (float)(first.Y - second.Y), (float)(first.Z - second.Z));
         }
     }
 
     public static class IntersectionHandler
     {
-        public static int SphereToPlane(ref Plane plane, ref Sphere sphere)
+        static int SphereToPlane(ref Plane plane, ref Sphere sphere)
         {
             float distance = Vector3.Dot(sphere.Position, plane.Normal) - plane.Offset;
             if (distance > sphere.Radius)
@@ -115,49 +122,26 @@ namespace Engine.Rendering
 
 
         public static int AABBToPlane(ref Plane plane, ref AABB aabb)
-        {
-            Vector3 absnormal = new Vector3(Math.Abs(plane.Normal.X), Math.Abs(plane.Normal.Y), Math.Abs(plane.Normal.Z));
-            Sphere sphere = new Sphere(Vector3.Dot(absnormal, aabb.extents), aabb.center);
+        {   
+            Vector3 absnormal = Vector3.Abs(new Vector3(plane.Normal.X, plane.Normal.Y, plane.Normal.Z));
+            Sphere sphere = new(Vector3.Dot(absnormal, aabb.extents), aabb.center);
             return SphereToPlane(ref plane, ref sphere );
         }
         
-        static int TestAABBPlane(ref AABB b, ref Plane p) {
-            // Convert AABB to center-extents representation
-            Vector3 c = (b.Max + b.Min) * 0.5f; // Compute AABB center
-            Vector3 e = b.Max - c; // Compute positive extents
 
-            // Compute the projection interval radius of b onto L(t) = b.c + t * p.n
-            float r = e.X * Math.Abs(p.Normal.X) + e.Y * Math.Abs(p.Normal.Y) + e.Z * Math.Abs(p.Normal.Z);
-
-            // Compute distance of box center from plane
-            float s = Vector3.Dot(p.Normal, c) - p.Offset;
-
-            // Intersection occurs when distance s falls within [-r,+r] interval
-            if (s > r)
-            {
-                return 1;
-            }
-            if (s < -r)
-            {
-                return -1;
-            }
-            return 0;
-        }
-
-        public static bool MeshInFrustrum(Mesh mesh, Camera camera)
+        public static bool MeshInFrustrum(Mesh mesh, ref Frustrum frustum)
         {
-            var frustrum = new Frustrum(camera);
-            var meshAABB = new AABB(mesh.minpoint, mesh.maxpoint);
+            AABB meshAabb = new((Vector3)(mesh.Position - frustum.camerapos) + mesh.minpoint , (Vector3)(mesh.Position - frustum.camerapos) + mesh.maxpoint);
             
             
-            return aabb_to_frustum(ref meshAABB, ref frustrum);
+            return aabb_to_frustum(ref meshAabb, ref frustum);
         }
         
         static bool aabb_to_frustum(ref AABB aabb, ref Frustrum frustum)
         {
             for (int i = 0; i < frustum.Planes.Length; ++i)
             {
-                if (TestAABBPlane(ref aabb, ref frustum.Planes[i] ) == -1)
+                if (AABBToPlane( ref frustum.Planes[i],ref aabb ) == 1)
                 {
                     return false;
                 }

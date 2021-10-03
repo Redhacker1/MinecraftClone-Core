@@ -23,74 +23,118 @@ namespace CullingTests
         {
             base.Gamestart();
             new Player();
-            new FrustrumTest(Camera.MainCamera);
+            FrustrumTest frustrumTest = new FrustrumTest(Camera.MainCamera);
 
         }
     }
 
     class FrustrumTest : Entity
     {
-        public struct Plane
-        {
-            public Vector3 Normal;
-            public float Offset;
-
-            public Plane(Vector3 p0, Vector3 p1, Vector3 p2)
-            {
-                Normal = Vector3.Normalize(Vector3.Cross(p1 - p0, p2 - p1));
-                Offset = Vector3.Dot(Normal, p0);
-            }
-        }
+        Camera camera;
+        Mesh Front;
+        Mesh Back;
+        Mesh Left;
+        Mesh Right;
+        Mesh Top;
+        Mesh Bottom;
 
         public FrustrumTest(Camera baseCamera)
         {
-            Vector3 nearCenter = op_Subtraction(Vector3.Zero, baseCamera.Front) * baseCamera.NearPlane;
-            Vector3 farCenter = op_Subtraction(Vector3.Zero ,baseCamera.Front) * baseCamera.FarPlane;
+            GenFrustum(baseCamera);
+            camera = baseCamera;
+        }
+
+        public override void _Process(double delta)
+        {
+            Front.QueueDeletion();
+            Back.QueueDeletion();
+            Left.QueueDeletion();
+            Right.QueueDeletion();  
+            Top.QueueDeletion();
+            Bottom.QueueDeletion();
             
-            float nearHeight = (float)(2 * Math.Tan(baseCamera.GetFOV()/ 2) * baseCamera.NearPlane);
-            float farHeight = (float)(2 * Math.Tan(baseCamera.GetFOV() / 2) * baseCamera.FarPlane);
+            GenFrustum(camera);
+        }
+
+        public void GenFrustum(Camera baseCamera)
+        {
+            Matrix4x4.Invert(baseCamera.GetViewMatrix(), out Matrix4x4 thingmat);
+
+            
+            System.Numerics.Vector3 mat3 = new System.Numerics.Vector3(thingmat.M41, thingmat.M42, thingmat.M43);
+            System.Numerics.Vector3 mat2 = new System.Numerics.Vector3(thingmat.M31, thingmat.M32, thingmat.M33);
+            System.Numerics.Vector3 mat1 = new System.Numerics.Vector3(thingmat.M21, thingmat.M22, thingmat.M23);
+            System.Numerics.Vector3 mat0 = new System.Numerics.Vector3(thingmat.M11, thingmat.M12, thingmat.M13);
+            
+            System.Numerics.Vector3 nearCenter = mat3 - mat2 * baseCamera.NearPlane;
+            System.Numerics.Vector3 farCenter = mat3 - mat2 * baseCamera.FarPlane;
+            
+            float nearHeight = MathF.Tan(baseCamera.GetFOV() * .5f) * baseCamera.NearPlane;
+            float farHeight = MathF.Tan(baseCamera.GetFOV()  * .5f) * baseCamera.FarPlane;
+            
             float nearWidth = nearHeight * baseCamera.AspectRatio;
             float farWidth = farHeight * baseCamera.AspectRatio;
+
+            Vector3 farTopLeft = farCenter + mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f);
+            Vector3 farTopRight = farCenter + mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f);
+            Vector3 farBottomLeft = farCenter - mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f);
+            Vector3 farBottomRight = farCenter - mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f);
+
+            Vector3 nearTopLeft = nearCenter + mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
+            Vector3 nearTopRight = nearCenter + mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
+            Vector3 nearBottomLeft = nearCenter - mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
+            Vector3 nearBottomRight = nearCenter - mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
+
             
-            Vector3 farTopLeft = farCenter + baseCamera.Up * (farHeight*0.5f) - baseCamera.Right * (farWidth*0.5f);
-            Vector3 farTopRight = farCenter + baseCamera.Up * (farHeight*0.5f) + baseCamera.Right * (farWidth*0.5f);
-            Vector3 farBottomLeft = farCenter - baseCamera.Up * (farHeight*0.5f) - baseCamera.Right * (farWidth*0.5f);
-            Vector3 farBottomRight = farCenter - baseCamera.Up * (farHeight*0.5f) + baseCamera.Right * (farWidth*0.5f);
-
-
+            var UVs = new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) };
             
-            Vector3 nearTopLeft = nearCenter +  baseCamera.Up * (nearHeight*0.5f) - baseCamera.Right * (nearWidth*0.5f);
-            Vector3 nearTopRight = nearCenter +  baseCamera.Up * (nearHeight*0.5f) + baseCamera.Right * (nearWidth*0.5f);
-            Vector3 nearBottomLeft = nearCenter -  baseCamera.Up * (nearHeight*0.5f) - baseCamera.Right * (nearWidth*0.5f);
-            Vector3 nearBottomRight = nearCenter -  baseCamera.Up * (nearHeight*0.5f) + baseCamera.Right * (nearWidth*0.5f);
+            var frontverts =new List<System.Numerics.Vector3>()
+                { nearTopLeft, nearTopRight,  nearBottomLeft, nearBottomRight };
+            Front = new Mesh(frontverts,UVs, this);
+            Front._indices =  new uint[] {0,1,2,2,0,3 };
+            
+            var BackVerts = new List<System.Numerics.Vector3>() 
+                {farTopLeft, farTopRight, farBottomLeft, farBottomRight};
+            Back = new Mesh(BackVerts, UVs, this);
+            Back._indices =  new uint[] {0,1,2,2,0,3 };
 
+            var LeftVerts = new List<System.Numerics.Vector3>()
+                { nearTopLeft, farTopLeft, nearBottomLeft, farBottomLeft };
+            Left = new Mesh(LeftVerts, UVs, this);
+            Left._indices =  new uint[] {0,1,2,2,0,3 };
 
-            Mesh Front = new Mesh(new List<Vector3>() { nearTopRight, nearTopLeft, nearBottomLeft, nearBottomRight },
-                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) }, this);
-            Mesh Back = new Mesh(new List<Vector3>() { farTopLeft, farTopLeft, farBottomLeft, farBottomRight },
-                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) }, this);
-            Mesh Left = new Mesh(new List<Vector3>() { nearTopLeft, farTopLeft, farBottomLeft, nearBottomLeft },
-                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) }, this);
+            var RightVerts = new List<System.Numerics.Vector3>()
+                { nearTopRight, farTopRight, nearBottomRight, farTopLeft };
+            Right = new Mesh(RightVerts,UVs, this);
+            Right._indices =  new uint[] {0,1,2,2,0,3 };
+
+            var TopVerts = new List<System.Numerics.Vector3>() 
+                { nearTopLeft, farTopLeft, farTopRight, nearTopRight };
+            Top = new Mesh(TopVerts,UVs, this);
+            Top._indices =  new uint[] {0,1,2,2,0,3 };
+
+            var BottomVerts = new List<System.Numerics.Vector3>() 
+                { nearBottomLeft, farBottomLeft, farBottomRight, nearBottomRight};
+            Bottom = new Mesh(BottomVerts, UVs, this);
+            Bottom._indices =  new uint[] {0,1,2,2,0,3 };
+
+            Front.SetRenderMode(RenderMode.Triangle);
             Front.QueueVaoRegen();
+            
+            Back.SetRenderMode(RenderMode.Triangle);
             Back.QueueVaoRegen();
+            
+            Left.SetRenderMode(RenderMode.Triangle);
             Left.QueueVaoRegen();
             
-            //frustum.planes[FRUSTUM_PLANES::FRONT] = calculate_plane(ntr, ntl, nbl);
-            //frustum.planes[FRUSTUM_PLANES::BACK] = calculate_plane(ftl, ftr, fbr);
-            //frustum.planes[FRUSTUM_PLANES::LEFT] = calculate_plane(ntl, ftl, nbl);
-            //frustum.planes[FRUSTUM_PLANES::RIGHT] = calculate_plane(ftr, ntr, fbr);
-            //frustum.planes[FRUSTUM_PLANES::TOP] = calculate_plane(ntl, ntr, ftl);
-            //frustum.planes[FRUSTUM_PLANES::BOTTOM] = calculate_plane(nbl, fbl, fbr);
-        }
-
-        static Vector3 op_Subtraction(Vector3 first, Vector3 Second)
-        {
-            return Vector3.Subtract(first, Second);
-        }
-
-        protected override void _Ready()
-        {
-            base._Ready();
+            Right.SetRenderMode(RenderMode.Triangle);
+            Right.QueueVaoRegen();
+            
+            Top.SetRenderMode(RenderMode.Triangle);
+            Top.QueueVaoRegen();
+            
+            Bottom.SetRenderMode(RenderMode.Triangle);
+            Bottom.QueueVaoRegen();
         }
     }
 }

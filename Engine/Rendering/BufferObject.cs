@@ -9,6 +9,7 @@ namespace Engine.Rendering
         private uint _handle;
         private BufferTargetARB _bufferType;
         private GL _gl;
+        bool FreedAlready;
 
         public readonly uint Length;
 

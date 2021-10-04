@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Numerics;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Engine;
 using Engine.Initialization;
 using Engine.Objects;
@@ -11,6 +10,7 @@ using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.World_CS.Generation;
+using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core
 {
@@ -59,7 +59,7 @@ namespace MCClone_Core
     class FPSEntity : Entity
     {
         Stopwatch fpstimer = Stopwatch.StartNew();
-        int frames = 0;
+        int frames;
         public override void _Process(double delta)
         {
             frames+=1;

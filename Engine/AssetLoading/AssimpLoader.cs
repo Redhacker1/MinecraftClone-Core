@@ -2,12 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using Engine.Objects;
 using Silk.NET.Assimp;
-using Silk.NET.Core.Contexts;
 using File = System.IO.File;
 using Mesh = Engine.Renderable.Mesh;
 
@@ -15,6 +11,14 @@ namespace Engine.AssetLoading
 {
     public class AssimpLoader
     {
+        
+        /// <summary>
+        /// Loads file from ASSIMP
+        /// </summary>
+        /// <param name="MeshName"></param>
+        /// <param name="bindingObject"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
         public static unsafe Mesh[] LoadMesh(string MeshName, MinimalObject bindingObject)
         {
             var thing = Assimp.GetApi();
@@ -84,6 +88,7 @@ namespace Engine.AssetLoading
                         Indicies.Add(Mesh->MFaces[face].MIndices[index]);
                     }
                 }
+                
 
                 Meshes[meshcount]._indices = Indicies.ToArray();
 

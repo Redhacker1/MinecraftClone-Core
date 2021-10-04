@@ -124,8 +124,8 @@ namespace Engine.Renderable
                 values.Add(_uvs[i].Z);
             }
 
-            maxpoint = tempmax;
-            minpoint = tempmin;
+            maxpoint = tempmax + (Vector3)Position;
+            minpoint = tempmin + (Vector3)Position;
             return values.ToArray();
         }
 

@@ -7,10 +7,6 @@ using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace Engine.Objects
 {
-    using Vector3 = Vector3;
-
-
-
     /// <summary>
     /// Used for entities that move around. This is based off of Entity
     /// </summary>

@@ -1,8 +1,5 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using System.Numerics;
-using System.Reflection;
-using System.Reflection.PortableExecutable;
 using Engine.Renderable;
 
 namespace Engine.Rendering
@@ -54,17 +51,16 @@ namespace Engine.Rendering
         public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos)
         {
             camerapos = Pos;
-            var thingmat = new Matrix4x4();
-            Matrix4x4.Invert(ViewFrustum, out thingmat);
+            Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
 
             
-            System.Numerics.Vector3 mat3 = new System.Numerics.Vector3(thingmat.M41, thingmat.M42, thingmat.M43);
-            System.Numerics.Vector3 mat2 = new System.Numerics.Vector3(thingmat.M31, thingmat.M32, thingmat.M33);
-            System.Numerics.Vector3 mat1 = new System.Numerics.Vector3(thingmat.M21, thingmat.M22, thingmat.M23);
-            System.Numerics.Vector3 mat0 = new System.Numerics.Vector3(thingmat.M11, thingmat.M12, thingmat.M13);
+            Vector3 mat3 = new Vector3(thingmat.M41, thingmat.M42, thingmat.M43);
+            Vector3 mat2 = new Vector3(thingmat.M31, thingmat.M32, thingmat.M33);
+            Vector3 mat1 = new Vector3(thingmat.M21, thingmat.M22, thingmat.M23);
+            Vector3 mat0 = new Vector3(thingmat.M11, thingmat.M12, thingmat.M13);
             
-            System.Numerics.Vector3 nearCenter = mat3 - mat2 * near;
-            System.Numerics.Vector3 farCenter = mat3 - mat2 * far;
+            Vector3 nearCenter = mat3 - mat2 * near;
+            Vector3 farCenter = mat3 - mat2 * far;
             
             float nearHeight = MathF.Tan(FOV * .5f) * near;
             float farHeight = MathF.Tan(FOV  * .5f) * far;
@@ -80,7 +76,6 @@ namespace Engine.Rendering
             Vector3 nearTopLeft = nearCenter + mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
             Vector3 nearTopRight = nearCenter + mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
             Vector3 nearBottomLeft = nearCenter - mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
-            Vector3 nearBottomRight = nearCenter - mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
 
             Planes = new[]
             {
@@ -131,7 +126,7 @@ namespace Engine.Rendering
 
         public static bool MeshInFrustrum(Mesh mesh, ref Frustrum frustum)
         {
-            AABB meshAabb = new((Vector3)(mesh.Position - frustum.camerapos) + mesh.minpoint , (Vector3)(mesh.Position - frustum.camerapos) + mesh.maxpoint);
+            AABB meshAabb = new(mesh.minpoint - (Vector3)(frustum.camerapos) , mesh.maxpoint - (Vector3)(frustum.camerapos));
             
             
             return aabb_to_frustum(ref meshAabb, ref frustum);

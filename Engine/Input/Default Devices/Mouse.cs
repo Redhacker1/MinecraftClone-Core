@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Silk.NET.Input;
-using Silk.NET.OpenGL;
 
 namespace Engine.Input.Default_Devices
 {
@@ -61,7 +59,7 @@ namespace Engine.Input.Default_Devices
             {
                 bool KeyPressed = InputDevice.IsButtonPressed(mouseButtons);
                 
-                if (MouseKeysJustReleased[mouseButtons] == false && KeyPressed == true)
+                if (MouseKeysJustReleased[mouseButtons] == false && KeyPressed)
                 {
                     MouseKeysJustReleased[mouseButtons] = true;   
                 }

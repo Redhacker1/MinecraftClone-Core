@@ -2,7 +2,7 @@
 {
     public class MixedNoiseClass
     {
-        readonly int _iterations = 0;
+        readonly int _iterations;
 
         readonly NoiseUtil[] _noiseFilters;
 

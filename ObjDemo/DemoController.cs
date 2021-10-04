@@ -1,5 +1,4 @@
-﻿using System;
-using Engine.Input;
+﻿using Engine.Input;
 using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Objects;
 using Engine.Rendering;
@@ -10,7 +9,7 @@ namespace CullingTests
     public class DemoController
     {
         readonly CharacterEntity pawn;
-        Vector3 _velocity = new Vector3();
+        Vector3 _velocity;
         float speed = 25.498592f;
 
         public DemoController(CharacterEntity character)

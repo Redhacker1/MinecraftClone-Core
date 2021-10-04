@@ -1,9 +1,7 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using CullingTests;
 using Engine;
 using Engine.AssetLoading;
 using Engine.Initialization;
@@ -11,7 +9,6 @@ using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
 using ObjParser;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace ObjDemo
 {
@@ -22,10 +19,11 @@ namespace ObjDemo
             base.Gamestart();
 
             FPSEntity entity = new FPSEntity();
-            Camera fpCam = new Camera(new System.Numerics.Vector3(0, 0, 0), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,16f/9f, true );
+            Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitY,16f/9f, true );
             MeshSpawner thing = new MeshSpawner();
+            ImGUI_ModelViewer viewer = new ImGUI_ModelViewer();
             
-            BenchmarkEntity entTest = new BenchmarkEntity();
+            //BenchmarkEntity entTest = new BenchmarkEntity();
         }
     }
 
@@ -39,7 +37,7 @@ namespace ObjDemo
 
     class MeshSpawner : GameObject
     {
-        Mesh?[]? meshes;
+        Mesh[] meshes;
 
         protected override void _Ready()
         {
@@ -54,7 +52,7 @@ namespace ObjDemo
             {
                 foreach (var mesh in meshes)
                 {
-                    mesh?.QueueVaoRegen();
+                    mesh.QueueVaoRegen();
                 }   
             }
         }
@@ -62,7 +60,7 @@ namespace ObjDemo
     class FPSEntity : Entity
     {
         Stopwatch fpstimer = Stopwatch.StartNew();
-        int frames = 0;
+        int frames;
         public override void _Process(double delta)
         {
             frames+=1;

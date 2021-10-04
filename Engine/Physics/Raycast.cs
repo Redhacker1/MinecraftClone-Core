@@ -1,6 +1,6 @@
 ﻿using System;
 using Engine.MathLib;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
+using Engine.MathLib.DoublePrecision_Numerics;
 
 namespace Engine.Physics
 {

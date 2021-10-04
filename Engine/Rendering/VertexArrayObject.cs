@@ -1,4 +1,3 @@
-using System;
 using Silk.NET.OpenGL;
 
 namespace Engine.Rendering

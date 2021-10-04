@@ -33,7 +33,7 @@ namespace Engine.Input.Default_Devices
             {
                 bool KeyPressed = keyboardDevice.IsKeyPressed(CurrentKey);
 
-                if (KeysJustPressed[CurrentKey] == false && KeyPressed == true)
+                if (KeysJustPressed[CurrentKey] == false && KeyPressed)
                 {
                     KeysJustPressed[CurrentKey] = true;   
                 }

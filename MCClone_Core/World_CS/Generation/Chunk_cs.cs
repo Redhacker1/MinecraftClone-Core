@@ -9,16 +9,13 @@ using Array = Godot.Collections.Array;
 #endif
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Renderable;
-using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
-using Vector2 = System.Numerics.Vector2;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.World_CS.Generation
@@ -234,12 +231,12 @@ namespace MCClone_Core.World_CS.Generation
 			Vector2 uvD = new Vector2(Sizex + uvOffset.X, uvOffset.Y);
 
 
-			const bool useindices = true;
+			const bool useindices = false;
 
 			if (useindices)
 			{
 				blocks.AddRange(new[] {a, b, c, d});
-				indices.AddRange(new uint[] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3});
+				indices.AddRange(new[] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3});
 				currentindex += 4;
 
 				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvD});	

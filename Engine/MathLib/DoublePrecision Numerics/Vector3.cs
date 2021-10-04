@@ -59,8 +59,8 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         public override int GetHashCode()
         {
             int hash = X.GetHashCode();
-            hash = HashCode.Combine<int, int>(hash, Y.GetHashCode());
-            hash = HashCode.Combine<int, int>(hash, Z.GetHashCode());
+            hash = HashCode.Combine(hash, Y.GetHashCode());
+            hash = HashCode.Combine(hash, Z.GetHashCode());
             return hash;
         }
 
@@ -108,13 +108,13 @@ namespace Engine.MathLib.DoublePrecision_Numerics
             StringBuilder sb = new StringBuilder();
             string separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
             sb.Append('<');
-            sb.Append(((IFormattable)X).ToString(format, formatProvider));
+            sb.Append(X.ToString(format, formatProvider));
             sb.Append(separator);
             sb.Append(' ');
-            sb.Append(((IFormattable)Y).ToString(format, formatProvider));
+            sb.Append(Y.ToString(format, formatProvider));
             sb.Append(separator);
             sb.Append(' ');
-            sb.Append(((IFormattable)Z).ToString(format, formatProvider));
+            sb.Append(Z.ToString(format, formatProvider));
             sb.Append('>');
             return sb.ToString();
         }
@@ -127,7 +127,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         public double Length()
         {
             double ls = X * X + Y * Y + Z * Z;
-                return (double)Math.Sqrt(ls);
+                return Math.Sqrt(ls);
         }
 
         /// <summary>
@@ -157,7 +157,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
 
                 double ls = dx * dx + dy * dy + dz * dz;
 
-                return (double)Math.Sqrt((double)ls);
+                return Math.Sqrt(ls);
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         public static Vector3 Normalize(Vector3 value)
         {
             double ls = value.X * value.X + value.Y * value.Y + value.Z * value.Z;
-                double length = (double)Math.Sqrt(ls);
+                double length = Math.Sqrt(ls);
                 return new Vector3(value.X / length, value.Y / length, value.Z / length);
         }
 

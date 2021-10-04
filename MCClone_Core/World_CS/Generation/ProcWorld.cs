@@ -1,9 +1,11 @@
 /* TODO: This is starting to become a SuperClass with catch-all functionality, might be best to separate it out.
 	Might be best to move some of the more chunk oriented methods into the chunkCS class that do not use the chunk class statically.
  */
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
@@ -29,7 +31,7 @@ namespace MCClone_Core.World_CS.Generation
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
 		
 		// Max chunks radius comes out to (_loadRadius*2)^2 
-		readonly int _loadRadius = 32;
+		readonly int _loadRadius = 16;
 
 		public static Random WorldRandom;
 		public static long WorldSeed;
@@ -67,7 +69,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			ConsoleLibrary.DebugPrint("Preparing Threadpool");
 			// Starts the threadpool;
-			_threads.InitializePool(0);
+			_threads.InitializePool();
 			_threads.IgniteThreadPool();
 			
 			ConsoleLibrary.DebugPrint("Registering Blocks");
@@ -188,6 +190,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		Vector2 _load_chunk(int cx, int cz)
 		{
+			Stopwatch timer = Stopwatch.StartNew();
 			Vector2 cpos = new Vector2(cx, cz);
 			bool loadChunk;
 			loadChunk = !LoadedChunks.ContainsKey(cpos);
@@ -197,19 +200,24 @@ namespace MCClone_Core.World_CS.Generation
 				ChunkCs c;
 				if (SaveFileHandler.ChunkExists(World, cpos))
 				{
+
 					c = SaveFileHandler.GetChunkData(this ,World, cpos, out _);
+
 				}
 				else
 				{
 					c = new ChunkCs();
-					c.InstantiateChunk(this, cx, cz, WorldSeed);	
+					c.InstantiateChunk(this, cx, cz, WorldSeed);
 				}
 				
 				LoadedChunks[cpos] = c;
 
+
 				c?.UpdateVisMask();
+				
 				_update_chunk(cx, cz);
 			}
+			//Console.WriteLine(timer.ElapsedMilliseconds);
 			return cpos;
 		}
 
@@ -303,13 +311,13 @@ namespace MCClone_Core.World_CS.Generation
 		
 		
 
-		public void change_block(int cx, int cz, int bx, int @by, int bz, byte T)
+		public void change_block(int cx, int cz, int bx, int by, int bz, byte T)
 		{
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
-			if (c.BlockData[ChunkCs.GetFlattenedDimension(bx, @by, bz)] == T) return;
-			ConsoleLibrary.DebugPrint($"Changed block at {bx} {@by} {bz} in chunk {cx}, {cz}");
-			c?._set_block_data(bx,@by,bz,T);
+			if (c.BlockData[ChunkCs.GetFlattenedDimension(bx, by, bz)] == T) return;
+			ConsoleLibrary.DebugPrint($"Changed block at {bx} {by} {bz} in chunk {cx}, {cz}");
+			c?._set_block_data(bx,by,bz,T);
 			_update_chunk(cx, cz);
 		}
 

@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Engine.Input.Default_Devices;
-using Engine.MathLib;
-using Engine.Rendering;
 using Silk.NET.Input;
 
 namespace Engine.Input
 {
-    public class InputHandler
+    public static class InputHandler
     {
         static List<Keyboard> _keyboards = new List<Keyboard>();
         static List<Mouse> _mice = new List<Mouse>();

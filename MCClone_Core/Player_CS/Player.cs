@@ -13,7 +13,7 @@ using Engine.Rendering;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 using Silk.NET.Input;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
+using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Player_CS
 {
@@ -269,7 +269,7 @@ namespace MCClone_Core.Player_CS
 			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.Dimension.Z) + 0.5);
 
 		#if !Core
-			WorldScript.lines.DrawBlock((int) (cx * ChunkCs.Dimension.X + bx), @by, (int) (cz * ChunkCs.Dimension.Z + bz), delta);		
+			WorldScript.lines.DrawBlock((int) (cx * ChunkCs.Dimension.X + bx), by, (int) (cz * ChunkCs.Dimension.Z + bz), delta);		
 		#endif
 
 

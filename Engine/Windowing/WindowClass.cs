@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Engine.Input;
@@ -47,8 +48,36 @@ namespace Engine.Windowing
             Handle.Render += OnRender;
             Handle.Load += OnLoad;
             Handle.Closing += OnClose;
+            Handle.FramebufferResize += s =>
+            {
+                // Adjust the viewport to the new window size
+                GlHandle.Viewport(s);
+            };
 
             gameinstance = GameClass;
+        }
+        
+        float framesPerSecond = 0.0f;
+        static int fps;
+        float lastTime = 0.0f;
+        double currentTime = 0.0f;
+        int CalculateFPS(double time)
+        {
+            currentTime += time;
+            if (currentTime >= 1f)
+            {
+                fps = 0;
+                currentTime = 0;
+            }
+
+            fps++;
+            
+            return fps;
+        }
+
+        public static double GetFPS()
+        {
+            return thing.FPS;
         }
 
         void OnLoad()
@@ -74,102 +103,114 @@ namespace Engine.Windowing
             gameinstance.GameEnded();
         }
 
+        static Statistics thing = new Statistics();
+        Stopwatch timer = Stopwatch.StartNew();
+        
         void OnRender(double time)
         {
-            var frustum = Camera.MainCamera.GetViewFrustum();
+            thing.Update(timer);
+            var frustum =  Camera.MainCamera.GetViewFrustum();
+            //Console.WriteLine("Running");
 
-            GlHandle.Clear((uint)(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
+            // = time;
+            GlHandle.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
             GlHandle.Enable(EnableCap.DepthTest);
-            GlHandle.Enable(EnableCap.CullFace);
+            //GlHandle.Enable(EnableCap.CullFace);
             GlHandle.Enable(EnableCap.DebugOutput);
             GlHandle.DepthFunc(DepthFunction.Lequal);
-            //GlHandle.FrontFace(FrontFaceDirection.CW);
-
-            int Meshrendered = 0;
+            //GlHandle.Enable(GLEnum.DebugOutputSynchronous);
 
 
+
+            //Console.WriteLine($"{Meshes.Count}, meshes compared to {Mesh.Meshes.Count} Total");
             if (Camera.MainCamera != null)
             {
                 Shader?.SetUniform("uView", Camera.MainCamera.GetViewMatrix());
                 Shader?.SetUniform("uProjection", Camera.MainCamera.GetProjectionMatrix());
             }
 
+            int MeshesDrawn = 0;
             Mesh mesh;
             for (int meshindex = 0; meshindex < Mesh.Meshes.Count; meshindex++)
             {
                 mesh = Mesh.Meshes[meshindex];
-                if (mesh.ActiveState == MeshState.Delete)
+                if (mesh != null)
                 {
-                    Mesh.Meshes.Remove(mesh);
-                    mesh.Dispose();
-                }
-                else if (mesh.ActiveState == MeshState.Dirty)
-                {
-                    mesh.MeshReference?.Dispose();
-                    mesh.MeshReference = mesh.RegenerateVao();
-                    mesh.ActiveState = MeshState.Render;
-                }
-
-                if (mesh.ActiveState == MeshState.Render)
-                {
-                    GlHandle.CullFace(CullFaceMode.Front);
-                    Texture?.Bind();
-                    Shader?.Use();
-
-                    if (mesh.ActiveState == MeshState.Render && IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
+                    if (mesh.ActiveState == MeshState.Delete)
                     {
-                        Shader?.SetUniform("uModel", mesh.ViewMatrix);
-                        Shader?.SetUniform("uTexture0", 0);
-
-                        Meshrendered++;
-                        mesh.Draw(GlHandle);
+                        mesh.Dispose();
+                        Mesh.Meshes.Remove(mesh);
                     }
+                    else if (mesh.ActiveState == MeshState.Dirty)
+                    {
+                        mesh.MeshReference?.Dispose();
+                        mesh.MeshReference = mesh.RegenerateVao();
+                        mesh.ActiveState = MeshState.Render;
+                    }
+                    if(mesh.ActiveState == MeshState.Render)
+                    {
+                        GlHandle.CullFace(CullFaceMode.Front);
+                        Texture?.Bind();
+                        Shader?.Use();
+                
+                
+                        if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Render && IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
+                        {
+                            mesh.MeshReference.Bind();
+                            Shader?.SetUniform("uModel", mesh.ViewMatrix);
+                            //Shader?.SetUniform("uTexture0", 0);
+                            mesh.Draw(GlHandle);
+                        }
+                        else
+                        {
+                            MeshesDrawn += 1;
+                        }
+                    }
+                    
                 }
-                //Console.WriteLine(Meshrendered);
-
-                //TODO: Layered UI/PostProcess
-
-                // Finish implementing input system to get mouse mode, leaving here for now!
-                if (InputHandler.MousePos(0) != Vector2.Zero)
-                {
-                    GuiController.Update((float)time);   
-                }
-                foreach (var uiPanel in ImGUIPanel.panels)
-                {
-                    ImGui.Begin(uiPanel.PanelName);
-                    uiPanel.CreateUI();
-                    ImGui.End();
-                }
-                GuiController.Render();
             }
+
+            //TODO: Layered UI/PostProcess
+
+            foreach (var uiPanel in ImGUIPanel.panels)
+            {
+                ImGui.Begin(uiPanel.PanelName);
+                uiPanel.CreateUI();
+                ImGui.End();
+            }
+            GuiController.Render();
+            
+            
+
         }
 
 
-            double physicsDelta;
-            void Update(double delta)
+        double physicsDelta;
+        void Update(double delta)
+        {
+
+            InputHandler.PollInputs();
+            physicsDelta += delta;
+
+            bool physicsProcess = physicsDelta >= 0.0166666;
+
+            for (int  index = 0;  index < GameObject.Objects.Count; index++)
             {
-
-                InputHandler.PollInputs();
-                physicsDelta += delta;
-
-                bool physicsProcess = physicsDelta >= 0.0166666;
-
-                foreach (GameObject gameObject in GameObject.Objects)
+                var gameObject = GameObject.Objects[index];
+                if (gameObject != null)
                 {
-                    if (gameObject != null)
+                    gameObject._Process(delta);
+                    if (physicsProcess)
                     {
-                        gameObject._Process(delta);
-                        if (physicsProcess)
-                        {
-                            gameObject._PhysicsProcess(physicsDelta);
-                        }
+                        gameObject._PhysicsProcess(physicsDelta);
                     }
                 }
-
-                if (physicsProcess)
-                {
-                    physicsDelta = 0;
-                }
             }
+
+            if (physicsProcess)
+            {
+                physicsDelta = 0;
+            }
+        }
     }
 }

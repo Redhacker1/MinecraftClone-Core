@@ -8,7 +8,6 @@ using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
-using ObjParser;
 
 namespace ObjDemo
 {
@@ -44,8 +43,7 @@ namespace ObjDemo
             base._Ready();
 
             new Player();
-        
-            Obj obj = new Obj();
+            
             meshes = AssimpLoader.LoadMesh(@".\Assets\Mickey Mouse.obj", this);
 
             if (meshes != null)
@@ -71,15 +69,6 @@ namespace ObjDemo
                 frames = 0;
                 fpstimer.Restart();
             }
-        }
-    }
-
-    class BenchmarkEntity : Entity
-    {
-        public override void _Process(double delta)
-        {
-            //Console.WriteLine($"{Entity.Objects.Count} Objects, {1/delta} MS");
-            new FPSEntity();
         }
     }
 

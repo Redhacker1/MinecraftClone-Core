@@ -156,7 +156,7 @@ namespace Engine.Renderable
 
         internal unsafe void Draw(GL glHandle)
         {
-           // MeshReference._handle
+
             MeshReference.Bind();
             if (_indices?.Length > 0)
             {

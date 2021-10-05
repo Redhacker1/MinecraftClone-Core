@@ -61,7 +61,7 @@ namespace Engine.Rendering
 
         private float FrustumFOV()
         {
-            return MathHelper.DegreesToRadians(110 + 15);
+            return MathHelper.DegreesToRadians(110 + 17);
         }
 
         public float GetFOV()

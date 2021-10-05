@@ -86,10 +86,10 @@ namespace MCClone_Core.World_CS.Generation
 		
 		public void Update()
 		{
-			List<System.Numerics.Vector3> blocks = new();
-			List<System.Numerics.Vector3> blocksNormals = new();
-			List<uint> ChunkIndices = new();
-			List<Vector2>  uVs = new();
+			List<System.Numerics.Vector3> blocks = new List<System.Numerics.Vector3>();
+			List<System.Numerics.Vector3> blocksNormals = new List<System.Numerics.Vector3>();
+			List<uint> ChunkIndices = new List<uint>();
+			List<Vector2>  uVs = new List<Vector2>();
 			uint index = 0;
 
 			//Making use of multidimensional arrays allocated on creation
@@ -112,10 +112,6 @@ namespace MCClone_Core.World_CS.Generation
 			_chunkreference = new Mesh(blocks, uVs, this);
 			//chunkmesh._indices = ChunkIndices.ToArray();
 			_chunkreference.QueueVaoRegen();
-			uVs.Clear();
-			ChunkIndices.Clear();
-			blocks.Clear();
-			blocksNormals.Clear();
 
 
 		}
@@ -258,7 +254,7 @@ namespace MCClone_Core.World_CS.Generation
 			Vector3 qr = c - a;
 			Vector3 qs = b - a;
 
-			Vector3 normal = new((qr.Y * qs.Z) - (qr.Z * qs.Y),(qr.Z * qs.X) - (qr.X * qs.Z), (qr.X * qs.Y) - (qr.Y * qs.X) );
+			Vector3 normal = new Vector3((qr.Y * qs.Z) - (qr.Z * qs.Y),(qr.Z * qs.X) - (qr.X * qs.Z), (qr.X * qs.Y) - (qr.Y * qs.X) );
 
 			return new[] {normal, normal, normal, normal, normal, normal};
 

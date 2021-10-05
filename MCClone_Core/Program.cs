@@ -39,7 +39,7 @@ namespace MCClone_Core
             world = new ProcWorld(1337) {World = worldPath};
             
             Player player = new Player(new Vector3( 100 , 50, 100), Vector2.Zero, world);
-            player.Noclip = true;
+            player.Noclip = false;
             WorldScript script = new WorldScript(world);
             script._player = player;
             
@@ -56,19 +56,16 @@ namespace MCClone_Core
         
     }
     
+    
+    
     class FPSEntity : Entity
     {
         Stopwatch fpstimer = Stopwatch.StartNew();
         int frames;
+
         public override void _Process(double delta)
         {
-            frames+=1;
-            if (fpstimer.Elapsed.Seconds >= 1)
-            {
-                Console.WriteLine($"Frames: {frames}");
-                frames = 0;
-                fpstimer.Restart();
-            }
+            Console.WriteLine($"Frames: {WindowClass.GetFPS()}");
         }
     }
 }

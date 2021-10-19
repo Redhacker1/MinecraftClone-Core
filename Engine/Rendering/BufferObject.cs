@@ -1,4 +1,5 @@
 using System;
+using Silk.NET.GLFW;
 using Silk.NET.OpenGL;
 
 namespace Engine.Rendering
@@ -34,6 +35,27 @@ namespace Engine.Rendering
         public void Dispose()
         {
             _gl.DeleteBuffer(_handle);
+        }
+
+        public void ModifyBuffer(Span<TDataType> data)
+        {
+            _gl.BindBuffer(GLEnum.Buffer, _handle);
+            int datatypesize = 0;
+            unsafe
+            {
+                datatypesize = sizeof(TDataType);
+            }
+
+            uint potential_size = (uint)(data.Length * datatypesize);
+
+            if (Length * datatypesize >= data.Length * datatypesize)
+            {
+                _gl.BufferSubData<TDataType>(_bufferType,0, data);
+            }
+            else
+            {
+                _gl.BufferData<TDataType>(_bufferType, data ,BufferUsageARB.StaticDraw);
+            }
         }
     }
 }

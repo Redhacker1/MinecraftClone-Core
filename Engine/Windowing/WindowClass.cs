@@ -75,9 +75,9 @@ namespace Engine.Windowing
             return fps;
         }
 
-        public static double GetFPS()
+        public static uint GetFPS()
         {
-            return thing.FPS;
+            return (uint)thing.FPS;
         }
 
         void OnLoad()
@@ -109,7 +109,7 @@ namespace Engine.Windowing
         void OnRender(double time)
         {
             thing.Update(timer);
-            var frustum =  Camera.MainCamera.GetViewFrustum();
+            var frustum =  Camera.MainCamera?.GetViewFrustum();
             //Console.WriteLine("Running");
 
             // = time;
@@ -149,13 +149,15 @@ namespace Engine.Windowing
                     }
                     if(mesh.ActiveState == MeshState.Render)
                     {
-                        GlHandle.CullFace(CullFaceMode.Front);
-                        Texture?.Bind();
-                        Shader?.Use();
-                
-                
+
+
                         if (mesh?.MeshReference != null && mesh.ActiveState == MeshState.Render && IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
                         {
+                            
+                            GlHandle.CullFace(CullFaceMode.Front);
+                            Texture?.Bind();
+                            Shader?.Use();
+                            
                             mesh.MeshReference.Bind();
                             Shader?.SetUniform("uModel", mesh.ViewMatrix);
                             //Shader?.SetUniform("uTexture0", 0);

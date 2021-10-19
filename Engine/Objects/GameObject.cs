@@ -12,7 +12,7 @@ namespace Engine.Objects
 
         public GameObject()
         {
-            Objects.Add(this); 
+            Objects.Add((this)); 
             _Ready();
         }
         

@@ -62,20 +62,20 @@ namespace Engine.Rendering
             Vector3 nearCenter = mat3 - mat2 * near;
             Vector3 farCenter = mat3 - mat2 * far;
             
-            float nearHeight = MathF.Tan(FOV * .5f) * near;
-            float farHeight = MathF.Tan(FOV  * .5f) * far;
+            float nearHeight = MathF.Tan(FOV/2)* 2 * near;
+            float farHeight = MathF.Tan(FOV/2) * 2 * far;
             
             float nearWidth = nearHeight * AspectRatio;
             float farWidth = farHeight * AspectRatio;
 
-            Vector3 farTopLeft = farCenter + mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f);
-            Vector3 farTopRight = farCenter + mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f);
-            Vector3 farBottomLeft = farCenter - mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f);
-            Vector3 farBottomRight = farCenter - mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f);
+            Vector3 farTopLeft = (farCenter + mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f)) * 1f;
+            Vector3 farTopRight = (farCenter + mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f)) * 1f;
+            Vector3 farBottomLeft = (farCenter - mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f)) * 1f;
+            Vector3 farBottomRight = (farCenter - mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f)) * 1f;
 
-            Vector3 nearTopLeft = nearCenter + mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
-            Vector3 nearTopRight = nearCenter + mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f);
-            Vector3 nearBottomLeft = nearCenter - mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f);
+            Vector3 nearTopLeft = (nearCenter + mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f)) * 1f;
+            Vector3 nearTopRight = (nearCenter + mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f)) * 1f;
+            Vector3 nearBottomLeft = (nearCenter - mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f)) * 1f;
 
             Planes = new[]
             {
@@ -124,12 +124,20 @@ namespace Engine.Rendering
         }
         
 
-        public static bool MeshInFrustrum(Mesh mesh, ref Frustrum frustum)
+        public static bool MeshInFrustrum(Mesh mesh, ref Frustrum? frustum)
         {
-            AABB meshAabb = new(mesh.minpoint - (Vector3)(frustum.camerapos) , mesh.maxpoint - (Vector3)(frustum.camerapos));
-            
-            
-            return aabb_to_frustum(ref meshAabb, ref frustum);
+
+            if (frustum.HasValue)
+            {
+                AABB meshAabb = new(mesh.minpoint - (Vector3)(frustum.Value.camerapos) , mesh.maxpoint - (Vector3)(frustum.Value.camerapos));
+
+                var Frustum = frustum.Value;
+                return aabb_to_frustum(ref meshAabb, ref Frustum);   
+            }
+            else
+            {
+                return true;
+            }
         }
         
         static bool aabb_to_frustum(ref AABB aabb, ref Frustrum frustum)

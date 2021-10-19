@@ -11,8 +11,8 @@ namespace Engine.Objects
     /// </summary>
     public class Entity : GameObject
     {
-        public double AABBWidth = 0;
-        public double AABBHeight = 0;
+        public double AABBWidth = .9f;
+        public double AABBHeight = 1.95f;
         
         public Vector3 PosDelta;
         public Aabb AABB;

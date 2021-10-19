@@ -11,7 +11,11 @@ namespace Engine.Rendering
         public static Camera MainCamera;
         public Vector3 Front { get; set; }
 
-        public Vector3 Right => Vector3.Normalize(Vector3.Cross(Up, Front));
+        public Vector3 Right
+        {
+            get => Vector3.Normalize(Vector3.Cross(Up, Front));
+        }
+
         public Vector3 Up { get; private set; }
         public float AspectRatio { get; set; }
 
@@ -44,7 +48,7 @@ namespace Engine.Rendering
 
         internal Frustrum GetViewFrustum()
         {
-            Frustrum frustum = new Frustrum(FrustumFOV(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos);
+            Frustrum frustum = new Frustrum(GetFOV(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos);
 
             return frustum;
         }
@@ -56,12 +60,7 @@ namespace Engine.Rendering
 
         public Matrix4x4 GetProjectionMatrix()
         {
-            return Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90), AspectRatio, NearPlane, FarPlane);
-        }
-
-        private float FrustumFOV()
-        {
-            return MathHelper.DegreesToRadians(110 + 17);
+            return Matrix4x4.CreatePerspectiveFieldOfView(GetFOV(), AspectRatio, NearPlane, FarPlane);
         }
 
         public float GetFOV()

@@ -9,7 +9,7 @@ namespace Engine.Rendering
         ulong FrameCount;
         double TimeElapsed;
         internal double FPS;
-        double FPMS;
+        public double FPMS;
 
         Statistics(bool thing = false)
         {

@@ -5,9 +5,11 @@ using System.Numerics;
 using Engine;
 using Engine.AssetLoading;
 using Engine.Initialization;
+using Engine.Input;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
+using Silk.NET.Input;
 
 namespace ObjDemo
 {
@@ -18,10 +20,11 @@ namespace ObjDemo
             base.Gamestart();
 
             FPSEntity entity = new FPSEntity();
-            Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitY,16f/9f, true );
+            Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitY , 1.777778F, true );
             MeshSpawner thing = new MeshSpawner();
-            ImGUI_ModelViewer viewer = new ImGUI_ModelViewer();
             
+            InputHandler.SetMouseMode(0, CursorMode.Normal);
+
             //BenchmarkEntity entTest = new BenchmarkEntity();
         }
     }
@@ -41,6 +44,7 @@ namespace ObjDemo
         protected override void _Ready()
         {
             base._Ready();
+            ImGUI_ModelViewer viewer = new ImGUI_ModelViewer();
 
             new Player();
             
@@ -50,6 +54,7 @@ namespace ObjDemo
             {
                 foreach (var mesh in meshes)
                 {
+                    mesh.Scale = .1f;
                     mesh.QueueVaoRegen();
                 }   
             }

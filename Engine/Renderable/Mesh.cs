@@ -34,6 +34,8 @@ namespace Engine.Renderable
     
     public class Mesh : IRenderable
     {
+        Material MeshMaterial;
+        
         public Vector3[] _vertices;
         public Vector3[] _uvs;
         public uint[] _indices;
@@ -53,7 +55,7 @@ namespace Engine.Renderable
 
         readonly MinimalObject _objectReference;
 
-        public readonly float Scale = 1;
+        public float Scale = 1;
 
         public readonly Quaternion Rotation  = Quaternion.Identity;
 
@@ -124,8 +126,8 @@ namespace Engine.Renderable
                 values.Add(_uvs[i].Z);
             }
 
-            maxpoint = tempmax + (Vector3)Position;
-            minpoint = tempmin + (Vector3)Position;
+            maxpoint = (tempmax + (Vector3)Position) * Scale;
+            minpoint = (tempmin + (Vector3)Position)* Scale;
             return values.ToArray();
         }
 
@@ -137,7 +139,7 @@ namespace Engine.Renderable
 
         internal VertexArrayObject<float, uint> RegenerateVao()
         {
-            uint[] indices = _indices?.ToArray();
+            uint[] indices = _indices;
             float[] vertices = CreateVertexArray();
 
             BufferObject<uint> ebo = new(WindowClass.GlHandle, new Span<uint>(indices), BufferTargetARB.ElementArrayBuffer);
@@ -177,6 +179,11 @@ namespace Engine.Renderable
         public void QueueDeletion()
         {
             ActiveState = MeshState.Delete;
+        }
+
+        public void QueueRebuild()
+        {
+            
         }
 
         public void SetRenderMode(RenderMode mode)

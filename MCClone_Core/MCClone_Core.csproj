@@ -4,6 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>net5.0</TargetFramework>
         <LangVersion>8</LangVersion>
+        <AssemblyName>Blocky World</AssemblyName>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <DefineConstants>TRACECOREAPP;Core</DefineConstants>
@@ -27,6 +28,15 @@
       <None Update="Assets\Mickey Mouse.mtl">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="steam_api64.dll">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Facepunch.Steamworks.Win64, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>Facepunch.Steamworks.Win64.dll</HintPath>
+      </Reference>
     </ItemGroup>
 
 </Project>

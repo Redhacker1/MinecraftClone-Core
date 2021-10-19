@@ -16,7 +16,7 @@ using Engine.Objects;
 using Engine.Renderable;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
+using Vector3 = System.Numerics.Vector3;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -35,6 +35,8 @@ namespace MCClone_Core.World_CS.Generation
 			
 		static readonly float Sizex = 1.0f / TextureAtlasSize.X;
 		static readonly float Sizey = 1.0f / TextureAtlasSize.Y;
+		
+		List<byte> AOMap = new List<byte>();
 		
 		#if !Core
 		static readonly SpatialMaterial Mat = (SpatialMaterial) GD.Load("res://assets/TextureAtlasMaterial.tres");
@@ -86,8 +88,8 @@ namespace MCClone_Core.World_CS.Generation
 		
 		public void Update()
 		{
-			List<System.Numerics.Vector3> blocks = new List<System.Numerics.Vector3>();
-			List<System.Numerics.Vector3> blocksNormals = new List<System.Numerics.Vector3>();
+			List<Vector3> blocks = new List<Vector3>();
+			List<Vector3> blocksNormals = new List<Vector3>();
 			List<uint> ChunkIndices = new List<uint>();
 			List<Vector2>  uVs = new List<Vector2>();
 			uint index = 0;
@@ -99,18 +101,26 @@ namespace MCClone_Core.World_CS.Generation
 			for (int z = 0; z < Dimension.Z; z++)
 			{
 				byte block = BlockData[GetFlattenedDimension(x, y, z)];
-				if (block == 0) continue;
 				bool[] check = check_transparent_neighbours(x, y, z);
+				//TODO: AO Code goes here!
 				if (check.Contains(true))
 				{
-					_create_block(check, x, y, z, block, blocks, blocksNormals, uVs, ChunkIndices, ref index);	
+					if (block != 0)
+					{
+						_create_block(check, x, y, z, block, blocks, blocksNormals, uVs, ChunkIndices, ref index);	
+					}
+					else
+					{
+						
+					}
 				}
 			}
 			
 			// Do Render stuff here
+			// FIXME: This does not always delete the mesh, why?
 			_chunkreference?.QueueDeletion();
 			_chunkreference = new Mesh(blocks, uVs, this);
-			//chunkmesh._indices = ChunkIndices.ToArray();
+			//_chunkreference._indices = ChunkIndices.ToArray();
 			_chunkreference.QueueVaoRegen();
 
 
@@ -153,10 +163,10 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				//GD.Print("External Chunk Write");
 
-				Vector3 worldCoordinates = new Vector3(x + Pos.X, y, z + Pos.Z);
-				int localX = (int) (MathHelper.Modulo((float) Math.Floor(worldCoordinates.X), Dimension.X) + 0.5);
-				int localY = (int) (MathHelper.Modulo((float) Math.Floor(worldCoordinates.Y), Dimension.Y) + 0.5);
-				int localZ = (int) (MathHelper.Modulo((float) Math.Floor(worldCoordinates.Z), Dimension.Z) + 0.5);
+				Engine.MathLib.DoublePrecision_Numerics.Vector3 worldCoordinates = new Engine.MathLib.DoublePrecision_Numerics.Vector3(x + Pos.X, y, z + Pos.Z);
+				int localX = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.X), Dimension.X) + 0.5);
+				int localY = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.Y), Dimension.Y) + 0.5);
+				int localZ = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.Z), Dimension.Z) + 0.5);
 
 				int cx = (int) Math.Floor(worldCoordinates.X / Dimension.X);
 				int cz = (int) Math.Floor(worldCoordinates.Z / Dimension.Z);
@@ -184,7 +194,7 @@ namespace MCClone_Core.World_CS.Generation
 			};
 		}
 
-		void _create_block(IReadOnlyList<bool> check, int x, int y, int z, byte block, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint index)
+		void _create_block(IReadOnlyList<bool> check, int x, int y, int z, byte block, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint index)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			Vector3 coord = new Vector3(x, y, z);
@@ -207,12 +217,12 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<System.Numerics.Vector3> blocks, List<System.Numerics.Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint currentindex)
+		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint currentindex)
 		{
-			System.Numerics.Vector3 a = V[I[0]] + offset;
-			System.Numerics.Vector3 b = V[I[1]] + offset;
-			System.Numerics.Vector3 c = V[I[2]] + offset;
-			System.Numerics.Vector3 d = V[I[3]] + offset;
+			Vector3 a = V[I[0]] + offset;
+			Vector3 b = V[I[1]] + offset;
+			Vector3 c = V[I[2]] + offset;
+			Vector3 d = V[I[3]] + offset;
 			
 
 
@@ -270,11 +280,11 @@ namespace MCClone_Core.World_CS.Generation
 			if (x < 0 || x >= Dimension.X || z < 0 || z >= Dimension.Z)
 			{
 				
-				int cx = (int) Math.Floor(x / Dimension.X);
-				int cz = (int) Math.Floor(z / Dimension.X);
+				int cx = (int) MathF.Floor(x / Dimension.X);
+				int cz = (int) MathF.Floor(z / Dimension.X);
 
-				int bx = (int) (MathHelper.Modulo((float) Math.Floor((double) x), Dimension.X));
-				int bz = (int) (MathHelper.Modulo((float) Math.Floor((double) z), Dimension.X));
+				int bx = (int) (MathHelper.Modulo(MathF.Floor(x), Dimension.X));
+				int bz = (int) (MathHelper.Modulo(MathF.Floor(z), Dimension.X));
 
 				Vector2 cpos = new Vector2(cx, cz);
 
@@ -299,5 +309,15 @@ namespace MCClone_Core.World_CS.Generation
 			base.OnFree();
 			_chunkreference?.QueueDeletion();
 		}
+		
+		byte vertexAO(byte side1, byte side2, byte corner) {
+			if(side1 == side2)
+			{
+				return 0;
+			}
+
+			return (byte)(3 - (side1 + side2 + corner));
+		}
 	}
 }
+	

@@ -10,6 +10,7 @@ using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.World_CS.Generation;
+using Steamworks;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core
@@ -28,9 +29,23 @@ namespace MCClone_Core
 
     internal class MinecraftCloneCore: Game
     {
+        
+        
+
         ProcWorld world;
         public override void Gamestart()
         {
+            Console.WriteLine("Initializing Steam API");
+            try
+            {
+                SteamClient.Init(1789570);
+                Console.WriteLine("SteamAPI enabled successfully");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to load SteamAPI, some features will be unavailable (soon)");
+            }
+
             base.Gamestart();
 
             FPSEntity ent = new FPSEntity();
@@ -38,17 +53,20 @@ namespace MCClone_Core
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
             
-            Player player = new Player(new Vector3( 100 , 50, 100), Vector2.Zero, world);
+            Player player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
             player.Noclip = false;
             WorldScript script = new WorldScript(world);
             script._player = player;
+            player.World = world;
             
             ConsoleLibrary.InitConsole(o => { Console.WriteLine(o.ToString()); });   
         }
 
         public override void GameEnded()
         {
-            base.GameEnded();
+            Console.WriteLine("Shutting down SteamAPI");
+            SteamClient.Shutdown();
+            
             world.SaveAndQuit();
         }
         
@@ -60,12 +78,17 @@ namespace MCClone_Core
     
     class FPSEntity : Entity
     {
-        Stopwatch fpstimer = Stopwatch.StartNew();
-        int frames;
+        uint frames;
+        uint PreviousFPS = 0;
 
         public override void _Process(double delta)
         {
-            Console.WriteLine($"Frames: {WindowClass.GetFPS()}");
+            uint Fps = WindowClass.GetFPS();
+            if (Fps != PreviousFPS)
+            {
+                Console.WriteLine($"Frames: {Fps}");
+                PreviousFPS = Fps;
+            }
         }
     }
 }

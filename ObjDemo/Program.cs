@@ -33,7 +33,7 @@ namespace ObjDemo
     {
         static void Main()
         {
-            Init.InitEngine( 10,10, 1600, 900, "Hello World", new ObjDemo());
+            Init.InitEngine( 0,0, 1600, 900, "Hello World", new ObjDemo());
         }
     }
 
@@ -48,7 +48,7 @@ namespace ObjDemo
 
             new Player();
             
-            meshes = AssimpLoader.LoadMesh(@".\Assets\Mickey Mouse.obj", this);
+            meshes = AssimpLoader.LoadMesh(@"C:\Users\donov\Downloads\130\scene.gltf", this);
 
             if (meshes != null)
             {

@@ -10,6 +10,7 @@ using Engine.Rendering;
 using ImGuiNET;
 using Silk.NET.GLFW;
 using Silk.NET.Input;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using Silk.NET.OpenGL.Extensions.ImGui;
 using Silk.NET.Windowing;
@@ -37,6 +38,34 @@ namespace Engine.Windowing
             // Useful if you want to pause after message is printed.
             //Environment.Exit(1);
         });
+
+        public WindowClass(int width, int height, int posx, int posy, string WindowName, Game GameClass)
+        {
+            GlfwHandle = Glfw.GetApi();
+
+            WindowOptions options = WindowOptions.Default;
+            options.Size = new Vector2D<int>(width, height);
+            options.Position = new Vector2D<int>(posx, posy);
+            options.Title = WindowName;
+            options.VSync = false;
+            
+            Handle = Window.Create(options);
+            
+
+
+            //Assign events.
+            Handle.Update += Update;
+            Handle.Render += OnRender;
+            Handle.Load += OnLoad;
+            Handle.Closing += OnClose;
+            Handle.FramebufferResize += s =>
+            {
+                // Adjust the viewport to the new window size
+                GlHandle.Viewport(s);
+            };
+
+            gameinstance = GameClass;
+        }
         
         public WindowClass(Glfw GLFWHandle, IWindow windowHandle, Game GameClass)
         {

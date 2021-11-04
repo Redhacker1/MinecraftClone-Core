@@ -23,9 +23,12 @@
       <PackageReference Include="Silk.NET.OpenGL" Version="2.8.0" />
       <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.8.0" />
       <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+      <PackageReference Include="Veldrid" Version="4.8.0" />
+      <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Agnostic" />
       <Folder Include="Rendering\" />
     </ItemGroup>
 

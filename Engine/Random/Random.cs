@@ -13,31 +13,31 @@ namespace Engine.Random
             _seed = DateTime.Now.Ticks;
         }
 
-        public Random(long Seed)
+        public Random(long seed)
         {
-            SetSeed(Seed);
+            SetSeed(seed);
         }
 
-        public void SetSeed(long Seed)
+        public void SetSeed(long seed)
         {
-            _seed = (Seed ^ 0x5DEECE66DL) & ((1L << 48) - 1);
+            _seed = (seed ^ 0x5DEECE66DL) & ((1L << 48) - 1);
             _haveNextNextGaussian = false;
         }
 
-        protected int Next(int Bits)
+        protected int Next(int bits)
         {
             _seed = (_seed * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
 
-            return (int)((ulong)_seed >> (48 - Bits));
+            return (int)((ulong)_seed >> (48 - bits));
         }
 
-        public void NextBytes(byte[] Bytes)
+        public void NextBytes(byte[] bytes)
         {
-            for (int I = 0; I < Bytes.Length;)
+            for (int I = 0; I < bytes.Length;)
             {
-                for (int Rnd = NextInt(), N = Math.Min(Bytes.Length - I, 4); N-- > 0; Rnd >>= 8)
+                for (int rnd = NextInt(), n = Math.Min(bytes.Length - I, 4); n-- > 0; rnd >>= 8)
                 {
-                    Bytes[I++] = (byte)Rnd;
+                    bytes[I++] = (byte)rnd;
                 }
             }
         }
@@ -47,21 +47,21 @@ namespace Engine.Random
             return Next(32);
         }
 
-        public int NextInt(int N)
+        public int NextInt(int n)
         {
-            if (N <= 0) throw new ArgumentException("n must be a positive non-zero integer");
+            if (n <= 0) throw new ArgumentException("n must be a positive non-zero integer");
 
-            if ((N & -N) == N) return (int)((N * (long)Next(31)) >> 31); // Bound is a power of two
+            if ((n & -n) == n) return (int)((n * (long)Next(31)) >> 31); // Bound is a power of two
 
-            int Bits, Val;
+            int bits, val;
 
             do
             {
-                Bits = Next(31);
-                Val = Bits % N;
-            } while (Bits - Val + (N - 1) < 0);
+                bits = Next(31);
+                val = bits % n;
+            } while (bits - val + (n - 1) < 0);
 
-            return Val;
+            return val;
         }
 
         public long NextLong()
@@ -84,9 +84,9 @@ namespace Engine.Random
             return (((long)Next(26) << 27) + Next(27)) / (double)(1L << 53);
         }
         
-        public int NextInt(int Min, int Max)
+        public int NextInt(int min, int max)
         {
-            return NextInt(Max - Min + 1) + Min;
+            return NextInt(max - min + 1) + min;
         }
         
 
@@ -98,17 +98,17 @@ namespace Engine.Random
                 return _nextNextGaussian;
             }
 
-            double V1, V2, S; 
+            double v1, v2, s; 
             do
             {
-                V1 = 2 * NextDouble() - 1;
-                V2 = 2 * NextDouble() - 1;
-                S = V1 * V1 + V2 * V2;
-            } while (S >= 1 || S == 0);
-            double Multiplier = Math.Sqrt(-2 * Math.Log(S) / S);
-            _nextNextGaussian = V2 * Multiplier;
+                v1 = 2 * NextDouble() - 1;
+                v2 = 2 * NextDouble() - 1;
+                s = v1 * v1 + v2 * v2;
+            } while (s >= 1 || s == 0);
+            double multiplier = Math.Sqrt(-2 * Math.Log(s) / s);
+            _nextNextGaussian = v2 * multiplier;
             _haveNextNextGaussian = true;
-            return V1 * Multiplier;
+            return v1 * multiplier;
         }
     }
 }

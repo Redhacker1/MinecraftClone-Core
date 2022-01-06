@@ -10,27 +10,27 @@ namespace Engine.Input.Default_Devices
     {
         public Vector2 Position;
         public Vector2 Delta;
-        Vector2 LastPos;
+        Vector2 _lastPos;
         
 
-        readonly Dictionary<MouseButton, bool> AllMouseKeys = new();
-        readonly Dictionary<MouseButton, bool> _mouseKeysJustPressed = new();
-        readonly Dictionary<MouseButton, bool> MouseKeysJustReleased = new();
+        readonly Dictionary<MouseButton, bool> _allMouseKeys = new Dictionary<MouseButton, bool>();
+        readonly Dictionary<MouseButton, bool> _mouseKeysJustPressed = new Dictionary<MouseButton, bool>();
+        readonly Dictionary<MouseButton, bool> _mouseKeysJustReleased = new Dictionary<MouseButton, bool>();
         
         
-        IMouse InputDevice;
+        IMouse _inputDevice;
 
         internal Mouse(int id, IMouse mouse, string name = "")
         {
             DeviceName = name;
-            ID = id;
-            InputDevice = mouse;
+            Id = id;
+            _inputDevice = mouse;
 
             foreach (MouseButton buttons in mouse.SupportedButtons)
             {
-                AllMouseKeys.Add(buttons, false);
+                _allMouseKeys.Add(buttons, false);
                 _mouseKeysJustPressed.Add(buttons, false);
-                MouseKeysJustReleased.Add(buttons, false);
+                _mouseKeysJustReleased.Add(buttons, false);
             }
             
 
@@ -38,12 +38,12 @@ namespace Engine.Input.Default_Devices
 
         internal void SetMouseMode(CursorMode mode)
         {
-            InputDevice.Cursor.CursorMode = mode;
+            _inputDevice.Cursor.CursorMode = mode;
         }
 
         internal bool MouseButtonDown(MouseButton key)
         {
-            return AllMouseKeys[key];
+            return _allMouseKeys[key];
         }
 
 
@@ -53,27 +53,27 @@ namespace Engine.Input.Default_Devices
         public override void Poll()
         {
             // Mouse Input
-            LastPos = Position;
-            Position = InputDevice.Position;
-            Delta = Position - LastPos;
+            _lastPos = Position;
+            Position = _inputDevice.Position;
+            Delta = Position - _lastPos;
             
-            foreach (MouseButton mouseButtons in InputDevice.SupportedButtons)
+            foreach (MouseButton mouseButtons in _inputDevice.SupportedButtons)
             {
-                bool KeyPressed = InputDevice.IsButtonPressed(mouseButtons);
+                bool keyPressed = _inputDevice.IsButtonPressed(mouseButtons);
                 
-                if (MouseKeysJustReleased[mouseButtons] == false && KeyPressed == true)
+                if (_mouseKeysJustReleased[mouseButtons] == false && keyPressed == true)
                 {
-                    MouseKeysJustReleased[mouseButtons] = true;   
+                    _mouseKeysJustReleased[mouseButtons] = true;   
                 }
                 else
                 {
-                    MouseKeysJustReleased[mouseButtons] = false;   
+                    _mouseKeysJustReleased[mouseButtons] = false;   
                 }
-                if (KeyPressed == false && AllMouseKeys[mouseButtons])
+                if (keyPressed == false && _allMouseKeys[mouseButtons])
                 {
-                    MouseKeysJustReleased[mouseButtons] = false;
+                    _mouseKeysJustReleased[mouseButtons] = false;
                 }
-                AllMouseKeys[mouseButtons] = KeyPressed;
+                _allMouseKeys[mouseButtons] = keyPressed;
             }
         }
         

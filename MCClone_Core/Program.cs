@@ -3,7 +3,7 @@ using System.Numerics;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Engine;
 using Engine.Initialization;
-using Engine.Windowing;
+using Engine.Rendering.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
@@ -14,7 +14,7 @@ namespace MCClone_Core
 {
     class Program
     {
-        static WindowClass window;
+        static WindowClass _window;
 
         static void Main(string[] args)
         {
@@ -26,18 +26,18 @@ namespace MCClone_Core
 
     internal class MinecraftCloneCore: Game
     {
-        ProcWorld world;
+        ProcWorld _world;
         public override void Gamestart()
         {
             base.Gamestart();
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
-            world = new ProcWorld(1337) {World = worldPath};
+            _world = new ProcWorld(1337) {World = worldPath};
             
-            Player player = new Player(new Vector3( 100 , 50, 100), Vector2.Zero, world);
+            Player player = new Player(new Vector3( 0, 50, 0), Vector2.Zero, _world);
             player.Noclip = true;
-            WorldScript script = new WorldScript(world);
-            script._player = player;
+            WorldScript script = new WorldScript(_world);
+            script.Player = player;
             
             ConsoleLibrary.InitConsole(o => { Console.WriteLine(o.ToString()); });   
         }
@@ -45,7 +45,7 @@ namespace MCClone_Core
         public override void GameEnded()
         {
             base.GameEnded();
-            world.SaveAndQuit();
+            _world.SaveAndQuit();
         }
     }
 }

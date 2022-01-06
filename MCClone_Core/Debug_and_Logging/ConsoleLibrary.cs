@@ -24,7 +24,7 @@ namespace MCClone_Core.Debug_and_Logging
         /// the ones that dont will be run on the main thread.
         /// </summary>
 
-        public delegate string CommandFunc(params string[] Arguments);
+        public delegate string CommandFunc(params string[] arguments);
 
         //Only used with threading enabled
         static readonly List<string> MtCommandQueue = new List<string>();
@@ -56,16 +56,16 @@ namespace MCClone_Core.Debug_and_Logging
 
 
 
-        public static void BindConvar(string Name, Convar Var)
+        public static void BindConvar(string name, Convar var)
         {
-            GVars.Add(Name ,Var);
+            GVars.Add(name ,var);
         }
 
-        public static void InitConsole(Action<object> WriteOutputDelegate)
+        public static void InitConsole(Action<object> writeOutputDelegate)
         {
 
 
-            _printDelegate = WriteOutputDelegate;
+            _printDelegate = writeOutputDelegate;
             BindCommand("help", "Gives context as to what command does, usage: \"help <CommandName>\"", "Usage: \n \"help <CommandName>\". additional modifiers:\n -more - pulls up helptext", Help, true);
             BindCommand("list_commands", "Lists all bound commands, Usage: \"list_commands\"", "Usage: \"list_commands\"\n additional modifiers:\n -detailed, pulls up description", ListCommands, true);
             BindCommand("clear", "clears Console data", "Usage: clear", ClearScrollback, true);
@@ -75,66 +75,66 @@ namespace MCClone_Core.Debug_and_Logging
         /// <summary>
         /// This is the always safe way of passing in a command. It will choose the method most approperate
         /// </summary>
-        /// <param name="Text"></param>
-        public  static void SendCommand(string Text)
+        /// <param name="text"></param>
+        public  static void SendCommand(string text)
         {
-            process_command(Text,true);
+            process_command(text,true);
         }
 
-        static IEnumerable<string> SplitCommands(string ConsoleText)
+        static IEnumerable<string> SplitCommands(string consoleText)
         {
-            List<string> FirstPass = ConsoleText.Split(';').ToList();
-            if (ConsoleText.Contains('"') == false)
+            List<string> firstPass = consoleText.Split(';').ToList();
+            if (consoleText.Contains('"') == false)
             {
-                return FirstPass;
+                return firstPass;
             }
 
-            int EnteringLiteral = 0;
-            for (int Text = 0; Text < FirstPass.Count; Text++)
+            int enteringLiteral = 0;
+            for (int text = 0; text < firstPass.Count; text++)
             {
-                string TextString = FirstPass[Text];
-                if (TextString.Contains('"'))
+                string textString = firstPass[text];
+                if (textString.Contains('"'))
                 {
-                    switch (EnteringLiteral)
+                    switch (enteringLiteral)
                     {
                         case 0:
-                            EnteringLiteral = 1;
+                            enteringLiteral = 1;
                             break;
                         case 1:
-                            EnteringLiteral = 2;
+                            enteringLiteral = 2;
                             break;
                     }
                 }
 
-                if (EnteringLiteral != 0)
+                if (enteringLiteral != 0)
                 {
-                    if (Text >= 1)
+                    if (text >= 1)
                     {
-                        FirstPass[Text - 1] =  FirstPass[Text - 1] + ';'+ TextString;
-                        FirstPass.RemoveAt(Text);
+                        firstPass[text - 1] =  firstPass[text - 1] + ';'+ textString;
+                        firstPass.RemoveAt(text);
                     }
                 }
 
-                if (EnteringLiteral == 2)
+                if (enteringLiteral == 2)
                 {
-                    EnteringLiteral = 0;
+                    enteringLiteral = 0;
                 }
             }
 
-            return FirstPass;
+            return firstPass;
         }
 
-        static IEnumerable<List<string>> TokenizeCommands(IEnumerable<string> Commands)
+        static IEnumerable<List<string>> TokenizeCommands(IEnumerable<string> commands)
         {
-            List<List<string>> OutputList = new List<List<string>>();
-            foreach (string Command in Commands)
+            List<List<string>> outputList = new List<List<string>>();
+            foreach (string command in commands)
             {
-                List<string> TokenizedCommand = Command.Split(' ').ToList();
-                TokenizedCommand.RemoveAll(Is_Separator);
-                OutputList.Add(TokenizedCommand);
+                List<string> tokenizedCommand = command.Split(' ').ToList();
+                tokenizedCommand.RemoveAll(Is_Separator);
+                outputList.Add(tokenizedCommand);
             }
 
-            return OutputList;
+            return outputList;
         }
 
         /// <summary>
@@ -142,61 +142,61 @@ namespace MCClone_Core.Debug_and_Logging
         ///  I am exposing this so that it can be run manually if you want to run it in your own existing thread.
         ///  Another benefit is that it can run only when it was called on main thread, which also allows me to make seperate queues
         /// </summary>
-        /// <param name="Text">This is the raw unparsed command</param>
-        /// <param name="InvokedOnMain">Use when invoking on main thread so it will check main thread command queue (only useful for last two experimental modes)</param>
-        /// <param name="DecideThreadingMode">Usually not necissary, really only used internally</param>
-        public static void process_command(string Text,bool InvokedOnMain, bool DecideThreadingMode = false)
+        /// <param name="text">This is the raw unparsed command</param>
+        /// <param name="invokedOnMain">Use when invoking on main thread so it will check main thread command queue (only useful for last two experimental modes)</param>
+        /// <param name="decideThreadingMode">Usually not necissary, really only used internally</param>
+        public static void process_command(string text,bool invokedOnMain, bool decideThreadingMode = false)
         {
             //Sanity check
-            if(string.IsNullOrEmpty(Text))
+            if(string.IsNullOrEmpty(text))
                 return;
             
             
-            IEnumerable<string> TotalCommands = SplitCommands(Text);
-            IEnumerable<List<string>> TokenizedCommands = TokenizeCommands(TotalCommands);
+            IEnumerable<string> totalCommands = SplitCommands(text);
+            IEnumerable<List<string>> tokenizedCommands = TokenizeCommands(totalCommands);
 
             // Runs each command
-            foreach (List<string> Command in TokenizedCommands)
+            foreach (List<string> command in tokenizedCommands)
             {
-                string CmdName = Command[0];
-                _scrollback.Append(string.Join(" ", Command) + '\n');
-                Command.RemoveAt(0);
+                string cmdName = command[0];
+                _scrollback.Append(string.Join(" ", command) + '\n');
+                command.RemoveAt(0);
                 
                 
-                if (BoundCommands.ContainsKey(CmdName))
+                if (BoundCommands.ContainsKey(cmdName))
                 {
-                    string Output = BoundCommands[CmdName].Method(Command.ToArray());
+                    string output = BoundCommands[cmdName].Method(command.ToArray());
 
-                    if (Output != string.Empty)
+                    if (output != string.Empty)
                     {
-                        DebugPrint(Output + '\n');
+                        DebugPrint(output + '\n');
                     }
                 }
-                else if (GVars.ContainsKey(CmdName))
+                else if (GVars.ContainsKey(cmdName))
                 {
-                    if (Command.Count == 0)
+                    if (command.Count == 0)
                     {
-                        DebugPrint(GVars[CmdName]);
+                        DebugPrint(GVars[cmdName]);
                     }
                     else
                     {
-                        GVars[CmdName].SetVariable(string.Join(",", Command));
+                        GVars[cmdName].SetVariable(string.Join(",", command));
                     }
                 }
                 else
                 {
-                    DebugPrint($"Command/GVar \"{CmdName}\" Not found!\n");
+                    DebugPrint($"Command/GVar \"{cmdName}\" Not found!\n");
                 }
             }
             
         }
 
-        public static void DebugPrint(object Text)
+        public static void DebugPrint(object text)
         {
         #if Core
             lock (Printlock)
             {
-                Console.WriteLine(Text);
+                Console.WriteLine(text);
             } 
         #else
             if (!Engine.EditorHint)
@@ -214,94 +214,94 @@ namespace MCClone_Core.Debug_and_Logging
         #endif
         }
 
-        static bool Is_Separator(string Input)
+        static bool Is_Separator(string input)
         {
-            return Input.Trim() == string.Empty;
+            return input.Trim() == string.Empty;
         }
 
         //TODO: Use Attribute to automatically generate this, making it clean
-        public static void BindCommand(string CommandName,string Description, string HelpText, CommandFunc Method, bool ThreadSafe)
+        public static void BindCommand(string commandName,string description, string helpText, CommandFunc method, bool threadSafe)
         {
-            CommandStruct Command = new CommandStruct
+            CommandStruct command = new CommandStruct
             {
-                Method = Method, Description = Description, HelpMessage = HelpText, ThreadSafe = ThreadSafe
+                Method = method, Description = description, HelpMessage = helpText, ThreadSafe = threadSafe
             };
 
-            BoundCommands[CommandName.Trim()] = Command;
+            BoundCommands[commandName.Trim()] = command;
         }
         
         //Default Commands bound by constructor
-        static string  Help(params string[] Args)
+        static string  Help(params string[] args)
         {
-            List<string> ArgsList = Args.ToList();
-            ArgsList.Remove("help");
-            if (ArgsList.Count >= 2)
+            List<string> argsList = args.ToList();
+            argsList.Remove("help");
+            if (argsList.Count >= 2)
             {
-                bool Detailed = Args.Contains("-more");
+                bool detailed = args.Contains("-more");
                 
-                if (Detailed)
+                if (detailed)
                 {
-                    ArgsList.Remove("more");
-                    if (BoundCommands[ArgsList[0]].Description.EndsWith("\n") || BoundCommands[ArgsList[0]].HelpMessage.StartsWith("\n"))
+                    argsList.Remove("more");
+                    if (BoundCommands[argsList[0]].Description.EndsWith("\n") || BoundCommands[argsList[0]].HelpMessage.StartsWith("\n"))
                     {
-                        return BoundCommands[ArgsList[0]].Description + BoundCommands[ArgsList[0]].HelpMessage;
+                        return BoundCommands[argsList[0]].Description + BoundCommands[argsList[0]].HelpMessage;
                     }
                     
-                    return BoundCommands[ArgsList[0]].Description +'\n'+BoundCommands[ArgsList[0]].HelpMessage;
+                    return BoundCommands[argsList[0]].Description +'\n'+BoundCommands[argsList[0]].HelpMessage;
                 }
             }
-            else if (ArgsList.Count == 1)
+            else if (argsList.Count == 1)
             {
-                return BoundCommands[ArgsList[0]].HelpMessage;
+                return BoundCommands[argsList[0]].HelpMessage;
                 
             }
             return string.Empty;
         }
 
-        static string ListCommands(params string[] Args)
+        static string ListCommands(params string[] args)
         {
-            StringBuilder Output = new StringBuilder();
-            bool AddDescription = Args.Contains("-detailed");
-            foreach (KeyValuePair<string, CommandStruct> Command in BoundCommands)
+            StringBuilder output = new StringBuilder();
+            bool addDescription = args.Contains("-detailed");
+            foreach (KeyValuePair<string, CommandStruct> command in BoundCommands)
             {
-                if (Command.Key != "list_commands")
+                if (command.Key != "list_commands")
                 {
-                    Output.Append(Command.Key);
-                    if (AddDescription)
+                    output.Append(command.Key);
+                    if (addDescription)
                     {
-                        if (Command.Value.Description.EndsWith("\n"))
+                        if (command.Value.Description.EndsWith("\n"))
                         {
-                            Output.Append(Command.Value.Description);
+                            output.Append(command.Value.Description);
                         }
                         else
                         {
-                            Output.Append('\n'+ Command.Value.Description);
+                            output.Append('\n'+ command.Value.Description);
                         }
                     }
-                    Output.Append('\n');   
+                    output.Append('\n');   
                 }
             }
-            return Output.ToString();
+            return output.ToString();
         }
 
-        static string Say(params string[] Args)
+        static string Say(params string[] args)
         {
-            StringBuilder StringBuilder = new StringBuilder();
-            bool Quotes = false;
-            foreach (string Thing in Args)
+            StringBuilder stringBuilder = new StringBuilder();
+            bool quotes = false;
+            foreach (string thing in args)
             {
-                if (Quotes == false)
+                if (quotes == false)
                 {
-                    Quotes = Thing.Contains('"');
-                    StringBuilder = new StringBuilder();
+                    quotes = thing.Contains('"');
+                    stringBuilder = new StringBuilder();
                 }
-                StringBuilder.Append(Thing.Trim('"') + " ");
+                stringBuilder.Append(thing.Trim('"') + " ");
             }
 
-            return !Quotes ? string.Empty : StringBuilder.ToString();
+            return !quotes ? string.Empty : stringBuilder.ToString();
         }
 
-        static string ClearScrollback(params string[] Args)
+        static string ClearScrollback(params string[] args)
         {
             lock (Printlock)
             {

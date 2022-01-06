@@ -22,15 +22,15 @@ namespace Engine.Objects
 
         public Level Level;
 
-        public virtual void Move(Vector3 a)
+        public virtual void Move(Vector3 accel)
         {
 
-            Vector3 _a = a;
+            Vector3 acceleration = accel;
 
-            Vector3 o = _a;
+            Vector3 o = acceleration;
             
             
-            List<Aabb> aabbs = Level?.GetAabbs(0, AABB.Expand(_a));
+            List<Aabb> aabbs = Level?.GetAabbs(0, Aabb.Expand(acceleration));
             if (Noclip)
             {
                 aabbs = new List<Aabb>();
@@ -39,30 +39,30 @@ namespace Engine.Objects
 
             foreach (Aabb aabb in aabbs)
             {
-                _a.Y = aabb.ClipYCollide(AABB, _a.Y);
+                acceleration.Y = aabb.ClipYCollide(Aabb, acceleration.Y);
             }
-            AABB.Move(new Vector3(0, _a.Y, 0));
+            Aabb.Move(new Vector3(0, acceleration.Y, 0));
             foreach (Aabb aabb in aabbs)
             {
-                _a.X = aabb.ClipXCollide(AABB, _a.X);
+                acceleration.X = aabb.ClipXCollide(Aabb, acceleration.X);
             }
-            AABB.Move(new Vector3(_a.X, 0, 0));
+            Aabb.Move(new Vector3(acceleration.X, 0, 0));
             foreach (Aabb aabb in aabbs)
             {
-                _a.Z = aabb.ClipZCollide(AABB, _a.Z);
+                acceleration.Z = aabb.ClipZCollide(Aabb, acceleration.Z);
             }
-            AABB.Move(new Vector3(0, 0, _a.Z));
+            Aabb.Move(new Vector3(0, 0, acceleration.Z));
             
 
-            OnGround = Math.Abs(o.Y - _a.Y) > double.Epsilon && o.Y < 0;
+            OnGround = Math.Abs(o.Y - acceleration.Y) > double.Epsilon && o.Y < 0;
 
-            if (Math.Abs(o.X - _a.X) > float.Epsilon) PosDelta.X = 0;
-            if (Math.Abs(o.Y - _a.Y) > float.Epsilon) PosDelta.Y = 0;
-            if (Math.Abs(o.Z - _a.Z) > float.Epsilon) PosDelta.Z = 0;
+            if (Math.Abs(o.X - acceleration.X) > float.Epsilon) PosDelta.X = 0;
+            if (Math.Abs(o.Y - acceleration.Y) > float.Epsilon) PosDelta.Y = 0;
+            if (Math.Abs(o.Z - acceleration.Z) > float.Epsilon) PosDelta.Z = 0;
 
-            Pos.X = (AABB.MinLoc.X + AABB.MaxLoc.X) / 2.0f;
-            Pos.Y = (AABB.MinLoc.Y + EyeOffset);
-            Pos.Z = (AABB.MinLoc.Z + AABB.MaxLoc.Z) / 2.0f;
+            Pos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
+            Pos.Y = (Aabb.MinLoc.Y + EyeOffset);
+            Pos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
             
         }
 
@@ -75,10 +75,10 @@ namespace Engine.Objects
         {
             
             Pos = position;
-            double w = AABBWidth / 2.0;
-            double h = AABBHeight / 2.0;
+            double w = AabbWidth / 2.0;
+            double h = AabbHeight / 2.0;
             
-            AABB = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
             Level = level;
         }
@@ -86,10 +86,10 @@ namespace Engine.Objects
         public CharacterEntity()
         {
             
-            double w = AABBWidth / 2.0;
-            double h = AABBHeight / 2.0;
+            double w = AabbWidth / 2.0;
+            double h = AabbHeight / 2.0;
             
-            AABB = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
         }
 
@@ -109,11 +109,11 @@ namespace Engine.Objects
         public virtual void SetPos(Vector3 pos)
         {
             Pos = pos;
-            double w = AABBWidth / 2.0;
-            double h = AABBHeight / 2.0;
+            double w = AabbWidth / 2.0;
+            double h = AabbHeight / 2.0;
             
-            AABB.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
-            AABB.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
+            Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
+            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
         }
 
         public virtual void Rotate(double rotX, double rotY)

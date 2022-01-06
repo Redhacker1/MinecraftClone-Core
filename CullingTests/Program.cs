@@ -6,6 +6,7 @@ using System.Numerics;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
+using Engine.Rendering.Shared.Culling;
 
 namespace CullingTests
 {
@@ -47,8 +48,8 @@ namespace CullingTests
             Vector3 nearCenter = op_Subtraction(Vector3.Zero, baseCamera.Front) * baseCamera.NearPlane;
             Vector3 farCenter = op_Subtraction(Vector3.Zero ,baseCamera.Front) * baseCamera.FarPlane;
             
-            float nearHeight = (float)(2 * Math.Tan(baseCamera.GetFOV()/ 2) * baseCamera.NearPlane);
-            float farHeight = (float)(2 * Math.Tan(baseCamera.GetFOV() / 2) * baseCamera.FarPlane);
+            float nearHeight = (float)(2 * Math.Tan(baseCamera.GetFov()/ 2) * baseCamera.NearPlane);
+            float farHeight = (float)(2 * Math.Tan(baseCamera.GetFov() / 2) * baseCamera.FarPlane);
             float nearWidth = nearHeight * baseCamera.AspectRatio;
             float farWidth = farHeight * baseCamera.AspectRatio;
             
@@ -65,15 +66,15 @@ namespace CullingTests
             Vector3 nearBottomRight = nearCenter -  baseCamera.Up * (nearHeight*0.5f) + baseCamera.Right * (nearWidth*0.5f);
 
 
-            Mesh Front = new Mesh(new List<Vector3>() { nearTopRight, nearTopLeft, nearBottomLeft, nearBottomRight },
-                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) }, this);
-            Mesh Back = new Mesh(new List<Vector3>() { farTopLeft, farTopLeft, farBottomLeft, farBottomRight },
-                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) }, this);
-            Mesh Left = new Mesh(new List<Vector3>() { nearTopLeft, farTopLeft, farBottomLeft, nearBottomLeft },
-                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) }, this);
-            Front.QueueVaoRegen();
-            Back.QueueVaoRegen();
-            Left.QueueVaoRegen();
+            MeshData front = new MeshData(new List<Vector3>() { nearTopRight, nearTopLeft, nearBottomLeft, nearBottomRight },
+                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) });
+            MeshData back = new MeshData(new List<Vector3>() { farTopLeft, farTopLeft, farBottomLeft, farBottomRight },
+                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) });
+            MeshData left = new MeshData(new List<Vector3>() { nearTopLeft, farTopLeft, farBottomLeft, nearBottomLeft },
+                new List<Vector2> { Vector2.Zero, new Vector2(0, 1), new Vector2(1, 0), new Vector2(1f, 1) });
+            front.QueueVaoRegen();
+            back.QueueVaoRegen();
+            left.QueueVaoRegen();
             
             //frustum.planes[FRUSTUM_PLANES::FRONT] = calculate_plane(ntr, ntl, nbl);
             //frustum.planes[FRUSTUM_PLANES::BACK] = calculate_plane(ftl, ftr, fbr);
@@ -83,12 +84,12 @@ namespace CullingTests
             //frustum.planes[FRUSTUM_PLANES::BOTTOM] = calculate_plane(nbl, fbl, fbr);
         }
 
-        static Vector3 op_Subtraction(Vector3 first, Vector3 Second)
+        static Vector3 op_Subtraction(Vector3 first, Vector3 second)
         {
-            return Vector3.Subtract(first, Second);
+            return Vector3.Subtract(first, second);
         }
 
-        protected override void _Ready()
+        public override void _Ready()
         {
             base._Ready();
         }

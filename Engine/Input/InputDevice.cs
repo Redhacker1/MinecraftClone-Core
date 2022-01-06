@@ -3,7 +3,7 @@
     public abstract class InputDevice
     {
         protected string DeviceName;
-        protected int ID;
+        protected int Id;
 
         public abstract void Poll();
 

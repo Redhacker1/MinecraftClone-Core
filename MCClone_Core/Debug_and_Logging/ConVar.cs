@@ -11,15 +11,15 @@ namespace MCClone_Core.Debug_and_Logging
         readonly List<Action<string>> _changeNotifications;
         string _variable;
         
-        Convar(string Name, string Desc, string Help, string Thing, bool ReadOnly)
+        Convar(string name, string desc, string help, string thing, bool readOnly)
         {
-            SetVariable(Thing);
+            SetVariable(thing);
             _changeNotifications = new List<Action<string>>();
-            Description = Desc;
-            HelpMessage = Help;
-            _canEdit = ReadOnly;
+            Description = desc;
+            HelpMessage = help;
+            _canEdit = readOnly;
             
-            ConsoleLibrary.BindConvar(Name ,this);
+            ConsoleLibrary.BindConvar(name ,this);
         }
         
         public string GetVariable()
@@ -27,23 +27,23 @@ namespace MCClone_Core.Debug_and_Logging
             return _variable;
         }
         
-        public void SetVariable(string Var)
+        public void SetVariable(string var)
         {
             if (_canEdit)
             {
-                _variable = Var;
+                _variable = var;
                         
                 // Callbacks to run when variable changed.
-                foreach (Action<string> Action in _changeNotifications)
+                foreach (Action<string> action in _changeNotifications)
                 {
-                    Action(_variable);
+                    action(_variable);
                 }   
             }
         }
 
-        public void AddListener(Action<string> Listener)
+        public void AddListener(Action<string> listener)
         {
-            _changeNotifications.Add(Listener);
+            _changeNotifications.Add(listener);
         }
     }
 }

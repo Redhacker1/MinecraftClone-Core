@@ -4,14 +4,14 @@ namespace Engine.MathLib
 {
     public static class MathHelper
     {
-        public static double DegreesToRadians(double YRotation)
+        public static double DegreesToRadians(double yRotation)
         {
-            return YRotation * (Math.PI / 180);
+            return yRotation * (Math.PI / 180);
         }
         
-        public static float DegreesToRadians(float YRotation)
+        public static float DegreesToRadians(float yRotation)
         {
-            return (float) (YRotation * (Math.PI / 180));
+            return (float) (yRotation * (Math.PI / 180));
         }
         
         public static float Round(float value)

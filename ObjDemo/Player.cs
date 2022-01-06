@@ -10,6 +10,7 @@ using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering;
+using Engine.Rendering.Shared.Culling;
 using Silk.NET.Input;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
 
@@ -24,9 +25,9 @@ namespace ObjDemo
 		
 
 		Camera _fpCam;
-		
 
-		protected override void _Ready()
+
+		public override void _Ready()
 		{
 			_fpCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			InputHandler.SetMouseMode(0, CursorMode.Raw);

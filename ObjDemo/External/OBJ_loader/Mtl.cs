@@ -33,7 +33,7 @@ namespace ObjParser
         /// <param name="file"></param>
 	    public void LoadMtl(Stream data)
         {
-            using (var reader = new StreamReader(data))
+            using (StreamReader reader = new StreamReader(data))
             {
                 LoadMtl(reader.ReadToEnd().Split(Environment.NewLine.ToCharArray()));
             }
@@ -45,7 +45,7 @@ namespace ObjParser
         /// <param name="data"></param>
 	    public void LoadMtl(IEnumerable<string> data)
         {
-            foreach (var line in data)
+            foreach (string line in data)
             {
                 ProcessLine(line);
             }
@@ -53,8 +53,8 @@ namespace ObjParser
 
         public void WriteMtlFile(string path, string[] headerStrings)
         {
-            using (var outStream = File.OpenWrite(path))
-            using (var writer = new StreamWriter(outStream))
+            using (FileStream outStream = File.OpenWrite(path))
+            using (StreamWriter writer = new StreamWriter(outStream))
             {
                 // Write some header data
                 WriteHeader(writer, headerStrings);
@@ -71,7 +71,7 @@ namespace ObjParser
                 return;
             }
 
-            foreach (var line in headerStrings)
+            foreach (string line in headerStrings)
             {
                 writer.WriteLine("# " + line);
             }

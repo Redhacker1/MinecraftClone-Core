@@ -7,21 +7,20 @@ namespace Engine.Physics
     public static class Raycast
     {
 
-        public static HitResult CastToPoint(Vector3 StartDir, Vector3 EndLocation, float debugtime)
+        public static HitResult CastToPoint(Vector3 startDir, Vector3 endLocation, float debugtime)
         {
-            Vector3 delta = EndLocation - StartDir;
+            Vector3 delta = endLocation - startDir;
             Vector3 deltaNormal = Vector3.Normalize(delta);
 
             int lineLength = (int) Math.Floor(delta.Length());
 
-            return CastInDirection(StartDir, deltaNormal, debugtime, lineLength);
+            return CastInDirection(startDir, deltaNormal, debugtime, lineLength);
         }
         
-        public static HitResult CastInDirection(Vector3 Origin, Vector3 Direction, float debugtime, int MaxVoxeldistance = 100)
+        public static HitResult CastInDirection(Vector3 origin, Vector3 direction, float debugtime, int maxVoxeldistance = 100)
         {
             HitResult outResult = new HitResult();
-            Vector3 position = Origin + new Vector3(.5f, .5f, .5f);
-            Vector3 direction = Direction;
+            Vector3 position = origin + new Vector3(.5f, .5f, .5f);
 
 
             Vector3 sign = new Vector3
@@ -33,7 +32,7 @@ namespace Engine.Physics
 
 
 
-            for (int i = 0; i < MaxVoxeldistance; ++i)
+            for (int i = 0; i < maxVoxeldistance; ++i)
             {
                 Vector3 tvec = ((position + sign).Floor() - position) / direction;
                 

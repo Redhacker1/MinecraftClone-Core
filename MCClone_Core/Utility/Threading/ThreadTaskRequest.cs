@@ -16,9 +16,9 @@ namespace MCClone_Core.Utility.Threading
         
 
 
-        public ThreadTaskRequest(Func<object> Method)
+        public ThreadTaskRequest(Func<object> method)
         {
-            this.Method = Method;
+            this.Method = method;
         }
     }
 }

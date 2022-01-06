@@ -11,20 +11,20 @@ namespace Engine.Objects
     /// </summary>
     public class Entity : GameObject
     {
-        public double AABBWidth = 0;
-        public double AABBHeight = 0;
+        public double AabbWidth = 0;
+        public double AabbHeight = 0;
         
         public Vector3 PosDelta;
-        public Aabb AABB;
+        public Aabb Aabb;
 
         public Entity(Vector3 pos, Vector2 rotation)
         {
             Pos = pos;
             
-            double w = AABBWidth / 2.0f;
-            double h = AABBHeight / 2.0f;
+            double w = AabbWidth / 2.0f;
+            double h = AabbHeight / 2.0f;
 
-            AABB = new Aabb(new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w)), new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w)));
+            Aabb = new Aabb(new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w)), new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w)));
             
             Rotation.X = (Rotation.X - rotation.X * 0.15);
             Rotation.Y = ((Rotation.Y + rotation.Y * 0.15) % 360.0);

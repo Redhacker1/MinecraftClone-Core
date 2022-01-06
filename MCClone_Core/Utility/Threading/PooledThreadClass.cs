@@ -55,7 +55,7 @@ namespace MCClone_Core.Utility.Threading
         {
             while(!PendingShutdown)
             {
-                ThreadTaskRequest CurrentTask = null;
+                ThreadTaskRequest currentTask = null;
 
                 if (TasksAssigned.Count > 0 && !BIsPaused)
                 {
@@ -65,7 +65,7 @@ namespace MCClone_Core.Utility.Threading
                     }
                     lock (TaskAccessLock)
                     {
-                        CurrentTask = TasksAssigned[0];
+                        currentTask = TasksAssigned[0];
                         TasksAssigned.RemoveAt(0);
                     }
                 }
@@ -78,9 +78,9 @@ namespace MCClone_Core.Utility.Threading
                     }
                 }
 
-                if (CurrentTask == null) continue;
-                CurrentTask.Result = CurrentTask.Method();
-                CurrentTask.BHasRun = true;
+                if (currentTask == null) continue;
+                currentTask.Result = currentTask.Method();
+                currentTask.BHasRun = true;
             }
         }
     }

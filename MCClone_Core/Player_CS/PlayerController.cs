@@ -5,6 +5,7 @@ using Godot;
 #endif
 using Engine.Input;
 using Engine.Rendering;
+using Engine.Rendering.Shared.Culling;
 using Silk.NET.Input;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
@@ -12,12 +13,12 @@ namespace MCClone_Core.Player_CS
 {
     public class PlayerController
     {
-        readonly Player pawn;
+        readonly Player _pawn;
         Vector3 _velocity;
 
-        public PlayerController(Player PawnReference)
+        public PlayerController(Player pawnReference)
         {
-            pawn = PawnReference;
+            _pawn = pawnReference;
         }
 
         public void Player_move(double delta)
@@ -26,36 +27,36 @@ namespace MCClone_Core.Player_CS
             //direction.X = 1;
             //direction.Z = 1;
 
-            Vector3 CameraForward = Camera.MainCamera.Front;
-            Vector3 CameraLeft = -Camera.MainCamera.Right;
+            Vector3 cameraForward = Camera.MainCamera.Front;
+            Vector3 cameraLeft = -Camera.MainCamera.Right;
 
             if (InputHandler.KeyboardKeyDown(0, Key.W))
             {
-                direction += CameraForward;
+                direction += cameraForward;
             }
 
             if (InputHandler.KeyboardKeyDown(0, Key.S))
             {
-                direction -= CameraForward;
+                direction -= cameraForward;
             }
 
             if (InputHandler.KeyboardKeyDown(0, Key.A))
             {
-                direction -= CameraLeft;
+                direction -= cameraLeft;
             }
 
             if (InputHandler.KeyboardKeyDown(0, Key.D))
             {
-                direction += CameraLeft;
+                direction += cameraLeft;
             }
 
 
-            if (InputHandler.KeyboardKeyDown(0, Key.Space) && pawn.OnGround)
+            if (InputHandler.KeyboardKeyDown(0, Key.Space) && _pawn.OnGround)
             {
                 _velocity.Y = 6f * delta;
             }
 
-            if (!pawn.OnGround && !pawn.Noclip)
+            if (!_pawn.OnGround && !_pawn.Noclip)
             {
                 _velocity.Y -= .2f * delta;
             }
@@ -74,13 +75,13 @@ namespace MCClone_Core.Player_CS
 
             _velocity.X = (float)(direction.X * Player.Speed * delta);
             _velocity.Z = (float)(direction.Z * Player.Speed * delta);
-            if (pawn.Noclip)
+            if (_pawn.Noclip)
             {
                 _velocity.Y = (float)(direction.Y * Player.Speed * delta);
             }
 
-            pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
-            pawn.Move(_velocity);
+            _pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
+            _pawn.Move(_velocity);
             //pawn.Pos = _velocity;
         }
     }

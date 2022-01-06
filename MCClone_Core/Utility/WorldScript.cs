@@ -20,22 +20,22 @@ namespace MCClone_Core.Utility
 
 		long _chunkX = 1;
 		long _chunkZ = 1;
-		public Player _player;
+		public Player Player;
 
-		public static DebugLines lines = new DebugLines();
+		public static DebugLines Lines = new DebugLines();
 
 		//public Logger Logger = new Logger(Path.Combine(Environment.CurrentDirectory,"Logs"), "DebugFile", ConsoleLibrary.DebugPrint);
 
-		static public ProcWorld _pw;
+		static public ProcWorld Pw;
 
 		// Called when the node enters the scene tree for the first time.
 
-		public WorldScript(ProcWorld world_data)
+		public WorldScript(ProcWorld worldData)
 		{
-			_pw = world_data;
+			Pw = worldData;
 		}
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			BlockHelper.RegisterBaseBlocks();
 			WorldManager.FindWorlds();
@@ -64,9 +64,9 @@ namespace MCClone_Core.Utility
 		void _on_WorldScript_tree_exiting()
 		{
 			ConsoleLibrary.DebugPrint("Kill map loading thread");
-			if (_pw != null)
+			if (Pw != null)
 			{
-				_pw.SaveAndQuit();
+				Pw.SaveAndQuit();
 				ConsoleLibrary.DebugPrint("Finished");
 			}
 		}
@@ -77,9 +77,9 @@ namespace MCClone_Core.Utility
 		{
 			//base._Process(delta);
 			
-			if (_player == null) return;
-			_chunkX = ((long) Math.Floor(_player.Pos.X)) / ((int)ChunkCs.Dimension.X);
-			_chunkZ = ((long) Math.Floor(_player.Pos.Z)) / ((int)ChunkCs.Dimension.Z);
+			if (Player == null) return;
+			_chunkX = ((long) Math.Floor(Player.Pos.X)) / ((int)ChunkCs.Dimension.X);
+			_chunkZ = ((long) Math.Floor(Player.Pos.Z)) / ((int)ChunkCs.Dimension.Z);
 
 			Vector2 newChunkPos = new Vector2(_chunkX, _chunkZ);
 
@@ -89,7 +89,7 @@ namespace MCClone_Core.Utility
 			};
 			//ConsoleLibrary.DebugPrint("Chunk Updated");
 			_chunkPos = newChunkPos;
-			_pw.update_player_pos(_chunkPos);
+			Pw.update_player_pos(_chunkPos);
 			ConsoleLibrary.DebugPrint($" X: {_chunkX}, Z: {_chunkZ}");
 		}
 	}

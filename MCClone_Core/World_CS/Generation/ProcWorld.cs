@@ -20,7 +20,7 @@ namespace MCClone_Core.World_CS.Generation
 {
 	public class ProcWorld : Level
 	{
-		int ChunksPerFrame = 1;
+		int _chunksPerFrame = 1;
 
 		public static bool Threaded = true;
 
@@ -29,7 +29,7 @@ namespace MCClone_Core.World_CS.Generation
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
 		
 		// Max chunks radius comes out to (_loadRadius*2)^2 
-		readonly int _loadRadius = 16;
+		readonly int _loadRadius = 40;
 
 		public static Random WorldRandom;
 		public static long WorldSeed;
@@ -56,8 +56,8 @@ namespace MCClone_Core.World_CS.Generation
 			WorldSeed = seed;
 			WorldRandom = new Random(seed); 
 		}
-		
-		protected override void _Ready()
+
+		public override void _Ready()
 		{
 			if (Instance != null)
 				return;
@@ -94,7 +94,7 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			if (!Threaded)
 			{
-				for (int i = 0; i < ChunksPerFrame; i++)
+				for (int i = 0; i < _chunksPerFrame; i++)
 				{
 					GenerationProcess();	
 				}

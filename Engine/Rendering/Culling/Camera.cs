@@ -3,7 +3,7 @@ using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
 
-namespace Engine.Rendering
+namespace Engine.Rendering.Shared.Culling
 {
     // TODO: More elegant Camera class, preferably one that can more easily accommodate more than one camera. 
     public class Camera : MinimalObject
@@ -18,7 +18,7 @@ namespace Engine.Rendering
         public float Yaw { get; set; } = -90f;
         public float Pitch { get; set; }
 
-        private float Zoom = 45f;
+        private float _zoom = 45f;
 
         public float NearPlane = .1f;
         public float FarPlane = 1000;
@@ -39,7 +39,7 @@ namespace Engine.Rendering
         public void ModifyZoom(float zoomAmount)
         {
             //We don't want to be able to zoom in too close or too far away so clamp to these values
-            Zoom = Math.Clamp(Zoom - zoomAmount, 1.0f, 45f);
+            _zoom = Math.Clamp(_zoom - zoomAmount, 1.0f, 45f);
         }
 
         public Matrix4x4 GetViewMatrix()
@@ -51,8 +51,15 @@ namespace Engine.Rendering
         {
             return Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90), AspectRatio, NearPlane, FarPlane);
         }
+        
+        internal Frustrum GetViewFrustum()
+        {
+            Frustrum frustum = new Frustrum(GetFov(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos);
 
-        public float GetFOV()
+            return frustum;
+        }
+
+        public float GetFov()
         {
             return MathHelper.DegreesToRadians(110);
         }

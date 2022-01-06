@@ -10,6 +10,7 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
 using Engine.Rendering;
+using Engine.Rendering.Shared.Culling;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 using Silk.NET.Input;
@@ -27,7 +28,7 @@ namespace MCClone_Core.Player_CS
 		Control _console;
 		#endif
 		
-		Vector3 Camdir = Vector3.Zero;
+		Vector3 _camdir = Vector3.Zero;
 		
 		
 		public ProcWorld World;
@@ -46,7 +47,7 @@ namespace MCClone_Core.Player_CS
 
 		bool _paused;
 
-		Camera FPCam;
+		Camera _fpCam;
 
 
 		void toggle_pause()
@@ -63,9 +64,9 @@ namespace MCClone_Core.Player_CS
 
 		}
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
-			FPCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
@@ -96,7 +97,7 @@ namespace MCClone_Core.Player_CS
 
 		public override void _Process(double delta)
 		{
-			FPCam.Pos = Pos;
+			_fpCam.Pos = Pos;
 #if Core
 			Freelook();
 #else
@@ -170,13 +171,13 @@ namespace MCClone_Core.Player_CS
 
 			if (!_paused)
 			{
-				Vector3 Location;
+				Vector3 location;
 				#if Core
-				Location = Pos;
+				location = Pos;
 				#else
 				Location = _fpCam.GlobalTransform.origin.CastToCore()
 				#endif
-				HitResult result = Raycast.CastInDirection(Location,forward, -1, 5);
+				HitResult result = Raycast.CastInDirection(location,forward, -1, 5);
 				Vector3 pos = result.Location;
 
 				#if Core
@@ -296,11 +297,11 @@ namespace MCClone_Core.Player_CS
 					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
 					Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
                 
-					Vector3 CameraDirection = Vector3.Zero;
-					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
+					Vector3 cameraDirection = Vector3.Zero;
+					cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
 				}
 			}
 		}

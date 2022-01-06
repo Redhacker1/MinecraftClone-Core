@@ -6,7 +6,7 @@ namespace Engine.Physics
 {
   public class Aabb
   {
-    private const double epsilon = 0.01;
+    private const double Epsilon = 0.01;
     public Vector3 MinLoc;
     public Vector3 MaxLoc;
 

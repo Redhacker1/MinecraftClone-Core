@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Engine.Input.Default_Devices;
-using Engine.MathLib;
-using Engine.Rendering;
 using Silk.NET.Input;
 
 namespace Engine.Input

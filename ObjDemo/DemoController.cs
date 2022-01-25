@@ -1,5 +1,4 @@
-﻿using System;
-using Engine.Input;
+﻿using Engine.Input;
 using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Objects;
 using Engine.Rendering;

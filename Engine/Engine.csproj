@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>9</LangVersion>
         <OutputType>Exe</OutputType>
@@ -16,35 +16,57 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Silk.NET.Assimp" Version="2.11.0" />
-      <PackageReference Include="Silk.NET.Input" Version="2.11.0" />
-      <PackageReference Include="Silk.NET.OpenGL" Version="2.11.0" />
-      <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.11.0" />
-      <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.11.0" />
+      <PackageReference Include="AssimpNet" Version="4.1.0" />
+      <PackageReference Include="BepuPhysics" Version="2.3.0" />
+      <PackageReference Include="ImGui.NET" Version="1.86.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="shaderc" Version="1.1.0" />
+      <PackageReference Include="shaderc.net" Version="0.1.0" />
+      <PackageReference Include="Silk.NET.Assimp" Version="2.12.0" />
+      <PackageReference Include="Silk.NET.Input" Version="2.12.0" />
+      <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.12.0" />
       <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
       <PackageReference Include="SPIRVCross.NET" Version="1.1.3" />
       <PackageReference Include="Veldrid" Version="4.8.0" />
       <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
-      <PackageReference Include="Veldrid.Utilities" Version="4.8.0" />
+      <PackageReference Include="Veldrid.StartupUtilities" Version="4.8.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="AssetLoading" />
       <Folder Include="Rendering\" />
+      <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Assets\shader.frag">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Assets\shader.vert">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Assets\silk.png">
+        <Content Include="Assets\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Agnostic\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Agnostic\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Agnostic\**" />
+      <None Update="VeldridDebugSymbols\Veldrid.pdb">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Assets\TextureAtlas.tga">
+      <None Update="VeldridDebugSymbols\Veldrid.MetalBindings.pdb">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="VeldridDebugSymbols\Veldrid.OpenGLBindings.pdb">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SpirvReflectSharp\SpirvReflectSharp.csproj" />
     </ItemGroup>
     
     

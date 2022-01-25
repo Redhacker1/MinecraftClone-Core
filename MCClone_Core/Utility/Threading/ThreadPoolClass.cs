@@ -18,27 +18,27 @@ namespace MCClone_Core.Utility.Threading
         /// <summary>
         /// Sets the threadpool up to be used
         /// </summary>
-        /// <param name="desiredThreads"> Threads to use in threadpool leave at 0 if unsure </param>
-        public void InitializePool(byte desiredThreads = 0, byte subtractVal = 0)
+        /// <param name="DesiredThreads"> Threads to use in threadpool leave at 0 if unsure </param>
+        public void InitializePool(byte DesiredThreads = 0, byte SubtractVal = 0)
         {
-            if (desiredThreads == 0)
+            if (DesiredThreads == 0)
             {
-                Threads = (byte) (Environment.ProcessorCount - subtractVal);
+                Threads = (byte) (Environment.ProcessorCount - SubtractVal);
             }
             else
             {
-                Threads = desiredThreads;
+                Threads = DesiredThreads;
             }
             SetMaxThreadCount(Threads);
         }
         /// <summary>
         /// Sets the max thread count after intialization
         /// </summary>
-        /// <param name="threadCount">Threads to allocate</param>
-        public void SetMaxThreadCount(byte threadCount)
+        /// <param name="ThreadCount">Threads to allocate</param>
+        public void SetMaxThreadCount(byte ThreadCount)
         {   
-            Console.WriteLine($"Setting thread count to {threadCount}");
-            _pooledThreadClasses = new PooledThreadClass[threadCount];
+            Console.WriteLine($"Setting thread count to {ThreadCount}");
+            _pooledThreadClasses = new PooledThreadClass[ThreadCount];
             for (int I = 0; I < Threads; I++)
             {
                 _pooledThreadClasses[I] = new PooledThreadClass();
@@ -48,42 +48,42 @@ namespace MCClone_Core.Utility.Threading
         /// <summary>
         /// Add request to task Queue, that way it can be run (with delegate to run after!).
         /// </summary>
-        /// <param name="method"> Method you want to call, format in lambda AKA like: () => {method in question} </param>
+        /// <param name="Method"> Method you want to call, format in lambda AKA like: () => {method in question} </param>
         /// <param name="callback">What to call after the call has been completed</param>
         /// <returns>Returns A task that will contain the value returned, a task can also in theory be re-added in the future</returns>
-        public ThreadTaskRequest AddRequest(Func<object> method)
+        public ThreadTaskRequest AddRequest(Func<object> Method)
         {
-            if (method == null) throw new ArgumentNullException(nameof(method));
+            if (Method == null) throw new ArgumentNullException(nameof(Method));
 
-            ThreadTaskRequest taskClass = new ThreadTaskRequest(method);
-            PooledThreadClass lowestTaskThread = null;
-            int lowestTaskNumber = int.MaxValue;
+            ThreadTaskRequest TaskClass = new ThreadTaskRequest(Method);
+            PooledThreadClass LowestTaskThread = null;
+            int LowestTaskNumber = int.MaxValue;
                     
-            foreach (PooledThreadClass threadClass in _pooledThreadClasses)
+            foreach (PooledThreadClass ThreadClass in _pooledThreadClasses)
             {
-                if (lowestTaskNumber > threadClass.TasksAssigned.Count)
+                if (LowestTaskNumber > ThreadClass.TasksAssigned.Count)
                 {
-                    lowestTaskNumber = threadClass.TasksAssigned.Count;
-                    lowestTaskThread = threadClass; 
+                    LowestTaskNumber = ThreadClass.TasksAssigned.Count;
+                    LowestTaskThread = ThreadClass; 
                 }
             }
 
 
-            if (lowestTaskThread?.TaskAccessLock != null)
+            if (LowestTaskThread?.TaskAccessLock != null)
             {
-                lock (lowestTaskThread?.TaskAccessLock)
+                lock (LowestTaskThread?.TaskAccessLock)
                 {
-                    lowestTaskThread?.TasksAssigned.Add(taskClass);
-                    if (lowestTaskThread.BIsIdle)
+                    LowestTaskThread?.TasksAssigned.Add(TaskClass);
+                    if (LowestTaskThread.BIsIdle)
                     {
-                        lock (lowestTaskThread.ThreadLocker)
+                        lock (LowestTaskThread.ThreadLocker)
                         {
-                            Monitor.Pulse(lowestTaskThread.ThreadLocker);
+                            Monitor.Pulse(LowestTaskThread.ThreadLocker);
                         }
                     }
                 }   
             }
-            return taskClass;
+            return TaskClass;
         }
 
         /// <summary>
@@ -91,13 +91,13 @@ namespace MCClone_Core.Utility.Threading
         /// </summary>
         public void IgniteThreadPool()
         {
-            foreach (PooledThreadClass thread in _pooledThreadClasses)
+            foreach (PooledThreadClass Thread in _pooledThreadClasses)
             {
-                thread.PrepareThread();
+                Thread.PrepareThread();
                 
-                lock (thread.ThreadLocker)
+                lock (Thread.ThreadLocker)
                 {
-                    Monitor.Pulse(thread.ThreadLocker);
+                    Monitor.Pulse(Thread.ThreadLocker);
                 }
             }
 
@@ -108,12 +108,12 @@ namespace MCClone_Core.Utility.Threading
         /// </summary>
         public void ShutDownHandler()
         {
-            foreach (PooledThreadClass pooledThreadClass in _pooledThreadClasses)
+            foreach (PooledThreadClass PooledThreadClass in _pooledThreadClasses)
             {
-                pooledThreadClass.DestroyThread();
-                lock (pooledThreadClass.ThreadLocker)
+                PooledThreadClass.DestroyThread();
+                lock (PooledThreadClass.ThreadLocker)
                 {
-                    Monitor.Pulse(pooledThreadClass.ThreadLocker);
+                    Monitor.Pulse(PooledThreadClass.ThreadLocker);
                 }
             }
         }
@@ -125,9 +125,9 @@ namespace MCClone_Core.Utility.Threading
         [SuppressMessage("ReSharper", "LoopCanBeConvertedToQuery")]
         public bool AllThreadsIdle()
         {
-            foreach (PooledThreadClass thread in _pooledThreadClasses)
+            foreach (PooledThreadClass Thread in _pooledThreadClasses)
             {
-                if (thread.BIsIdle == false && thread.TasksAssigned.Count != 0 && !thread.PendingShutdown)
+                if (Thread.BIsIdle == false && Thread.TasksAssigned.Count != 0 && !Thread.PendingShutdown)
                 {
                     return false;
                 }

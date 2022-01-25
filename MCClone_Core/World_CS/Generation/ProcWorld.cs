@@ -10,11 +10,16 @@ using System.Threading;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
+using Engine.Renderable;
+using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
+using Veldrid;
 using Random = Engine.Random.Random;
+using Shader = Engine.Rendering.Shader;
+using Texture = Engine.Rendering.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -48,8 +53,8 @@ namespace MCClone_Core.World_CS.Generation
 		
 
 		Thread _terrainThread;
-
-		
+		public Material _material;
+		private static Texture atlas = null;
 
 		public ProcWorld(long seed)
 		{
@@ -62,12 +67,60 @@ namespace MCClone_Core.World_CS.Generation
 			if (Instance != null)
 				return;
 			Instance = this;
+			
+			MaterialDescription materialDescription = new MaterialDescription
+			{
+				BlendState = BlendStateDescription.SingleOverrideBlend,
+				ComparisonKind = ComparisonKind.LessEqual,
+				CullMode = FaceCullMode.Back,
+				Topology = PrimitiveTopology.TriangleList,
+				DepthTest = true,
+				WriteDepthBuffer = true,
+				FaceDir = FrontFace.CounterClockwise,
+				FillMode = PolygonFillMode.Solid,
+				Shaders = new Dictionary<ShaderStages, Shader>
+				{
+					{
+						ShaderStages.Fragment,
+						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+					},
+					{
+						ShaderStages.Vertex,
+						new Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
+					}
 
+
+				}
+			};
+
+			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("ViewBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+
+			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
+				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
+
+				atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			_material = new Material(materialDescription, 
+				new VertexLayoutDescription(
+					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
+					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
+				, 
+				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(vertexLayout),
+				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(fragmentLayout)
+
+				);
+			_material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
+			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.Aniso4xSampler, atlas._texture));	
+			
+			
 			ConsoleLibrary.DebugPrint("Starting procworld");
 			
 			ConsoleLibrary.DebugPrint("Preparing Threadpool");
 			// Starts the threadpool;
-			_threads.InitializePool(0);
+			_threads.InitializePool();
 			_threads.IgniteThreadPool();
 			
 			ConsoleLibrary.DebugPrint("Registering Blocks");
@@ -86,7 +139,6 @@ namespace MCClone_Core.World_CS.Generation
 			// Console Binds
 			ConsoleLibrary.BindCommand("reload_chunks", "reloads all currently loaded chunks", "reload_chunks", ReloadChunks, false);
 			ConsoleLibrary.BindCommand("reset", "Reloads world after saving, ","reset", Restart, false);
-			
 			
 		}
 

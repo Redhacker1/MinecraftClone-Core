@@ -1,8 +1,6 @@
+using System;
 using System.Collections.Generic;
-using Directory = System.IO.Directory;
-using Environment = System.Environment;
-using File = System.IO.File;
-using Path = System.IO.Path;
+using System.IO;
 
 namespace MCClone_Core.Utility.IO
 {

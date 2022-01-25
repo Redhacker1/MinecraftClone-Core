@@ -1,5 +1,5 @@
-﻿using Engine.Rendering.VeldridBackend;
-using Engine.Rendering.Windowing;
+﻿
+using Engine.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
@@ -10,7 +10,7 @@ namespace Engine.Initialization
         public static void InitEngine(int x, int y, int width, int height, string windowName, Game gameclass)
         {
             WindowClass window = InitGame(x, y, width, height, windowName, gameclass);
-            window.Handle?.Run();
+            WindowClass.Handle?.Run();
             
         }
 
@@ -25,7 +25,7 @@ namespace Engine.Initialization
             options.API = GraphicsAPI.Default;
             
             IWindow handle = Window.Create(options);
-            WindowClass window = new WindowClass(handle,gameclass, new VeldridRenderer(handle));
+            WindowClass window = new WindowClass(width, height, x, y, windowName, gameclass);
 
             return window;
         }

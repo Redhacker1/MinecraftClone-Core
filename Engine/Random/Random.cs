@@ -26,7 +26,7 @@ namespace Engine.Random
 
         protected int Next(int bits)
         {
-            _seed = (_seed * 0x5DEECE66DL + 0xBL) & ((1L << 48) - 1);
+            _seed = ((_seed) * uint.MaxValue + 11L) & ((1L << 48) - 1);
 
             return (int)((ulong)_seed >> (48 - bits));
         }

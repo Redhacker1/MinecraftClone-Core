@@ -14,23 +14,23 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
         internal int GenHeight = 60;
 
 
-        public int[,] GenerateHeightmap(int x, int z, long seed)
+        public int[,] GenerateHeightmap(int X, int Z, long seed)
         {
             NoiseUtil noise = new NoiseUtil(seed);
             noise.SetFractalOctaves(1);
             //noise.SetFrequency(0.0001f);
-            MixedNoiseClass heightNoise = new MixedNoiseClass(3, noise);
+            MixedNoiseClass HeightNoise = new MixedNoiseClass(3, noise);
 
             int[,] groundHeight = new int[(int)ChunkCs.Dimension.X, (int)ChunkCs.Dimension.Z];
 
-            for (int xIndex = 0; xIndex < ChunkCs.Dimension.X; xIndex++)
+            for (int x = 0; x < ChunkCs.Dimension.X; x++)
             {
-                for (int zIndex = 0; zIndex < ChunkCs.Dimension.Z; zIndex++)
+                for (int z = 0; z < ChunkCs.Dimension.Z; z++)
                 {
-                    double hNoise = MathHelper.Clamp(((1f + heightNoise.GetMixedNoiseSimplex(x + xIndex, z + zIndex)))/2,  0, 1);
+                    double hNoise = MathHelper.Clamp(((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z)))/2,  0, 1);
                     int yHeight = (int) (hNoise * (GenHeight - 1) + 1);
                     
-                    groundHeight[xIndex,zIndex] = yHeight;
+                    groundHeight[x,z] = yHeight;
                 }
             }
 
@@ -38,65 +38,65 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             
         }
 
-        public void Generate(ChunkCs  chunk, int x, int z, long seed)
+        public void Generate(ChunkCs  chunk, int X, int Z, long Seed)
         {
-            x *= (int)ChunkCs.Dimension.X;
-            z *= (int)ChunkCs.Dimension.Z;
+            X *= (int)ChunkCs.Dimension.X;
+            Z *= (int)ChunkCs.Dimension.Z;
             
-            int[,] surfaceheight = GenerateHeightmap(x,z,seed);
+            int[,] surfaceheight = GenerateHeightmap(X,Z,Seed);
 
-            for (int xIndex = 0; xIndex < ChunkCs.Dimension.X; xIndex++)
+            for (int x = 0; x < ChunkCs.Dimension.X; x++)
             {
-                for (int zIndex = 0; zIndex < ChunkCs.Dimension.Z; zIndex++)
+                for (int z = 0; z < ChunkCs.Dimension.Z; z++)
                 {
-                    generate_surface(chunk ,surfaceheight[xIndex,zIndex], xIndex, zIndex); 
-                    GenerateTopsoil(chunk,surfaceheight[xIndex,zIndex], xIndex, zIndex, seed);	
+                    generate_surface(chunk ,surfaceheight[x,z], x, z); 
+                    GenerateTopsoil(chunk,surfaceheight[x,z], x, z, Seed);	
                 }
             }
             
-            Generate_Caves(chunk, seed, surfaceheight, x, z);
+            Generate_Caves(chunk, Seed, surfaceheight, X, Z);
             generate_details(chunk,ProcWorld.WorldRandom,surfaceheight);
         }
 
-        public virtual void generate_surface(ChunkCs chunk,int height, int x, int z)
+        public virtual void generate_surface(ChunkCs Chunk,int Height, int X, int Z)
         {
-            chunk._set_block_data(x,0,z, 0);   
+            Chunk._set_block_data(X,0,Z, 0);   
         }
 
-        public virtual void GenerateTopsoil(ChunkCs chunk, int height, int x, int z, long seed)
+        public virtual void GenerateTopsoil(ChunkCs Chunk, int Height, int X, int Z, long seed)
         {
             
         }
 
-        public virtual void generate_details(ChunkCs chunk, Random rng, int[,] groundHeight, bool checkingInterChunkGen = true)
+        public virtual void generate_details(ChunkCs Chunk, Random Rng, int[,] GroundHeight, bool CheckingInterChunkGen = true)
         {
         }
 
-        public virtual void Generate_Caves(ChunkCs chunk, long seed, int[,] height, int locX, int locZ)
+        public virtual void Generate_Caves(ChunkCs Chunk, long Seed, int[,] Height, int LocX, int LocZ)
         {
-            NoiseUtil noisegen = new NoiseUtil();
-            noisegen.SetSeed(seed);
+            NoiseUtil Noisegen = new NoiseUtil();
+            Noisegen.SetSeed(Seed);
 			
-            noisegen.SetFractalOctaves(100);
+            Noisegen.SetFractalOctaves(100);
 
-            for (int z = 0; z < ChunkCs.Dimension.Z; z++)
+            for (int Z = 0; Z < ChunkCs.Dimension.Z; Z++)
             {
-                for (int x = 0; x < ChunkCs.Dimension.X; x++)
+                for (int X = 0; X < ChunkCs.Dimension.X; X++)
                 {
-                    for (int y = 0 + MinTerrainHeight; y == height[x, z]; y++)
+                    for (int Y = 0 + MinTerrainHeight; Y == Height[X, Z]; Y++)
                     {
-                       double caveNoise = Math.Abs(noisegen.GetSimplex(x + locX, y, z + locZ));
+                       double CaveNoise = Math.Abs(Noisegen.GetSimplex(X + LocX, Y, Z + LocZ));
 
-                        if (caveNoise <= .3f)
+                        if (CaveNoise <= .3f)
                         {
-                            chunk._set_block_data(x,y,z,0);
+                            Chunk._set_block_data(X,Y,Z,0);
                         }
                     }
                 }
             }
         }
         
-        internal static bool IsBlockAir(ChunkCs chunk, int x, int y, int z)
+        internal static bool IsBlockAir(ChunkCs Chunk, int X, int Y, int Z)
         {
             return false;  //Chunk.BlockData[ChunkCs.GetFlattenedDimension(X, Y - 1, Z)] == 0;
         }

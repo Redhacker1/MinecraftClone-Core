@@ -4,32 +4,23 @@ using Godot;
 #endif
 
 using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
 using Engine.Rendering;
-using Engine.Rendering.Shared.Culling;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 using Silk.NET.Input;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
+using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Player_CS
 {
 	//[Tool]
 	public class Player: CharacterEntity
 	{
-		#if !Core
-		public Camera _fpCam;
-		RayCast _raycast;
-		Label _infoLabel;
-		Control _console;
-		#endif
-		
-		Vector3 _camdir = Vector3.Zero;
-		
 		
 		public ProcWorld World;
 
@@ -42,12 +33,13 @@ namespace MCClone_Core.Player_CS
 		public const double Speed = 5.498592;
 		public const int JumpVel = 5;
 		byte _selectedBlockIndex;
+		
 
 		PlayerController _controller;
 
 		bool _paused;
 
-		Camera _fpCam;
+		Camera FPCam;
 
 
 		void toggle_pause()
@@ -61,12 +53,12 @@ namespace MCClone_Core.Player_CS
 
 		public Player(Vector3 pos, Vector2 dir, Level level) : base(pos, dir, level)
 		{
-
+			
 		}
 
 		public override void _Ready()
 		{
-			_fpCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8, Pos.Z), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
@@ -74,9 +66,6 @@ namespace MCClone_Core.Player_CS
 				SetPos(new Vector3(Translation.x, Translation.y, Translation.z));
 			#endif
 			_controller = new PlayerController(this);
-
-			// Facinating
-			BlockHelper.RegisterBaseBlocks();
 
 			_selectedBlock = BlockHelper.IdToString[_selectedBlockIndex];
 
@@ -97,45 +86,25 @@ namespace MCClone_Core.Player_CS
 
 		public override void _Process(double delta)
 		{
-			_fpCam.Pos = Pos;
-#if Core
+			FPCam.Pos = new Vector3(Pos.X, Pos.Y + 0, Pos.Z);
 			Freelook();
-#else
-			if (!Engine.EditorHint)
+			
+			Vector3 Location = Pos;
+			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
+			Vector3 pos = result.Location;
+			
+				
+			if (InputHandler.KeyboardKeyDown(0, Key.E))
 			{
-				if (Input.IsActionJustPressed("pause"))
-				{
-					toggle_pause();
-				}
-				if (Input.IsActionJustPressed("console"))
-				{
-					_console.Visible = !_console.Visible;
-
-					if (_console.Visible)
-					{
-						Input.SetMouseMode(Input.MouseMode.Visible);   
-					}
-					else
-					{
-						Input.SetMouseMode(Input.MouseMode.Captured);
-					}
-
-					_paused = _console.Visible;
-				}
-
-				if (Input.IsActionJustReleased("scroll_up"))
-				{
-
-					_selectedBlockIndex = (byte) Math.Max(0, _selectedBlockIndex - 1);
-				}
-				else if (Input.IsActionJustReleased("scroll_down"))
-				{
-					_selectedBlockIndex = (byte) Math.Min( BlockHelper.BlockTypes.Count - 1, _selectedBlockIndex + 1);
-				}
-
-				_selectedBlock = BlockHelper.IdToString[_selectedBlockIndex];	
+				Console.WriteLine("Pressed");
+				Vector3 norm = result.Normal;
+				_on_Player_destroy_block(pos, norm);
 			}
-#endif
+
+			if (InputHandler.KeyboardJustKeyPressed(0, Key.C))
+			{
+				Noclip = !Noclip;
+			}
 
 
 		}
@@ -143,45 +112,30 @@ namespace MCClone_Core.Player_CS
 		public override void _PhysicsProcess(double delta)
 		{
 			
-
-		#if Core
 			double cx = Math.Floor((Pos.X ) / ChunkCs.Dimension.X);
 			double cz = Math.Floor((Pos.Z) / ChunkCs.Dimension.Z);
 			double px = Pos.X - cx * ChunkCs.Dimension.X;
 			double py = Pos.Y;
 			double pz = Pos.Z - cz * ChunkCs.Dimension.Z;
-			//var forward_cam;
 			Vector3 forward = -Vector3.UnitZ;
 			
-		#else
-			float cx = (float) Math.Floor((Translation.x ) / ChunkCs.Dimension.X);
-			float cz = (float) Math.Floor((Translation.z) / ChunkCs.Dimension.Z);
-			float px = Translation.x - cx * ChunkCs.Dimension.X;
-			float py = Translation.y;
-			float pz = Translation.z - cz * ChunkCs.Dimension.Z;
-			
-			var forward_cam = _fpCam.GlobalTransform.basis;
-			var forward = -forward_cam.z.CastToCore();
-
-			
-			
-			_infoLabel.Text = $"Selected block {_selectedBlock}, Chunk ({cx}, {cz}) pos ({px}, {py}, {pz}, CameraDir {forward})";
-		#endif
 			
 
 			if (!_paused)
 			{
-				Vector3 location;
-				#if Core
-				location = Pos;
-				#else
-				Location = _fpCam.GlobalTransform.origin.CastToCore()
-				#endif
-				HitResult result = Raycast.CastInDirection(location,forward, -1, 5);
+				Vector3 Location = Pos;
+				HitResult result = Raycast.CastInDirection(Location,forward, -1, 5);
 				Vector3 pos = result.Location;
 
 				#if Core
 				_controller.Player_move(delta);
+				
+				if (InputHandler.KeyboardJustKeyPressed(0, Key.E))
+				{
+					Console.WriteLine("Pressed");
+					Vector3 norm = result.Normal;
+					_on_Player_destroy_block(pos, norm);
+				}
 				#else
 				if (!Engine.EditorHint)
 				{
@@ -192,7 +146,7 @@ namespace MCClone_Core.Player_CS
 
 				if (result.Hit)
 				{
-					Vector3 norm = result.Normal;
+
 					
 					#if Core
 					// TODO: Implement Line tracing and debug lines before re-enabling this code!
@@ -237,7 +191,7 @@ namespace MCClone_Core.Player_CS
 			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.Dimension.Y) + .5f);
 			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.Dimension.Z) + .5f);
 			
-			
+			Console.WriteLine(World == null);
 			World?.change_block(cx, cz, bx, by, bz, 0);
 		}
 		
@@ -269,10 +223,6 @@ namespace MCClone_Core.Player_CS
 			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.Dimension.Y) + 0.5);
 			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.Dimension.Z) + 0.5);
 
-		#if !Core
-			WorldScript.lines.DrawBlock((int) (cx * ChunkCs.Dimension.X + bx), @by, (int) (cz * ChunkCs.Dimension.Z + bz), delta);		
-		#endif
-
 
 		}
 		
@@ -291,17 +241,17 @@ namespace MCClone_Core.Player_CS
 
 				if (Camera.MainCamera != null)
 				{
-					Camera.MainCamera.Yaw += xOffset;
+					Camera.MainCamera.Yaw -= xOffset;
 					Camera.MainCamera.Pitch -= yOffset;
                     
 					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
 					Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
                 
-					Vector3 cameraDirection = Vector3.Zero;
-					cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
+					Vector3 CameraDirection = Vector3.Zero;
+					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
 				}
 			}
 		}

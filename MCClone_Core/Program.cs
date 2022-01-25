@@ -1,20 +1,23 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Numerics;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 using Engine;
 using Engine.Initialization;
-using Engine.Rendering.Windowing;
+using Engine.Objects;
+using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.World_CS.Generation;
+using Steamworks;
+using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core
 {
     class Program
     {
-        static WindowClass _window;
+        static WindowClass window;
 
         static void Main(string[] args)
         {
@@ -26,26 +29,60 @@ namespace MCClone_Core
 
     internal class MinecraftCloneCore: Game
     {
-        ProcWorld _world;
+        
+        
+
+        ProcWorld world;
         public override void Gamestart()
         {
+            Console.WriteLine("Initializing Steam API");
+            try
+            {
+                SteamClient.Init(1789570);
+                Console.WriteLine("SteamAPI enabled successfully");
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to load SteamAPI, some features will be unavailable (soon)");
+            }
+
             base.Gamestart();
+
+            FPSEntity ent = new FPSEntity();
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
-            _world = new ProcWorld(1337) {World = worldPath};
+            world = new ProcWorld(1337) {World = worldPath};
             
-            Player player = new Player(new Vector3( 0, 50, 0), Vector2.Zero, _world);
-            player.Noclip = true;
-            WorldScript script = new WorldScript(_world);
-            script.Player = player;
+            Player player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
+            player.Noclip = false;
+            WorldScript script = new WorldScript(world);
+            script._player = player;
+            player.World = world;
             
             ConsoleLibrary.InitConsole(o => { Console.WriteLine(o.ToString()); });   
         }
 
         public override void GameEnded()
         {
-            base.GameEnded();
-            _world.SaveAndQuit();
+            Console.WriteLine("Shutting down SteamAPI");
+            SteamClient.Shutdown();
+            
+            world.SaveAndQuit();
+        }
+        
+        
+        
+    }
+    
+    
+    
+    class FPSEntity : Entity
+    {
+        uint frames;
+        uint PreviousFPS = 0;
+
+        public override void _Process(double delta)
+        {
         }
     }
 }

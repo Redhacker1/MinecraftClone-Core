@@ -332,3 +332,6 @@ ASALocalRun/
 
 # Local History for Visual Studio
 .localhistory/
+
+#Assets I dont want to put in the license currently
+ObjDemo/Assets/*

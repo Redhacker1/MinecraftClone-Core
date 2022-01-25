@@ -7,109 +7,109 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
 	internal class ForestGenerator : BaseGenerator
 	{
-		public override void generate_surface(ChunkCs chunk, int height, int x, int z)
+		public override void generate_surface(ChunkCs Chunk, int Height, int X, int Z)
 		{
-			for (int y = 0; y < height; y++)
+			for (int Y = 0; Y < Height; Y++)
 			{
 				//GD.Print($"{X},{Y},{Z}");
-				chunk._set_block_data(x,y,z, 10);
+				Chunk._set_block_data(X,Y,Z, 10);
 			}
 		}
 
-		public override void GenerateTopsoil(ChunkCs chunk, int height, int x, int z, long seed)
-		{	NoiseUtil heightNoise = new NoiseUtil();
-			heightNoise.SetSeed(seed);
-			heightNoise.SetFractalOctaves(100);
+		public override void GenerateTopsoil(ChunkCs Chunk, int Height, int X, int Z, long seed)
+		{	NoiseUtil HeightNoise = new NoiseUtil();
+			HeightNoise.SetSeed(seed);
+			HeightNoise.SetFractalOctaves(100);
 
 
-			double noise = heightNoise.GetSimplex(x + chunk.ChunkCoordinate.X, seed, z + chunk.ChunkCoordinate.Y);
+			double noise = HeightNoise.GetSimplex(X + Chunk.ChunkCoordinate.X, seed, Z + Chunk.ChunkCoordinate.Y);
 			noise /= 2;
 
-            int depth = (int) MathHelper.Lerp(1,6,Math.Abs(noise));
+            int Depth = (int) MathHelper.Lerp(1,6,Math.Abs(noise));
 
-            for (int I = 0; I < depth; I++)
+            for (int I = 0; I < Depth; I++)
 			{
 				if (I == 0)
 				{
-					chunk._set_block_data(x,height - 1, z, 4);	
+					Chunk._set_block_data(X,Height - 1, Z, 4);	
 				}
 				else
 				{
-					chunk._set_block_data(x,(height - 1) - I, z,4);	
+					Chunk._set_block_data(X,(Height - 1) - I, Z,4);	
 				}
 			}
 		}
 
-		public override void generate_details(ChunkCs chunk, Random rng, int[,] groundHeight, bool checkingInterChunkGen = true)
+		public override void generate_details(ChunkCs Chunk, Random Rng, int[,] GroundHeight, bool CheckingInterChunkGen = true)
 		{
 
 			const int treeWidth = 2;
 
-			for (int nTree = 0; nTree < rng.NextInt(2, 8); nTree++)
+			for (int NTree = 0; NTree < Rng.NextInt(2, 8); NTree++)
 			{
-				int posX = rng.NextInt(treeWidth, (int) ChunkCs.Dimension.X - treeWidth - 1);
-				int posZ = rng.NextInt(treeWidth, (int) ChunkCs.Dimension.Z - treeWidth - 1);
-				int treeHeight = rng.NextInt(4, 8);
+				int PosX = Rng.NextInt(treeWidth, (int) ChunkCs.Dimension.X - treeWidth - 1);
+				int PosZ = Rng.NextInt(treeWidth, (int) ChunkCs.Dimension.Z - treeWidth - 1);
+				int TreeHeight = Rng.NextInt(4, 8);
 				
-				for (int I = 0; I < treeHeight; I++)
+				for (int I = 0; I < TreeHeight; I++)
 				{
 
-					int x = posX;
-					int z = posZ;
+					int X = PosX;
+					int Z = PosZ;
 					
-					int y = groundHeight[x,z] + I;
+					int Y = GroundHeight[X,Z] + I;
 					
 					// 6 is BID for logs
-					chunk._set_block_data(x, y, z, 6);
+					Chunk._set_block_data(X, Y, Z, 6);
 				}
-				int minY = rng.NextInt(-2, -1);
+				int MinY = Rng.NextInt(-2, -1);
 
-				int maxY = rng.NextInt(2, 4);
+				int MaxY = Rng.NextInt(2, 4);
 
-				for (int dy = minY; dy < maxY; dy++)
+				for (int Dy = MinY; Dy < MaxY; Dy++)
 				{
-					int leafWidth = treeWidth;
-					if (dy == minY || dy == maxY - 1) leafWidth -= 1;
-					for (int dx = -leafWidth; dx < leafWidth + 1; dx++)
+					int LeafWidth = treeWidth;
+					if (Dy == MinY || Dy == MaxY - 1) LeafWidth -= 1;
+					for (int Dx = -LeafWidth; Dx < LeafWidth + 1; Dx++)
 					{
-						for (int dz = -leafWidth; dz < leafWidth + 1; dz++)
+						for (int Dz = -LeafWidth; Dz < LeafWidth + 1; Dz++)
 						{
-							int lx = posX + dx;
-							int ly = groundHeight[posX,posZ] + treeHeight + dy;
-							int lz = posZ + dz;
+							int Lx = PosX + Dx;
+							int Ly = GroundHeight[PosX,PosZ] + TreeHeight + Dy;
+							int Lz = PosZ + Dz;
 							
 							
 							// 5 is block ID for leaves
-							chunk._set_block_data(lx, ly, lz, 5, false);
+							Chunk._set_block_data(Lx, Ly, Lz, 5, false);
 						}
 
-						if (dy == minY || dy == maxY - 1) leafWidth -= 1;
+						if (Dy == MinY || Dy == MaxY - 1) LeafWidth -= 1;
 					}
 				}
 
-				for (int nShrub = 0; nShrub < rng.NextInt(6, 10); nShrub++)
+				for (int NShrub = 0; NShrub < Rng.NextInt(6, 10); NShrub++)
 				{
-					int x = rng.NextInt(0, (int)ChunkCs.Dimension.X - 1);
-					int z = rng.NextInt(0, (int)ChunkCs.Dimension.Z - 1);
-					int y = groundHeight[x,z];
+					int X = Rng.NextInt(0, (int)ChunkCs.Dimension.X - 1);
+					int Z = Rng.NextInt(0, (int)ChunkCs.Dimension.Z - 1);
+					int Y = GroundHeight[X,Z];
 					
 					// 11 is block ID for tall grass
-					if (!IsBlockAir(chunk, x, y, z))
+					if (!IsBlockAir(Chunk, X, Y, Z))
 					{
-						chunk._set_block_data(x, y, z, 11, false);	
+						Chunk._set_block_data(X, Y, Z, 11, false);	
 					}
 				}
 
-				for (int nFlower = 0; nFlower < rng.NextInt(4, 6); nFlower++)
+				for (int NFlower = 0; NFlower < Rng.NextInt(4, 6); NFlower++)
 				{
-					int x = rng.NextInt(0, (int)ChunkCs.Dimension.X - 1);
-					int z = rng.NextInt(0, (int)ChunkCs.Dimension.Z - 1);
-					int y = groundHeight[x,z];
+					int X = Rng.NextInt(0, (int)ChunkCs.Dimension.X - 1);
+					int Z = Rng.NextInt(0, (int)ChunkCs.Dimension.Z - 1);
+					int Y = GroundHeight[X,Z];
 					
 					// 3 is BID for flower
-					if (!IsBlockAir(chunk, x, y, z))
+					if (!IsBlockAir(Chunk, X, Y, Z))
 					{
-						chunk._set_block_data(x, y, z, 3, false);
+						Chunk._set_block_data(X, Y, Z, 3, false);
 					}
 				}
 			}

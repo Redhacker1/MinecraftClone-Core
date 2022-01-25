@@ -130,23 +130,20 @@ namespace Engine.Rendering.Shared.Culling
         }
         
 
-        public static bool MeshInFrustrum(MeshInstance mesh, Frustrum frustum, bool frustumculling = true)
+        public static bool MeshInFrustrum(Mesh mesh, Frustrum? frustum, bool frustumculling = true)
         {
 
-            if (frustumculling)
+            if (frustum != null && mesh != null)
             {
 
-                Aabb meshInstanceAabb = mesh.GetAabb(frustum.Camerapos);
-                
-                return aabb_to_frustum(meshInstanceAabb, frustum);   
+                Frustrum Frustum = frustum.Value;
+                return aabb_to_frustum(new Aabb(mesh.Minpoint - (Vector3)Camera.MainCamera.Pos, mesh.Maxpoint - (Vector3)Camera.MainCamera.Pos), ref Frustum);   
             }
-            else
-            {
-                return true;
-            }
+
+            return true;
         }
         
-        internal static bool aabb_to_frustum(Aabb aabb, Frustrum frustum)
+        internal static bool aabb_to_frustum(Aabb aabb, ref Frustrum frustum)
         {
             for (int i = 0; i < frustum.Planes.Length; ++i)
             {

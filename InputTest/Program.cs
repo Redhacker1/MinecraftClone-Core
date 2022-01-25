@@ -20,7 +20,8 @@ namespace InputTest
         public override void Gamestart()
         {
             base.Gamestart();
-            new InputObject();
+            InputObject game = new InputObject();
+
         }
     }
 

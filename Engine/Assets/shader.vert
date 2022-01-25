@@ -1,22 +1,29 @@
-#version 330 core
-layout (location = 0) in vec4 vPos;
-layout (location = 1) in vec4 vUv;
+#version 450
 
-
-layout(binding = 1) uniform MatrixData
+layout(set = 0, binding = 0) uniform ProjectionBuffer
 {
-    mat4 uModel;
-    mat4 uView;
-    mat4 uProjection;
-    vec4 CameraPos;
+    mat4 Projection;
 };
 
+layout(set = 0, binding = 1) uniform ViewBuffer
+{
+    mat4 View;
+};
 
-out vec3 fUv;
+layout(set = 1, binding = 0) uniform WorldBuffer
+{
+    mat4 World;
+};
+
+layout(location = 0) in vec3 Position;
+layout(location = 1) in vec3 TexCoords;
+layout(location = 0) out vec2 fsin_texCoords;
 
 void main()
 {
-    //Multiplying our uniform with the vertex position, the multiplication order here does matter.
-    gl_Position = uProjection * uView * uModel * vec4(vPos.xyz - CameraPos.xyz, 1);
-    fUv = vUv.xyz;
+    vec4 worldPosition = World * vec4(Position, 1);
+    vec4 viewPosition = View * worldPosition;
+    vec4 clipPosition = Projection * viewPosition;
+    gl_Position = clipPosition;
+    fsin_texCoords = TexCoords.xy;
 }

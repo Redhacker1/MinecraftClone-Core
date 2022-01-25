@@ -3,7 +3,6 @@ using System;
 using System.Diagnostics;
 using System.Numerics;
 using Engine;
-using Engine.AssetLoading;
 using Engine.Initialization;
 using Engine.Input;
 using Engine.Objects;
@@ -40,7 +39,7 @@ namespace ObjDemo
 
     class MeshSpawner : GameObject
     {
-        MeshData[] _meshes;
+        Mesh[] _meshes;
 
         public override void _Ready()
         {
@@ -49,11 +48,12 @@ namespace ObjDemo
 
             //new Player();
             
-            //_meshes = AssimpLoader.LoadMesh(@".\Assets\Bistro\BistroInterior.fbx", this);
+            //_meshes = AssimpLoader.LoadMesh(@"C:\Users\donov\Downloads\130\scene.gltf", this);
 
             foreach (var mesh in _meshes)
             {
-                mesh.QueueVaoRegen();
+                mesh.Scale = .1f;
+                mesh.QueueVaoRegen();  
             }
         }
     }

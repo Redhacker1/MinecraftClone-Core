@@ -1,4 +1,6 @@
-﻿namespace Engine.Renderable
+﻿using Veldrid;
+
+namespace Engine.Renderable
 {
     public abstract class Renderable
     {
@@ -10,9 +12,9 @@
         {
             return true;
         }
-
         abstract internal void BindFlags();
 
-        abstract internal void BindResources();
+        abstract internal bool BindResources(CommandList list);
     }
+    
 }

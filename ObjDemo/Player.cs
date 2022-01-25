@@ -4,7 +4,6 @@ using Godot;
 #endif
 
 using System;
-using System.Numerics;
 using CullingTests;
 using Engine.Input;
 using Engine.MathLib;

@@ -1,8 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Numerics;
 using MCClone_Core.World_CS.Generation;
-using Vector2 = System.Numerics.Vector2;
-using File = System.IO.File;
 
 namespace MCClone_Core.Utility.IO
 {

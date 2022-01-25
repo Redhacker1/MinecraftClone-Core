@@ -2,8 +2,9 @@
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
+using Engine.Rendering.Shared.Culling;
 
-namespace Engine.Rendering.Shared.Culling
+namespace Engine.Rendering
 {
     // TODO: More elegant Camera class, preferably one that can more easily accommodate more than one camera. 
     public class Camera : MinimalObject
@@ -11,7 +12,7 @@ namespace Engine.Rendering.Shared.Culling
         public static Camera MainCamera;
         public Vector3 Front { get; set; }
 
-        public Vector3 Right => Vector3.Normalize(Vector3.Cross(Up, Front));
+        public Vector3 Right => Vector3.Normalize(-Vector3.Cross(Up, Front));
         public Vector3 Up { get; private set; }
         public float AspectRatio { get; set; }
 
@@ -22,6 +23,8 @@ namespace Engine.Rendering.Shared.Culling
 
         public float NearPlane = .1f;
         public float FarPlane = 1000;
+
+        public Vector3 Forward => GetLookDir();
 
         public Camera(Vector3 pos, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
         {
@@ -35,6 +38,13 @@ namespace Engine.Rendering.Shared.Culling
                 MainCamera = this;
             }
         }
+        
+        private Vector3 GetLookDir()
+        {
+            Quaternion lookRotation = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0f);
+            Vector3 lookDir = Vector3.Transform(-Vector3.UnitZ, lookRotation);
+            return lookDir;
+        }
 
         public void ModifyZoom(float zoomAmount)
         {
@@ -44,12 +54,12 @@ namespace Engine.Rendering.Shared.Culling
 
         public Matrix4x4 GetViewMatrix()
         {
-            return Matrix4x4.CreateLookAt(Vector3.Zero, Front, Up);
+            return Matrix4x4.CreateLookAt(Vector3.Zero, Front, -Vector3.UnitY);
         }
 
         public Matrix4x4 GetProjectionMatrix()
         {
-            return Matrix4x4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(90), AspectRatio, NearPlane, FarPlane);
+            return Matrix4x4.CreatePerspectiveFieldOfView(GetFov(), AspectRatio, NearPlane, FarPlane);
         }
         
         internal Frustrum GetViewFrustum()

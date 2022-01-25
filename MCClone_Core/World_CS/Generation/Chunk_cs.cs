@@ -1,27 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Renderable;
-using Engine.Rendering.Shared;
-using Engine.Rendering.Shared.Buffers;
-using Engine.Rendering.Shared.Shaders;
-using Engine.Rendering.Windowing;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
-using Vector3 = System.Numerics.Vector3;
+using Texture = Engine.Rendering.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
 
 	public class ChunkCs : GameObject
 	{
-		static ShaderStageSet _shader;
-        static Texture _texture;
 
-        MeshInstance _chunkreference;
 		//bool NeedsSaved;
 
 		public Vector2 ChunkCoordinate;
@@ -35,7 +27,7 @@ namespace MCClone_Core.World_CS.Generation
 		static readonly float Sizey = 1.0f / TextureAtlasSize.Y;
 		
 		public static readonly Vector3 Dimension = new Vector3(16, 384, 16);
-
+		private Mesh ChunkMesh;
 
 
 		static readonly Vector3[] V =
@@ -66,89 +58,62 @@ namespace MCClone_Core.World_CS.Generation
 		public byte[] BlockData;
 		readonly bool[,,] _visibilityMask;
 		public bool ChunkDirty;
-		Dictionary<ShaderType, Shader> shaderdata = ShaderStageSet.GenShaderInputDictionary();
 
 		public ChunkCs()
 		{
 
 			BlockData = new byte[(int) Dimension.X * (int) Dimension.Y * (int) Dimension.Z];
 			_visibilityMask = new bool[(int)Dimension.X, (int) Dimension.Y, (int)Dimension.Z];
+			ChunkMesh = new Mesh(this, ProcWorld.Instance._material);
 		}
-		
-        public override void _Ready()
-        {
-
-	        shaderdata[ShaderType.Vertex] = WindowClass.Backend.CreateShader(@"Assets\shader.vert", ShaderType.Vertex);
-	        shaderdata[ShaderType.Fragment] = WindowClass.Backend.CreateShader(@"Assets\shader.frag", ShaderType.Fragment);
-	        _shader = new ShaderStageSet(
-		        shaderdata
-		        , new[]
-		        {
-			        new VertexLayout(AttributeType.Float, 0,  12, 3, "Position", 0),
-			        new VertexLayout(AttributeType.Float, 12,  12, 3, "Position", 1)
-			        
-		        }
-		        );
-
-	        _texture ??= WindowClass.Backend.CreateTexture(@"Assets\TextureAtlas.tga");
-        }
 
 
-        public void InstantiateChunk(ProcWorld w, int cx, int cz, long seed)
+		public void InstantiateChunk(ProcWorld w, int cx, int cz, long seed)
 		{
-
+			
 			Pos = new Vector3(cx * (Dimension.X), 0, cz * Dimension.Z);
 			ChunkCoordinate = new Vector2(cx, cz);
 			
-			Generator.Generate(this, cx, cz, (int)(seed % int.MaxValue));
-			
+			Generator.Generate(this, cx, cz, seed);
 		}
+		
 		
 		public void Update()
 		{
 			
 			
-			_chunkreference?.Mesh?.QueueDeletion();
 			List<Vector3> blocks = new List<Vector3>();
 			List<Vector3> blocksNormals = new List<Vector3>();
 			List<uint> chunkIndices = new List<uint>();
-			List<Vector2>  uVs = new List<Vector2>();
+			List<Vector3>  uVs = new List<Vector3>();
 			uint index = 0;
-			
+
+			//Making use of multidimensional arrays allocated on creation
+			Span<bool> transparent = stackalloc bool[6];
 			for (int x = 0; x < Dimension.X; x++)
 			for (int y = 0; y < Dimension.Y; y++)
 			for (int z = 0; z < Dimension.Z; z++)
 			{
+				
 				byte block = BlockData[GetFlattenedDimension(x, y, z)];
-				bool[] check = check_transparent_neighbours(x, y, z);
+				check_transparent_neighbours(x, y, z, ref transparent);
 				//TODO: AO Code goes here!
-				if (check.Contains(true))
+				if (transparent.Contains(true))
 				{
 					if (block != 0)
 					{
-						_create_block(check, x, y, z, block, blocks, blocksNormals, uVs, chunkIndices, ref index);	
-					}
-					else
-					{
-						
+						_create_block(transparent, x, y, z, block, blocks, blocksNormals, uVs, chunkIndices , ref index);	
 					}
 				}
 			}
-			
-			
-			// Do Render stuff here
-			// BUG: FIXME: This does not always delete the mesh, probably a threading.
-			
-			
-			if (_chunkreference == null)
-			{
 
-				_shader = new ShaderStageSet(shaderdata, new VertexLayout[] {new VertexLayout(AttributeType.Float, 0, 16, 3, "Position", 1), new VertexLayout(AttributeType.Float, 16, 16, 3, "UV", 1)});
-				_chunkreference = new MeshInstance(this,new MeshData(blocks, uVs), _shader);
-				_chunkreference.Texture = _texture;
-				return;
-			}
-			_chunkreference.Mesh = new MeshData(blocks, uVs);
+			MeshData meshData = new MeshData()
+			{
+				_uvs = uVs.ToArray(),
+				_vertices = blocks.ToArray()
+			};
+			ChunkMesh.SetMeshData(meshData);
+			ChunkMesh.GenerateMesh();
 
 
 		}
@@ -202,16 +167,17 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-		bool[] check_transparent_neighbours(int x, int y, int z)
+		void check_transparent_neighbours(int x, int y, int z, ref Span<bool> output)
 		{
-			return new[]
-			{
-				is_block_transparent(x, y + 1, z), is_block_transparent(x, y - 1, z), is_block_transparent(x - 1, y, z),
-				is_block_transparent(x + 1, y, z), is_block_transparent(x, y, z - 1), is_block_transparent(x, y, z + 1)
-			};
+			output[0] = is_block_transparent(x, y + 1, z);
+			output[1] = is_block_transparent(x, y - 1, z);
+			output[2] = is_block_transparent(x - 1, y, z);
+			output[3] = is_block_transparent(x + 1, y, z);
+			output[4] = is_block_transparent(x, y, z - 1);
+			output[5] = is_block_transparent(x, y, z + 1);
 		}
 
-		void _create_block(IReadOnlyList<bool> check, int x, int y, int z, byte block, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint index)
+		void _create_block(Span<bool> check, int x, int y, int z, byte block, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector3> uVs, List<uint> indices, ref uint index)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			Vector3 coord = new Vector3(x, y, z);
@@ -234,42 +200,36 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector2>  uVs, List<uint> indices, ref uint currentindex)
+		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector3> uVs, List<uint> indices, ref uint currentindex)
 		{
-			Vector3 a = V[I[0]] + offset;
-			Vector3 b = V[I[1]] + offset;
-			Vector3 c = V[I[2]] + offset;
-			Vector3 d = V[I[3]] + offset;
-			
 
 
-			Vector2 uvOffset = new Vector2(
+
+			Vector3 uvOffset = new Vector3(
 				textureAtlasOffset.X / TextureAtlasSize.X,
-				textureAtlasOffset.Y / TextureAtlasSize.Y
+				textureAtlasOffset.Y / TextureAtlasSize.Y, 0
 			);
 
 			// the f means float, there is another type called double it defaults to that has better accuracy at the cost of being larger to store, but vector3 does not use it.
-			Vector2 uvB = new Vector2(uvOffset.X, Sizey + uvOffset.Y);
-			Vector2 uvC = new Vector2(Sizex, Sizey) + uvOffset;
-			Vector2 uvD = new Vector2(Sizex + uvOffset.X, uvOffset.Y);
+			Vector3 uvB = new Vector3(uvOffset.X, Sizey + uvOffset.Y, 0);
+			Vector3 uvC = new Vector3(Sizex, Sizey, 0) + uvOffset;
+			Vector3 uvD = new Vector3(Sizex + uvOffset.X, uvOffset.Y, 0);
 
 
-			const bool useindices = false;
+			const bool useindices = false;//true;
 
 			if (useindices)
 			{
-				blocks.AddRange(new[] {a, b, c, d});
+				blocks.AddRange(new[] {V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset,  V[I[0]] + offset, V[I[2]] + offset, V[I[3]] + offset});
 				indices.AddRange(new[] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3});
 				currentindex += 4;
 
 				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvD});	
 			}
-			else
-			{
-				blocks.AddRange(new[] {a, b, c, a, c, d});
 
-				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvOffset, uvC, uvD});
-			}
+			blocks.AddRange(new[]{V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset,  V[I[0]] + offset, V[I[2]] + offset, V[I[3]] + offset});
+				
+			uVs.AddRange(new[] {uvOffset, uvB, uvC, uvOffset, uvC, uvD});
 
 			//blocksNormals.AddRange(NormalGenerate(a, b, c, d));
 		}
@@ -324,10 +284,10 @@ namespace MCClone_Core.World_CS.Generation
 		protected override void OnFree()
 		{
 			base.OnFree();
-			_chunkreference?.GetBackingMeshData()?.QueueDeletion();
 		}
 		
-		byte VertexAo(byte side1, byte side2, byte corner) {
+
+		byte vertexAO(byte side1, byte side2, byte corner) {
 			if(side1 == side2)
 			{
 				return 0;

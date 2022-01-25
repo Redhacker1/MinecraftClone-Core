@@ -4,7 +4,7 @@ using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering;
-using Engine.Rendering.Shared.Culling;
+using Engine.Rendering.Culling;
 using Silk.NET.Input;
 
 

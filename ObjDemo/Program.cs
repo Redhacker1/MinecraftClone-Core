@@ -8,7 +8,7 @@ using Engine.Input;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
-using Engine.Rendering.Shared.Culling;
+using Engine.Rendering.Culling;
 using Silk.NET.Input;
 
 namespace ObjDemo

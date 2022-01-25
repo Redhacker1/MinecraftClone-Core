@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Numerics;
 using Engine.Renderable;
-using Engine.Rendering.Shared.Culling;
+using Engine.Rendering.Culling;
+using Engine.Rendering.Culling;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
@@ -61,7 +62,7 @@ namespace Engine.Rendering
             foreach (Mesh mesh in sceneData)
             {
 
-                if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
+                if (IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
                 {
                     if(mesh.BindResources(List))
                     {

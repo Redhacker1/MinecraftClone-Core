@@ -2,7 +2,8 @@
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Rendering.Shared.Culling;
+using Engine.Rendering.Culling;
+using Engine.Rendering.Culling;
 
 namespace Engine.Rendering
 {

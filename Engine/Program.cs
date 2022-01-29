@@ -13,7 +13,7 @@ namespace Engine
         }
     }
 
-    class GameTest : Game
+    internal class GameTest : Game
     {
         public override void Gamestart()
         {

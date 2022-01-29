@@ -27,7 +27,7 @@ namespace MCClone_Core.World_CS.Generation
 		static readonly float Sizey = 1.0f / TextureAtlasSize.Y;
 		
 		public static readonly Vector3 Dimension = new Vector3(16, 384, 16);
-		private Mesh ChunkMesh;
+		Mesh ChunkMesh;
 
 
 		static readonly Vector3[] V =
@@ -110,6 +110,7 @@ namespace MCClone_Core.World_CS.Generation
 			MeshData meshData = new MeshData()
 			{
 				_uvs = uVs.ToArray(),
+				_indices = chunkIndices.ToArray(),
 				_vertices = blocks.ToArray()
 			};
 			ChunkMesh.SetMeshData(meshData);
@@ -216,20 +217,23 @@ namespace MCClone_Core.World_CS.Generation
 			Vector3 uvD = new Vector3(Sizex + uvOffset.X, uvOffset.Y, 0);
 
 
-			const bool useindices = false;//true;
+			const bool useindices = true;
 
 			if (useindices)
 			{
-				blocks.AddRange(new[] {V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset,  V[I[0]] + offset, V[I[2]] + offset, V[I[3]] + offset});
+				blocks.AddRange(new[] {V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset, V[I[3]] + offset});
 				indices.AddRange(new[] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3});
 				currentindex += 4;
 
 				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvD});	
 			}
-
-			blocks.AddRange(new[]{V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset,  V[I[0]] + offset, V[I[2]] + offset, V[I[3]] + offset});
+			else
+			{
+				blocks.AddRange(new[]{V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset,  V[I[0]] + offset, V[I[2]] + offset, V[I[3]] + offset});
 				
-			uVs.AddRange(new[] {uvOffset, uvB, uvC, uvOffset, uvC, uvD});
+				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvOffset, uvC, uvD});	
+			}
+			
 
 			//blocksNormals.AddRange(NormalGenerate(a, b, c, d));
 		}
@@ -284,6 +288,7 @@ namespace MCClone_Core.World_CS.Generation
 		protected override void OnFree()
 		{
 			base.OnFree();
+			ChunkMesh.Dispose();
 		}
 		
 

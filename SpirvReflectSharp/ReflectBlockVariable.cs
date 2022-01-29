@@ -39,7 +39,7 @@
 			return blockVars;
 		}
 
-		private static unsafe ReflectBlockVariable[] ToManagedArray(SpirvReflectNative.SpvReflectBlockVariable* push_consts, uint var_count)
+		static unsafe ReflectBlockVariable[] ToManagedArray(SpirvReflectNative.SpvReflectBlockVariable* push_consts, uint var_count)
 		{
 			ReflectBlockVariable[] blockVars = new ReflectBlockVariable[var_count];
 

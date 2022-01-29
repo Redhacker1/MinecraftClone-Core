@@ -117,7 +117,7 @@ namespace MCClone_Core.Player_CS
 			double px = Pos.X - cx * ChunkCs.Dimension.X;
 			double py = Pos.Y;
 			double pz = Pos.Z - cz * ChunkCs.Dimension.Z;
-			Vector3 forward = -Vector3.UnitZ;
+			Vector3 forward = Vector3.UnitZ;
 			
 			
 
@@ -241,7 +241,7 @@ namespace MCClone_Core.Player_CS
 
 				if (Camera.MainCamera != null)
 				{
-					Camera.MainCamera.Yaw -= xOffset;
+					Camera.MainCamera.Yaw += xOffset;
 					Camera.MainCamera.Pitch -= yOffset;
                     
 					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds

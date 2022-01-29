@@ -12,15 +12,15 @@ namespace Engine.Rendering
         where TDataType : unmanaged
     {
         
-        public unsafe VertexBuffer(GraphicsDevice gDevice, Span<TDataType> data)
+        public unsafe VertexBuffer(GraphicsDevice gDevice, TDataType[] data)
         {
             bufferObject = gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  data.Length),
                 BufferUsage.VertexBuffer));
             ModifyBuffer(data, gDevice);
             
         }
-        
-        private DeviceBuffer bufferObject;
+
+        DeviceBuffer bufferObject;
         public uint Length
         {
             get
@@ -43,7 +43,7 @@ namespace Engine.Rendering
             bufferObject.Dispose();
         }
         
-        public void ModifyBuffer(Span<TDataType> data, GraphicsDevice device)
+        public void ModifyBuffer(TDataType[] data, GraphicsDevice device)
         {
             if (data.Length > Length)
             {
@@ -55,7 +55,7 @@ namespace Engine.Rendering
                     bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
                 }
             }
-            device.UpdateBuffer(bufferObject, 0, data.ToArray());
+            device.UpdateBuffer(bufferObject, 0, data);
         }
         
         

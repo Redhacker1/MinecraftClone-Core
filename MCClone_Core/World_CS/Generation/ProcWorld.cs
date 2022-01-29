@@ -54,7 +54,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		Thread _terrainThread;
 		public Material _material;
-		private static Texture atlas = null;
+		static Texture atlas = null;
 
 		public ProcWorld(long seed)
 		{
@@ -394,8 +394,7 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			List<Vector2> keyList = new List<Vector2>(LoadedChunks.Keys);
 			foreach (Vector2 location in keyList)
-				if (Math.Abs(location.X - currentChunkPos.X) > _loadRadius ||
-				    Math.Abs(location.Y - currentChunkPos.Y) > _loadRadius)
+				if (Math.Abs(location.X - currentChunkPos.X) > _loadRadius || Math.Abs(location.Y - currentChunkPos.Y) > _loadRadius)
 					_unloadChunk((int) location.X, (int) location.Y);
 		}
 

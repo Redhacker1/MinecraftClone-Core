@@ -20,7 +20,7 @@ namespace Engine.Physics.TestDataBackuo
   }
   public class Aabb
   {
-    private const double epsilon = 0.01;
+    const double epsilon = 0.01;
     public MathLib.DoublePrecision_Numerics.Vector3 MinLoc;
     public MathLib.DoublePrecision_Numerics.Vector3 MaxLoc;
 

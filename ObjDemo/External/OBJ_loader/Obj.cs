@@ -89,7 +89,7 @@ namespace ObjParser
 			}
 		}
 
-	    private void WriteHeader(StreamWriter writer, string[] headerStrings)
+		void WriteHeader(StreamWriter writer, string[] headerStrings)
 	    {
 	        if (headerStrings == null || headerStrings.Length == 0)
 	        {
@@ -106,7 +106,7 @@ namespace ObjParser
 	    /// <summary>
 		/// Sets our global object size with an extent object
 		/// </summary>
-		private void UpdateSize()
+	    void UpdateSize()
 		{
             // If there are no vertices then size should be 0.
 	        if (VertexList.Count == 0)
@@ -140,7 +140,7 @@ namespace ObjParser
 		/// Parses and loads a line from an OBJ file.
 		/// Currently only supports V, VT, F and MTLLIB prefixes
 		/// </summary>		
-		private void ProcessLine(string line)
+		void ProcessLine(string line)
 		{
 			string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 

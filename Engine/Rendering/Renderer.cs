@@ -9,7 +9,7 @@ using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
 
 
-struct ViewProj
+internal struct ViewProj
 {
     public Matrix4x4 view;
     public Matrix4x4 Projection;
@@ -27,12 +27,12 @@ namespace Engine.Rendering
         public DeviceBuffer ViewBuffer;
 
         public DeviceBuffer WorldBuffer;
-        private ViewProj WorldDataBuffer;
+        ViewProj WorldDataBuffer;
         internal Renderer(IView viewport)
         {
             unsafe
             {
-                Device = viewport.CreateGraphicsDevice(GraphicsBackend.Vulkan);
+                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false,null,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
                 List = Device.ResourceFactory.CreateCommandList();
                 ProjectionBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
                 ViewBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
@@ -41,7 +41,7 @@ namespace Engine.Rendering
         }
 
         public GraphicsDevice Device;
-        private CommandList List; 
+        CommandList List; 
         internal void OnRender(double time)
         {
             if (Camera.MainCamera != null)
@@ -64,10 +64,18 @@ namespace Engine.Rendering
 
                 if (IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
                 {
-                    if(mesh.BindResources(List))
+                    if(mesh?.BindResources(List) == true)
                     {
                         List.UpdateBuffer(WorldBuffer, 0, mesh.ViewMatrix);
-                        List.Draw(mesh.VertexElements);
+
+                        if (mesh.UseIndexedDrawing)
+                        {
+                            List.DrawIndexed(mesh.VertexElements);
+                        }
+                        else
+                        {
+                            List.Draw(mesh.VertexElements);   
+                        }
                     }
                     else
                     {

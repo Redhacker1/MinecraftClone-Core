@@ -63,7 +63,7 @@ namespace ObjParser
             }
         }
 
-        private void WriteHeader(StreamWriter writer, string[] headerStrings)
+        void WriteHeader(StreamWriter writer, string[] headerStrings)
         {
             if (headerStrings == null || headerStrings.Length == 0)
             {
@@ -77,7 +77,7 @@ namespace ObjParser
             }
         }
 
-        private Material CurrentMaterial()
+        Material CurrentMaterial()
         {
             if (MaterialList.Count > 0) return MaterialList.Last();
             return new Material();
@@ -87,7 +87,7 @@ namespace ObjParser
         /// Parses and loads a line from an OBJ file.
         /// Currently only supports V, VT, F and MTLLIB prefixes
         /// </summary>		
-        private void ProcessLine(string line)
+        void ProcessLine(string line)
         {
             string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 

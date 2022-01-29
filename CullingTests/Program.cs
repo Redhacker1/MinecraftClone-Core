@@ -9,7 +9,7 @@ using Engine.Rendering.Culling;
 
 namespace CullingTests
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -17,7 +17,7 @@ namespace CullingTests
         }
     }
 
-    class GameTestCulling : Game
+    internal class GameTestCulling : Game
     {
         public override void Gamestart()
         {
@@ -28,7 +28,7 @@ namespace CullingTests
         }
     }
 
-    class FrustrumTest : Entity
+    internal class FrustrumTest : Entity
     {
         public struct Plane
         {

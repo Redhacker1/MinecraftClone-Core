@@ -13,7 +13,7 @@ using Silk.NET.Input;
 
 namespace ObjDemo
 {
-    class ObjDemo : Game
+    internal class ObjDemo : Game
     {
         public override void Gamestart()
         {
@@ -29,7 +29,7 @@ namespace ObjDemo
         }
     }
 
-    class Entrypoint
+    internal class Entrypoint
     {
         static void Main()
         {
@@ -37,7 +37,7 @@ namespace ObjDemo
         }
     }
 
-    class MeshSpawner : GameObject
+    internal class MeshSpawner : GameObject
     {
         Mesh[] _meshes;
 
@@ -57,7 +57,8 @@ namespace ObjDemo
             }
         }
     }
-    class FpsEntity : Entity
+
+    internal class FpsEntity : Entity
     {
         Stopwatch _fpstimer = Stopwatch.StartNew();
         int _frames;

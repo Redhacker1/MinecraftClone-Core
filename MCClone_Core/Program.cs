@@ -15,7 +15,7 @@ using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core
 {
-    class Program
+    internal class Program
     {
         static WindowClass window;
 
@@ -73,10 +73,9 @@ namespace MCClone_Core
         
         
     }
-    
-    
-    
-    class FPSEntity : Entity
+
+
+    internal class FPSEntity : Entity
     {
         uint frames;
         uint PreviousFPS = 0;

@@ -12,16 +12,18 @@ namespace Engine.Renderable
 {
     public class Mesh : IDisposable
     {
+        //UniformBuffer<float> UVs;
         IndexBuffer<uint> ebo;
         VertexBuffer<float> vbo;
+        internal bool UseIndexedDrawing;
         Material MeshMaterial;
 
-        internal uint VertexElements;
+        internal uint VertexElements => (uint) (_indices?.Length ?? _vertices.Length);
         public static List<Mesh> Meshes = new();
-        
-        private Vector3[] _vertices;
-        private Vector3[] _uvs;
-        private uint[] _indices;
+
+        Vector3[] _vertices;
+        Vector3[] _uvs;
+        uint[] _indices;
 
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
@@ -50,17 +52,17 @@ namespace Engine.Renderable
         {
             Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            List<float> values = new List<float>((_vertices.Length * 3) + (_uvs.Length * 3));
-            for (int i = 0; i < _vertices?.Length; i++)
+            float[] values = new float[(_vertices.Length * 3) * 2];
+            for (int i = 0; i < _vertices.Length; i+=6)
             {
-                values.Add(_vertices[i].X);
-                values.Add(_vertices[i].Y);
-                values.Add(_vertices[i].Z);
-                //values.Add(0);
-                values.Add(_uvs[i].X);
-                values.Add(_uvs[i].Y);
-                values.Add(_uvs[i].Z);
-                //values.Add(0);
+                values[i] = (_vertices[i].X);
+                values[i + 1] = _vertices[i].Y;
+                values[i + 2] =(_vertices[i].Z);
+                //values[i + 3] = 0;
+                values[i + 3] =(_uvs[i].X);
+                values[i + 4] =(_uvs[i].Y);
+                values[i + 5] =(_uvs[i].Z);
+                //values[i + 6] = 0;
 
                 tempmin = Vector3.Min(_vertices[i], tempmin);
                 tempmax = Vector3.Max(_vertices[i], tempmax);
@@ -68,10 +70,10 @@ namespace Engine.Renderable
 
             Maxpoint = tempmax;
             Minpoint = tempmin;
-            return values.ToArray();
+            return values;
         }
 
-        [Obsolete]
+        [Obsolete("Use Generate mesh instead")]
         public void QueueVaoRegen()
         {
             GenerateMesh();
@@ -83,19 +85,15 @@ namespace Engine.Renderable
         {
             _vertices =meshData._vertices;
             _uvs = meshData._uvs;
+            _indices = meshData._indices;
+            UseIndexedDrawing = (meshData._indices != null);
 
-            if (meshData._indices == null)
-            {
-                VertexElements = (uint)_vertices.Length;   
-            }
-            else
-            {
-                VertexElements = (uint) _indices.Length;
-            }
-            
 
         }
 
+        /// <summary>
+        /// Updates the Vertex Array, this allows for the mesh to be updated.
+        /// </summary>
         public void GenerateMesh()
         {
 

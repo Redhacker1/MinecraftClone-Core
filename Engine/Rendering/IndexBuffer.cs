@@ -21,8 +21,8 @@ namespace Engine.Rendering
                 ModifyBuffer(data, gDevice);
             }
         }
-        
-        private DeviceBuffer bufferObject;
+
+        DeviceBuffer bufferObject;
         public uint Length
         {
             get

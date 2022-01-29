@@ -80,15 +80,15 @@ namespace Engine.Physics
         {
             return getNegativeSign(number) | 1;
         }
-        
-        private static double Intbound(double s, double ds)
+
+        static double Intbound(double s, double ds)
         {
             if (ds < 0 && Math.Abs(Math.Round(s) - s) < 0.001) return 0;
             s = Mod(s, 1);
             return (ds > 0 ? Math.Ceiling(s) - s : s - Math.Floor(s)) / Math.Abs(ds);
         }
-        
-        private static double Mod(double value, double modulus)
+
+        static double Mod(double value, double modulus)
         {
             return (value % modulus + modulus) % modulus;
         }

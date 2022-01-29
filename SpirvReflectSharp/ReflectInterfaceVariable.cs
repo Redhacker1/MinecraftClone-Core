@@ -39,7 +39,7 @@
 			return intf_vars;
 		}
 
-		private static unsafe ReflectInterfaceVariable[] ToManagedArray(SpirvReflectNative.SpvReflectInterfaceVariable* input_vars, uint var_count)
+		static unsafe ReflectInterfaceVariable[] ToManagedArray(SpirvReflectNative.SpvReflectInterfaceVariable* input_vars, uint var_count)
 		{
 			ReflectInterfaceVariable[] intf_vars = new ReflectInterfaceVariable[var_count];
 

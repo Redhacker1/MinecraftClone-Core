@@ -13,14 +13,14 @@ namespace Engine.Rendering
         public static Camera MainCamera;
         public Vector3 Front { get; set; }
 
-        public Vector3 Right => Vector3.Normalize(-Vector3.Cross(Up, Front));
+        public Vector3 Right => Vector3.Normalize(Vector3.Cross(Up, Front));
         public Vector3 Up { get; private set; }
         public float AspectRatio { get; set; }
 
-        public float Yaw { get; set; } = -90f;
+        public float Yaw { get; set; } = 0;
         public float Pitch { get; set; }
 
-        private float _zoom = 45f;
+        float _zoom = 45f;
 
         public float NearPlane = .1f;
         public float FarPlane = 1000;
@@ -39,8 +39,8 @@ namespace Engine.Rendering
                 MainCamera = this;
             }
         }
-        
-        private Vector3 GetLookDir()
+
+        Vector3 GetLookDir()
         {
             Quaternion lookRotation = Quaternion.CreateFromYawPitchRoll(Yaw, Pitch, 0f);
             Vector3 lookDir = Vector3.Transform(-Vector3.UnitZ, lookRotation);
@@ -55,7 +55,7 @@ namespace Engine.Rendering
 
         public Matrix4x4 GetViewMatrix()
         {
-            return Matrix4x4.CreateLookAt(Vector3.Zero, Front, -Vector3.UnitY);
+            return Matrix4x4.CreateLookAt(Vector3.Zero, Front, Vector3.UnitY);
         }
 
         public Matrix4x4 GetProjectionMatrix()

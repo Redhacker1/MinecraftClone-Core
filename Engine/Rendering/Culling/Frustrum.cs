@@ -127,7 +127,7 @@ namespace Engine.Rendering.Culling
         public static bool MeshInFrustrum(Mesh mesh, ref Frustrum? frustum)
         {
 
-            if (frustum.HasValue)
+            if (frustum.HasValue && mesh != null)
             {
                 AABB meshAabb = new(mesh.Minpoint - (Vector3)(frustum.Value.camerapos) , mesh.Maxpoint - (Vector3)(frustum.Value.camerapos));
 

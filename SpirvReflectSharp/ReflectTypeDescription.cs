@@ -27,7 +27,7 @@
 			return desc;
 		}
 
-		private static unsafe ReflectTypeDescription[] ToManagedArray(SpirvReflectNative.SpvReflectTypeDescription* type_description, uint member_count)
+		static unsafe ReflectTypeDescription[] ToManagedArray(SpirvReflectNative.SpvReflectTypeDescription* type_description, uint member_count)
 		{
 			ReflectTypeDescription[] intf_vars = new ReflectTypeDescription[member_count];
 
@@ -45,7 +45,7 @@
 			return intf_vars;
 		}
 
-		private static unsafe void PopulateReflectTypeDescription(
+		static unsafe void PopulateReflectTypeDescription(
 			ref SpirvReflectNative.SpvReflectTypeDescription type_description,
 			ref ReflectTypeDescription desc)
 		{

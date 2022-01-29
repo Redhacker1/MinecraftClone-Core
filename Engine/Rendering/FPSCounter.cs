@@ -2,7 +2,7 @@
 
 namespace Engine.Rendering
 {
-    struct  Statistics
+    internal struct  Statistics
     {
         ulong TotalFrameCount;
         ulong FrameCount;

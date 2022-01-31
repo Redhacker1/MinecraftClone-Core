@@ -19,6 +19,7 @@ namespace ObjDemo
 	public class Player: CharacterEntity
 	{
 		
+
 		DemoController _controller;
 		
 

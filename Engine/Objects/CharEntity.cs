@@ -85,6 +85,7 @@ namespace Engine.Objects
         
         public CharacterEntity()
         {
+            PhysicsTick = true;
             
             double w = AabbWidth / 2.0;
             double h = AabbHeight / 2.0;

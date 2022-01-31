@@ -10,7 +10,8 @@ namespace Engine.Objects
     {
         public static List<GameObject> Objects = new List<GameObject>();
         internal bool Started = false;
-
+        public bool PhysicsTick = false;
+        
         public GameObject()
         {
             Objects.Add((this)); 

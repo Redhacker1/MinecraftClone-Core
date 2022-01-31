@@ -113,7 +113,7 @@ namespace Engine.Rendering
             {
                 shader = device.ResourceFactory.CreateShader(shaderDescription);
             }
-            catch (VeldridException e)
+            catch (VeldridException)
             {
                 Console.WriteLine(GetString(result));
                 throw;

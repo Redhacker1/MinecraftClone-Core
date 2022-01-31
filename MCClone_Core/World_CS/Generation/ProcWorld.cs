@@ -34,7 +34,7 @@ namespace MCClone_Core.World_CS.Generation
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
 		
 		// Max chunks radius comes out to (_loadRadius*2)^2 
-		readonly int _loadRadius = 40;
+		readonly int _loadRadius = 60;
 
 		public static Random WorldRandom;
 		public static long WorldSeed;
@@ -113,7 +113,7 @@ namespace MCClone_Core.World_CS.Generation
 
 				);
 			_material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
-			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.Aniso4xSampler, atlas._texture));	
+			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.PointSampler, atlas._texture));	
 			
 			
 			ConsoleLibrary.DebugPrint("Starting procworld");

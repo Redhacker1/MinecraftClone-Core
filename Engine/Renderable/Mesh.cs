@@ -15,9 +15,11 @@ namespace Engine.Renderable
         //UniformBuffer<float> UVs;
         IndexBuffer<uint> ebo;
         VertexBuffer<float> vbo;
+        
+        internal static object scenelock = new object();
         internal bool UseIndexedDrawing;
         Material MeshMaterial;
-
+        internal bool UpdatingMesh = true;
         internal uint VertexElements => (uint) (_indices?.Length ?? _vertices.Length);
         public static List<Mesh> Meshes = new();
 
@@ -44,7 +46,9 @@ namespace Engine.Renderable
         {
             MeshMaterial = material;
             _objectReference = bindingobject;
-            Meshes.Add(this);
+            
+                Meshes.Add(this);   
+            
         }
 
 
@@ -96,11 +100,13 @@ namespace Engine.Renderable
         /// </summary>
         public void GenerateMesh()
         {
-
+            
             float[] vertices = CreateVertexArray();
 
+            UpdatingMesh = true;
             ebo = new IndexBuffer<uint>(WindowClass._renderer.Device, _indices);
             vbo = new VertexBuffer<float>(WindowClass._renderer.Device, vertices);
+            UpdatingMesh = false;
         }
 
 

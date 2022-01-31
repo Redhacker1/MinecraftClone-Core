@@ -1,8 +1,14 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
+using System.Threading.Tasks;
+using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Culling;
 using Engine.Rendering.Culling;
+using ImGuiNET;
+using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
@@ -23,75 +29,105 @@ namespace Engine.Rendering
     /// </summary>
     public class Renderer
     {
+        object thing = new object();
         public DeviceBuffer ProjectionBuffer;
         public DeviceBuffer ViewBuffer;
 
         public DeviceBuffer WorldBuffer;
-        ViewProj WorldDataBuffer;
+        ImGuiRenderer _imGuiHandler;
+        ViewProj _worldDataBuffer;
         internal Renderer(IView viewport)
         {
             unsafe
             {
-                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false,null,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
-                List = Device.ResourceFactory.CreateCommandList();
+                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
+                _list = Device.ResourceFactory.CreateCommandList();
                 ProjectionBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
                 ViewBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
                 WorldBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
+                _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport,
+                    InputHandler.Context);
             }
         }
 
         public GraphicsDevice Device;
-        CommandList List; 
+        readonly CommandList _list; 
+        Stopwatch _stopwatch = new Stopwatch();
         internal void OnRender(double time)
         {
+            _stopwatch.Restart();
+            //_stopwatch.Start();
             if (Camera.MainCamera != null)
             {
                 Device.UpdateBuffer(ProjectionBuffer, 0 , Camera.MainCamera.GetProjectionMatrix());
                 Device.UpdateBuffer(ViewBuffer, 0 , Camera.MainCamera.GetViewMatrix());
             }
             Frustrum? frustum =  Camera.MainCamera?.GetViewFrustum();
-            List.Begin();
+            _list.Begin();
             //Console.WriteLine("New frame");
             //Console.WriteLine("Frame Begin!");
-            List.SetFramebuffer(Device.SwapchainFramebuffer);
-            List.ClearColorTarget(0, RgbaFloat.White);
-            //List.ClearDepthStencil(1f);
+            _list.SetFramebuffer(Device.SwapchainFramebuffer);
+            _list.ClearColorTarget(0, RgbaFloat.Black);
+            _list.ClearDepthStencil(1f);
+            
+            
+            List<Mesh> meshes = new List<Mesh>(Mesh.Meshes.Count);
+            Parallel.ForEach(Mesh.Meshes, (mesh) =>
+            {
+                if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
+                {
+                    lock (thing)
+                    {
+                        meshes.Add(mesh);
+                    }
+                }
+            });   
 
-            Mesh[] sceneData = Mesh.Meshes.ToArray();
-            //Console.WriteLine(sceneData.Length);
-            foreach (Mesh mesh in sceneData)
+            foreach (Mesh mesh in meshes)
             {
 
-                if (IntersectionHandler.MeshInFrustrum(mesh, ref frustum))
+                if(!mesh.UpdatingMesh && mesh?.BindResources(_list) == true)
                 {
-                    if(mesh?.BindResources(List) == true)
-                    {
-                        List.UpdateBuffer(WorldBuffer, 0, mesh.ViewMatrix);
+                    _list.UpdateBuffer(WorldBuffer, 0, mesh.ViewMatrix);
 
-                        if (mesh.UseIndexedDrawing)
-                        {
-                            List.DrawIndexed(mesh.VertexElements);
-                        }
-                        else
-                        {
-                            List.Draw(mesh.VertexElements);   
-                        }
+                    if (mesh.UseIndexedDrawing)
+                    {
+                        _list.DrawIndexed(mesh.VertexElements);
                     }
                     else
                     {
-                        Console.WriteLine("Mesh failed to bind!");
+                        _list.Draw(mesh.VertexElements);   
                     }
-                    /*if (IntersectionHandler.MeshInFrustrum(mesh, ref frustum) && mesh?.ActiveState == MeshState.Render)
-                    {
-                    }*/                   
                 }
- 
+
             }
 
-            List.End();
-            Device.SubmitCommands(List);
+            //Console.WriteLine($"Drawing {ImGUIPanel.panels.Count} UI Elements!");
+            _imGuiHandler.Update((float) time);
+            foreach (ImGUIPanel uiPanel in ImGUIPanel.panels)
+            {
+
+                if (uiPanel.Draggable == false)
+                {
+                    ImGui.SetNextWindowPos(uiPanel.Position, ImGuiCond.Once);   
+                }
+                ImGui.Begin(uiPanel.PanelName, uiPanel.Flags);
+                uiPanel.CreateUI();
+                uiPanel.Position = ImGui.GetWindowPos();
+                ImGui.End();
+            }
+            _imGuiHandler.Render(Device, _list);
+            
+            
+            _list.End();
+            Device.SubmitCommands(_list);
             Device.SwapBuffers();
-            Device.WaitForIdle();
+            
+            
+            //Console.WriteLine(_stopwatch.ElapsedMilliseconds);
+
+            
+            //Device.WaitForIdle();
             
         }
         

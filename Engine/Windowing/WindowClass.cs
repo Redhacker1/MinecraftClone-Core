@@ -76,19 +76,12 @@ namespace Engine.Windowing
 
         void OnLoad()
         {
-            
-            
+            IInputContext context = Handle.CreateInput();
+            InputHandler.InitInputHandler(context);
+
             _renderer = new Renderer(Handle);
             Handle.FramebufferResize += _renderer.OnResize;
             Handle.Render += _renderer.OnRender;
-            
-            //Shader = new Shader(@"Assets\vert.spv", _renderer.Device, ShaderStages.Vertex);
-
-            //Texture = new Texture(_renderer.Device, @"Assets\TextureAtlas.tga");
-
-            IInputContext context = Handle.CreateInput();
-            InputHandler.InitInputHandler(context);
-            
             
             gameinstance.Gamestart();
             
@@ -123,7 +116,7 @@ namespace Engine.Windowing
                     }
                     
                     gameObject._Process(delta);
-                    if (physicsProcess)
+                    if (physicsProcess && gameObject.PhysicsTick)
                     {
                         gameObject._PhysicsProcess(physicsDelta);
                     }

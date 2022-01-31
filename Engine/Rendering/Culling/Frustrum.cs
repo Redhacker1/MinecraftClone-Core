@@ -101,53 +101,39 @@ namespace Engine.Rendering.Culling
 
     public static class IntersectionHandler
     {
-        static int SphereToPlane(ref Plane plane, ref Sphere sphere)
+        private static int SphereToPlane(ref Plane plane, ref Sphere sphere)
         {
-            float distance = Vector3.Dot(sphere.Position, plane.Normal) - plane.Offset;
-            if (distance > sphere.Radius)
-            {
+            float num = Vector3.Dot(sphere.Position, plane.Normal) - plane.Offset;
+            if ((double) num > (double) sphere.Radius)
                 return 1;
-            }
-            if (distance < -sphere.Radius)
-            {
-                return -1;
-            }
-            return 0;
+            return (double) num < -(double) sphere.Radius ? -1 : 0;
         }
-
 
         public static int AABBToPlane(ref Plane plane, ref AABB aabb)
-        {   
-            Vector3 absnormal = Vector3.Abs(new Vector3(plane.Normal.X, plane.Normal.Y, plane.Normal.Z));
-            Sphere sphere = new(Vector3.Dot(absnormal, aabb.extents), aabb.center);
-            return SphereToPlane(ref plane, ref sphere );
-        }
-        
-
-        public static bool MeshInFrustrum(Mesh mesh, ref Frustrum? frustum)
         {
+            Sphere sphere = new Sphere(Vector3.Dot(Vector3.Abs(new Vector3(plane.Normal.X, plane.Normal.Y, plane.Normal.Z)), aabb.extents), aabb.center);
+            return IntersectionHandler.SphereToPlane(ref plane, ref sphere);
+        }
 
+        public static bool MeshInFrustrum(Mesh mesh, Frustrum? frustum)
+        {
             if (frustum.HasValue && mesh != null)
             {
-                AABB meshAabb = new(mesh.Minpoint - (Vector3)(frustum.Value.camerapos) , mesh.Maxpoint - (Vector3)(frustum.Value.camerapos));
-
-                var Frustum = frustum.Value;
-                return aabb_to_frustum(ref meshAabb, ref Frustum);   
+                AABB aabb = new AABB((Vector3) (mesh.Position - frustum.Value.camerapos) + mesh.Minpoint, (Vector3) (mesh.Position - frustum.Value.camerapos) + mesh.Maxpoint);
+                return IntersectionHandler.aabb_to_frustum(ref aabb, frustum.Value);   
             }
             else
             {
-                return true;
+                return false;
             }
         }
-        
-        static bool aabb_to_frustum(ref AABB aabb, ref Frustrum frustum)
+
+        private static bool aabb_to_frustum(ref AABB aabb, Frustrum frustum)
         {
-            for (int i = 0; i < frustum.Planes.Length; ++i)
+            for (int index = 0; index < frustum.Planes.Length; ++index)
             {
-                if (AABBToPlane( ref frustum.Planes[i],ref aabb ) == 1)
-                {
+                if (IntersectionHandler.AABBToPlane(ref frustum.Planes[index], ref aabb) == 1)
                     return false;
-                }
             }
             return true;
         }

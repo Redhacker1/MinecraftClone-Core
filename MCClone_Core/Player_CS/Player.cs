@@ -58,6 +58,8 @@ namespace MCClone_Core.Player_CS
 
 		public override void _Ready()
 		{
+			PhysicsTick = true;
+			
 			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8, Pos.Z), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core

@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CullingTests", "CullingTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpirvReflectSharp", "SpirvReflectSharp\SpirvReflectSharp.csproj", "{DC6870A0-19FD-4009-B456-2322AB96CB39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VeldridCubeTest", "VeldridCubeTest\VeldridCubeTest.csproj", "{0C1FC263-995F-48E9-9369-6B95A82A5C0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{DC6870A0-19FD-4009-B456-2322AB96CB39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC6870A0-19FD-4009-B456-2322AB96CB39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC6870A0-19FD-4009-B456-2322AB96CB39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C1FC263-995F-48E9-9369-6B95A82A5C0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C1FC263-995F-48E9-9369-6B95A82A5C0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C1FC263-995F-48E9-9369-6B95A82A5C0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C1FC263-995F-48E9-9369-6B95A82A5C0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

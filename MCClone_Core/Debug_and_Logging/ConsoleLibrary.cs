@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 #if !Core
 using Godot;
 #endif
@@ -52,7 +51,7 @@ namespace MCClone_Core.Debug_and_Logging
         static string _consoleData = string.Empty;
         
         // Function called when wanting to print out text data to a console.
-        static Action<object> _printDelegate;
+        static Action<string> _printDelegate;
 
 
 
@@ -61,7 +60,7 @@ namespace MCClone_Core.Debug_and_Logging
             GVars.Add(Name ,Var);
         }
 
-        public static void InitConsole(Action<object> WriteOutputDelegate)
+        public static void InitConsole(Action<string> WriteOutputDelegate)
         {
 
 
@@ -78,7 +77,7 @@ namespace MCClone_Core.Debug_and_Logging
         /// <param name="Text"></param>
         public  static void SendCommand(string Text)
         {
-            process_command(Text,true);
+            process_command(Text);
         }
 
         static IEnumerable<string> SplitCommands(string ConsoleText)
@@ -145,7 +144,7 @@ namespace MCClone_Core.Debug_and_Logging
         /// <param name="Text">This is the raw unparsed command</param>
         /// <param name="InvokedOnMain">Use when invoking on main thread so it will check main thread command queue (only useful for last two experimental modes)</param>
         /// <param name="DecideThreadingMode">Usually not necissary, really only used internally</param>
-        public static void process_command(string Text,bool InvokedOnMain, bool DecideThreadingMode = false)
+        public static void process_command(string Text)
         {
             //Sanity check
             if(string.IsNullOrEmpty(Text))
@@ -193,25 +192,11 @@ namespace MCClone_Core.Debug_and_Logging
 
         public static void DebugPrint(object Text)
         {
-        #if Core
             lock (Printlock)
             {
-                Console.WriteLine(Text);
-            } 
-        #else
-            if (!Engine.EditorHint)
-            {
-                lock (Printlock)
-                {
-                    _scrollback.Append(Text.ToString()  + '\n');
-                    _printDelegate(_scrollback.ToString());    
-                }   
-            }
-            else
-            {
-                GD.Print(Text);
-            }
-        #endif
+                _scrollback.Append(Text.ToString()  + '\n');
+                _printDelegate(_scrollback.ToString());    
+            }  
         }
 
         static bool Is_Separator(string Input)

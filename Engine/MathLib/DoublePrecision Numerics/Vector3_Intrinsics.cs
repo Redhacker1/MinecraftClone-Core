@@ -171,7 +171,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector3 SquareRoot(Vector3 value)
         {
-            return new Vector3((Double)Math.Sqrt(value.X), (Double)Math.Sqrt(value.Y), (Double)Math.Sqrt(value.Z));
+            return new Vector3(Math.Sqrt(value.X), Math.Sqrt(value.Y), Math.Sqrt(value.Z));
         }
         #endregion Public Static Methods
 

@@ -33,7 +33,7 @@ namespace ObjParser
         /// <param name="file"></param>
 	    public void LoadMtl(Stream data)
         {
-            using (var reader = new StreamReader(data))
+            using (StreamReader reader = new StreamReader(data))
             {
                 LoadMtl(reader.ReadToEnd().Split(Environment.NewLine.ToCharArray()));
             }
@@ -45,7 +45,7 @@ namespace ObjParser
         /// <param name="data"></param>
 	    public void LoadMtl(IEnumerable<string> data)
         {
-            foreach (var line in data)
+            foreach (string line in data)
             {
                 ProcessLine(line);
             }
@@ -53,8 +53,8 @@ namespace ObjParser
 
         public void WriteMtlFile(string path, string[] headerStrings)
         {
-            using (var outStream = File.OpenWrite(path))
-            using (var writer = new StreamWriter(outStream))
+            using (FileStream outStream = File.OpenWrite(path))
+            using (StreamWriter writer = new StreamWriter(outStream))
             {
                 // Write some header data
                 WriteHeader(writer, headerStrings);
@@ -63,7 +63,7 @@ namespace ObjParser
             }
         }
 
-        private void WriteHeader(StreamWriter writer, string[] headerStrings)
+        void WriteHeader(StreamWriter writer, string[] headerStrings)
         {
             if (headerStrings == null || headerStrings.Length == 0)
             {
@@ -71,13 +71,13 @@ namespace ObjParser
                 return;
             }
 
-            foreach (var line in headerStrings)
+            foreach (string line in headerStrings)
             {
                 writer.WriteLine("# " + line);
             }
         }
 
-        private Material CurrentMaterial()
+        Material CurrentMaterial()
         {
             if (MaterialList.Count > 0) return MaterialList.Last();
             return new Material();
@@ -87,7 +87,7 @@ namespace ObjParser
         /// Parses and loads a line from an OBJ file.
         /// Currently only supports V, VT, F and MTLLIB prefixes
         /// </summary>		
-        private void ProcessLine(string line)
+        void ProcessLine(string line)
         {
             string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 

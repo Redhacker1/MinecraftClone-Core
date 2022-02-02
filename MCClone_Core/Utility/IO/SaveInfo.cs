@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Vector2 = System.Numerics.Vector2;
+using System.Numerics;
 
 namespace MCClone_Core.Utility.IO
 {

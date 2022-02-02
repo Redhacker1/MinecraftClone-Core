@@ -8,7 +8,10 @@ namespace MCClone_Core.World_CS.Blocks
     public static class BlockHelper
     {
         public static readonly List<BlockStruct> BlockTypes = new List<BlockStruct>();
+        
+        [Obsolete]
         public static readonly List<string> IdToString = new List<string>();
+        
         public static readonly Dictionary<string, byte> StringToId = new Dictionary<string, byte>();
 
         public static void RegisterBaseBlocks()
@@ -25,7 +28,7 @@ namespace MCClone_Core.World_CS.Blocks
             List<string> flowerTags = new List<string> {"Flat", "Transparent", "No Collision"};
             RegisterBlock(new Vector2(2, 3), flowerTags, "Flower", 3);
 
-            string[] grassTags = { };
+            string[] grassTags = Array.Empty<string>();
             Vector2[] grassSides =
             {
                 new Vector2(1, 1), new Vector2(1, 0), new Vector2(0, 1),
@@ -36,7 +39,7 @@ namespace MCClone_Core.World_CS.Blocks
             List<string> leafTags = new List<string> {"Transparent"};
             RegisterBlock(new Vector2(2, 1), leafTags, "Leaf", 5);
 
-            string[] logTags = { };
+            string[] logTags = Array.Empty<string>();
             Vector2[] logSides =
             {
                 new Vector2(3, 0), new Vector2(3, 0), new Vector2(2, 0),
@@ -67,7 +70,7 @@ namespace MCClone_Core.World_CS.Blocks
             RegisterBlock(new Vector2(5, 0), borderTags, "Barrier_02", 14);
         }
 
-        static void RegisterBlock(Vector2[] sides, ICollection<string> tags, string name, byte id)
+        static void RegisterBlock(Vector2[] sides, ICollection<string> tags, string name, byte id, bool ForceAir = false)
         {
             if (sides == null) throw new ArgumentNullException(nameof(sides));
             BlockStruct block = new BlockStruct {Transparent = false, NoCollision = false};
@@ -77,8 +80,9 @@ namespace MCClone_Core.World_CS.Blocks
                 tags.Remove("Transparent");
             }
 
-            if (tags.Contains("air", StringComparer.CurrentCultureIgnoreCase))
+            if (tags.Contains("air") || tags.Contains("Air") || ForceAir)
             {
+                Console.WriteLine("Air");
                 tags.Remove("Air");
                 tags.Remove("air");
                 block.Air = true;
@@ -126,6 +130,14 @@ namespace MCClone_Core.World_CS.Blocks
             {
                 block.Only = sides;
             }
+            if (tags.Contains("air") || tags.Contains("Air"))
+            {
+                Console.WriteLine("Air");
+                tags.Remove("Air");
+                tags.Remove("air");
+                block.Air = true;
+            }
+            
             else
             {
                 block.Top = sides;

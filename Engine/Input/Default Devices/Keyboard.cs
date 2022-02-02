@@ -5,64 +5,65 @@ namespace Engine.Input.Default_Devices
 {
     public class Keyboard : InputDevice
     {
-        IKeyboard keyboardDevice;
+        IKeyboard _keyboardDevice;
         
-        Dictionary<Key, bool> AllKeys = new Dictionary<Key, bool>();
-        Dictionary<Key, bool> KeysJustPressed = new Dictionary<Key, bool>();
-        Dictionary<Key, bool> KeysJustReleased = new Dictionary<Key, bool>();
+        Dictionary<Key, bool> _allKeys = new Dictionary<Key, bool>();
+        Dictionary<Key, bool> _keysJustPressed = new Dictionary<Key, bool>();
+        Dictionary<Key, bool> KeyRearmed = new Dictionary<Key, bool>();
         
         
         internal Keyboard(int id, IKeyboard keyboard, string name = "")
         {
             DeviceName = name;
-            ID = id;
-            keyboardDevice = keyboard;
+            Id = id;
+            _keyboardDevice = keyboard;
             
-            foreach (Key key in keyboardDevice.SupportedKeys)
+            foreach (Key key in _keyboardDevice.SupportedKeys)
             {
-                AllKeys.Add(key, false);
-                KeysJustPressed.Add(key, false);
-                KeysJustReleased.Add(key, false);
+                _allKeys.Add(key, false);
+                _keysJustPressed.Add(key, false);
+                KeyRearmed.Add(key, false);
             }
         }
         
         
         public override void Poll()
         {
-            foreach (Key CurrentKey in AllKeys.Keys)
+            foreach (Key currentKey in _allKeys.Keys)
             {
-                bool KeyPressed = keyboardDevice.IsKeyPressed(CurrentKey);
+                bool keyPressed = _keyboardDevice.IsKeyPressed(currentKey);
 
-                if (KeysJustPressed[CurrentKey] == false && KeyPressed == true)
+                if (_keysJustPressed[currentKey] == false && keyPressed == true && KeyRearmed[currentKey])
                 {
-                    KeysJustPressed[CurrentKey] = true;   
+                    _keysJustPressed[currentKey] = true;
+                    KeyRearmed[currentKey] = false;
                 }
-                else if (KeyPressed == false && AllKeys[CurrentKey])
+                else if (keyPressed == false && KeyRearmed[currentKey] == false)
                 {
-                    KeysJustReleased[CurrentKey] = false;
+                    KeyRearmed[currentKey] = true;
                 }
                 else
                 {
-                    KeysJustPressed[CurrentKey] = false;   
+                    _keysJustPressed[currentKey] = false;   
                 }
-                AllKeys[CurrentKey] = KeyPressed;
+                _allKeys[currentKey] = keyPressed;
             }
         }
         
         
-        public bool KeyPressed(Key DesiredKey)
+        public bool KeyPressed(Key desiredKey)
         {
-            return AllKeys[DesiredKey];
+            return _allKeys[desiredKey];
         }
         
-        public bool KeyJustPressed(Key DesiredKey)
+        public bool KeyJustPressed(Key desiredKey)
         {
-            return KeysJustPressed[DesiredKey];
+            return _keysJustPressed[desiredKey];
         }
         
-        public bool KeyJustReleased(Key DesiredKey)
+        public bool KeyJustReleased(Key desiredKey)
         {
-            return KeysJustPressed[DesiredKey] == false && AllKeys[DesiredKey] == false;
+            return _keysJustPressed[desiredKey] == false && _allKeys[desiredKey] == false;
         }
     }
 }

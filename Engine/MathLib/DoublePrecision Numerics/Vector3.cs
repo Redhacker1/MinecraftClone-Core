@@ -18,12 +18,12 @@ namespace Engine.MathLib.DoublePrecision_Numerics
 
         public static implicit operator Vector3(System.Numerics.Vector3 vec3)
         {
-            return new(vec3.X, vec3.Y, vec3.Z);
+            return new Vector3(vec3.X, vec3.Y, vec3.Z);
         }
         
         public static implicit operator System.Numerics.Vector3(Vector3 vec3)
         {
-            return new((float) vec3.X, (float) vec3.Y, (float) vec3.Z);
+            return new System.Numerics.Vector3((float) vec3.X, (float) vec3.Y, (float) vec3.Z);
         }
         
 

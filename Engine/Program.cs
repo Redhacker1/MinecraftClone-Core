@@ -1,4 +1,10 @@
-﻿using Engine.Initialization;
+﻿using System;
+using System.Numerics;
+using Engine.Initialization;
+using Engine.Input;
+using Engine.Objects;
+using Silk.NET.Input;
+using Veldrid;
 
 namespace Engine
 {
@@ -10,8 +16,16 @@ namespace Engine
         }
     }
 
-    class GameTest : Game
+    internal class GameTest : Game
     {
-        
+        public override void Gamestart()
+        {
+            base.Gamestart();
+            var Entity = new UITestEntity();
+        }
+    }
+
+    class UITestEntity : Entity
+    {
     }
 }

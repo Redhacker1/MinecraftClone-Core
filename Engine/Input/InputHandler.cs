@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Engine.Input.Default_Devices;
-using Engine.MathLib;
-using Engine.Rendering;
 using Silk.NET.Input;
 
 namespace Engine.Input
@@ -12,11 +9,11 @@ namespace Engine.Input
     {
         static List<Keyboard> _keyboards = new List<Keyboard>();
         static List<Mouse> _mice = new List<Mouse>();
-        static internal IInputContext _context;
+        static internal IInputContext Context;
 
         public static void InitInputHandler(IInputContext inputContext)
         {
-            _context = inputContext;
+            Context = inputContext;
             for (int i = 0; i < inputContext.Keyboards.Count; i++)
             {
                 _keyboards.Add(new Keyboard(i, inputContext.Keyboards[i]));
@@ -56,6 +53,11 @@ namespace Engine.Input
         public static void SetMouseMode(int id, CursorMode mode)
         {
             _mice[id].SetMouseMode(mode);
+        }
+        
+        public static CursorMode GetMouseMode(int id)
+        {
+            return _mice[id].GetMouseMode();
         }
         
         

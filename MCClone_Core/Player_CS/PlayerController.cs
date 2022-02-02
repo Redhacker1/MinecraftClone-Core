@@ -4,9 +4,9 @@
 using Godot;
 #endif
 using Engine.Input;
+using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Rendering;
 using Silk.NET.Input;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Player_CS
 {

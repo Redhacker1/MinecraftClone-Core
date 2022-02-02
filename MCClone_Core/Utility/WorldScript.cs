@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+using Engine;
 using Engine.Objects;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
@@ -27,21 +28,25 @@ namespace MCClone_Core.Utility
 		//public Logger Logger = new Logger(Path.Combine(Environment.CurrentDirectory,"Logs"), "DebugFile", ConsoleLibrary.DebugPrint);
 
 		static public ProcWorld _pw;
-
 		// Called when the node enters the scene tree for the first time.
 
 		public WorldScript(ProcWorld world_data)
 		{
+			Ticks = true;
+			PhysicsTick = true;
 			_pw = world_data;
 		}
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
+			
+			
 			BlockHelper.RegisterBaseBlocks();
 			WorldManager.FindWorlds();
+			var Debug = new DebugPanel();
 
-			
-			#if !Core
+
+#if !Core
 			AddChild(_pw);
 			Connect("tree_exiting", this, "_on_WorldScript_tree_exiting");
 			AddChild(lines);
@@ -54,7 +59,7 @@ namespace MCClone_Core.Utility
 			{
 				GD.Print("CREATING WORLD (Editor)");
 			}
-			#endif
+#endif
 
 
 			//_player.World = _pw;

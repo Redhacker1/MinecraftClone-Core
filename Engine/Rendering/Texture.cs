@@ -1,64 +1,71 @@
 using System;
-using System.Runtime.InteropServices;
-using Silk.NET.OpenGL;
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
+using Veldrid;
 
 namespace Engine.Rendering
 {
     
     //TODO: Expose options in constructor for materials (eg, flipmode, texture filtering, clamp mode, etc)
-    public class Texture : IDisposable
+    public class Texture : IDisposable, IGraphicsResource
     {
-        private uint _handle;
-        private GL _gl;
+        public Veldrid.Texture _texture;
 
-        public unsafe Texture(GL gl, string path)
+        public unsafe Texture(GraphicsDevice device, string path)
         {
             Image<Rgba32> img = (Image<Rgba32>) Image.Load(path);
-            img.Mutate(x => x.Flip((FlipMode) 3));
-
-            fixed (void* data = &MemoryMarshal.GetReference(img.GetPixelRowSpan(0)))
+            //img.Mutate(x => x.Flip(FlipMode.Horizontal));
+            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
-                Load(gl, data, (uint) img.Width, (uint) img.Height);
+                Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
             }
-
+            else
+            {
+                throw new Exception("Engine failed to read texture");
+            }
             img.Dispose();
         }
 
-        public unsafe Texture(GL gl, Span<byte> data, uint width, uint height)
+        Texture()
         {
-            fixed (void* d = &data[0])
+            
+        }
+
+
+
+        public static Texture GenTextureFromBytes(GraphicsDevice device, byte[] data)
+        {
+            var img = Image.Load(data);
+            var tex = new Texture();
+            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
-                Load(gl, d, width, height);
+                tex.Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
             }
+            else
+            {
+                throw new Exception("Engine failed to read texture");
+            }
+            img.Dispose();
+            return tex;
         }
 
-        private unsafe void Load(GL gl, void* data, uint width, uint height)
+
+        void Load(GraphicsDevice graphicsDevice, Rgba32[] data, uint width, uint height)
         {
-            _gl = gl;
-
-            _handle = _gl.GenTexture();
-            Bind();
-
-            _gl.TexImage2D(TextureTarget.Texture2D, 0, (int) InternalFormat.Rgba, width, height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, data);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) GLEnum.ClampToEdge);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) GLEnum.ClampToEdge);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) GLEnum.Nearest);
-            _gl.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) GLEnum.Nearest);
-            _gl.GenerateMipmap(TextureTarget.Texture2D);
-        }
-
-        public void Bind(TextureUnit textureSlot = TextureUnit.Texture0)
-        {
-            _gl.ActiveTexture(textureSlot);
-            _gl.BindTexture(TextureTarget.Texture2D, _handle);
+            TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
+                PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
+             _texture = graphicsDevice.ResourceFactory.CreateTexture(textureDescription);
+            
+            graphicsDevice.UpdateTexture(_texture, data,0, 0,0, width, height, 1, 0, 0);
         }
 
         public void Dispose()
         {
-            _gl.DeleteTexture(_handle);
+            _texture.Dispose();
         }
     }
 }

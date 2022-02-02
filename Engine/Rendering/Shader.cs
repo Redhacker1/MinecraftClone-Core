@@ -1,104 +1,208 @@
 using System;
 using System.IO;
-using System.Numerics;
-using Silk.NET.OpenGL;
+using System.Runtime.InteropServices;
+using System.Text;
+using SpirvReflectSharp;
+using Veldrid;
+using Veldrid.SPIRV;
 
 namespace Engine.Rendering
 {
     public class Shader : IDisposable
     {
-        private uint _handle;
-        private GL _gl;
-
-        public Shader(GL gL, string vertexPath, string fragmentPath)
+        unsafe byte[] GetBytes(byte* ptr)
         {
-            _gl = gL;
-
-            uint vertex = LoadShader(ShaderType.VertexShader, vertexPath);
-            uint fragment = LoadShader(ShaderType.FragmentShader, fragmentPath);
-            _handle = _gl.CreateProgram();
-            _gl.AttachShader(_handle, vertex);
-            _gl.AttachShader(_handle, fragment);
-            _gl.LinkProgram(_handle);
-            _gl.GetProgram(_handle, GLEnum.LinkStatus, out int status);
-            if (status == 0)
+      
+            int length = 0;
+            while (length < 16384 && ptr[length] != 0)
             {
-                throw new Exception($"Program failed to link with error: {_gl.GetProgramInfoLog(_handle)}");
+                length++;   
             }
-            _gl.DetachShader(_handle, vertex);
-            _gl.DetachShader(_handle, fragment);
-            _gl.DeleteShader(vertex);
-            _gl.DeleteShader(fragment);
+            // Store bytes in managed array.
+            byte[] bytes = new byte[length];
+            Marshal.Copy((IntPtr)ptr, bytes, 0, length);
+            return bytes;
+        }
+        byte[] GetBytes(string stringdata)
+        {
+            return Encoding.UTF8.GetBytes(stringdata);
         }
 
-        public void Use()
+        string GetString(byte[] bytes)
         {
-            _gl.UseProgram(_handle);
-        }
-
-        public void SetUniform(string name, int value)
-        {
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
-            {
-                throw new Exception($"{name} uniform not found on shader.");
-            }
-            _gl.Uniform1(location, value);
-        }
-
-        public unsafe void SetUniform(string name, Matrix4x4 value)
-        {
-            //A new overload has been created for setting a uniform so we can use the transform in our shader.
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
-            {
-                throw new Exception($"{name} uniform not found on shader.");
-            }
-            _gl.UniformMatrix4(location, 1, false, (float*) &value);
+            return Encoding.UTF8.GetString(bytes).Trim();
         }
         
-        public unsafe void SetUniform(string name, Vector3 value)
+        ShaderStages shaderstage;
+        internal Veldrid.Shader shader;
+        byte[] _spirvSrcCode;
+        internal SpirvReflection ShaderData;
+
+        public Shader(string path, GraphicsDevice device, ShaderStages stage)
         {
-            //A new overload has been created for setting a uniform so we can use the transform in our shader.
-            int location = _gl.GetUniformLocation(_handle, name);
-
-
-            if (location == -1)
+            shaderstage = stage;
+            if (Path.GetExtension(path) == ".spv")
             {
-                throw new Exception($"{name} uniform not found on shader.");
+                LoadShader(File.ReadAllBytes(path), stage, device);
+                return;
             }
-            _gl.UniformMatrix4(location, 1, false, (float*) &value);
-        }
-
-        public void SetUniform(string name, float value)
-        {
-            int location = _gl.GetUniformLocation(_handle, name);
-            if (location == -1)
+            else
             {
-                throw new Exception($"{name} uniform not found on shader.");
+                LoadShaderGLSL(stage, device, path);
+                return;
             }
-            _gl.Uniform1(location, value);
+            
         }
 
         public void Dispose()
         {
-            _gl.DeleteProgram(_handle);
+            shader.Dispose();
+        }
+        
+        
+        internal static bool HasSpirvHeader(byte[] bytes)
+        {
+            return bytes.Length > 4
+                   && bytes[0] == 0x03
+                   && bytes[1] == 0x02
+                   && bytes[2] == 0x23
+                   && bytes[3] == 0x07;
         }
 
-        private uint LoadShader(ShaderType type, string path)
+        unsafe void LoadShader(byte[] bytecode, ShaderStages type, GraphicsDevice device, string Entrypoint = "main" )
         {
-            string src = File.ReadAllText(path);
-            
-            uint handle = _gl.CreateShader(type);
-            _gl.ShaderSource(handle, src);
-            _gl.CompileShader(handle);
-            string infoLog = _gl.GetShaderInfoLog(handle);
-            if (!string.IsNullOrWhiteSpace(infoLog))
+            _spirvSrcCode = bytecode; ;
+
+            using (ShaderModule module = SpirvReflect.ReflectCreateShaderModule(bytecode))
             {
-                throw new Exception($"Error compiling shader of type {type}, failed with error {infoLog}");
+                module.GetCode();
+
+
+                var out_vars = module.EnumerateOutputVariables();
+                var push_constants = module.EnumeratePushConstants();
+                Console.WriteLine("push_constants:\n");
+                foreach (var constants in push_constants)
+                {
+                    Console.WriteLine(constants.TypeDescription.StorageClass);
+                    foreach (var member in constants.Members)
+                    {
+                        Console.WriteLine(member.Name);
+                        Console.WriteLine(member.TypeDescription.TypeFlags);
+                    }
+                    Console.WriteLine(constants.Name);
+                    Console.WriteLine(constants.DecorationFlags);
+                    Console.WriteLine(constants.Offset);
+                    Console.WriteLine(constants.DecorationFlags);
+                    Console.WriteLine(constants.TypeDescription.Op);
+                    Console.WriteLine();
+                }
             }
 
-            return handle;
+
+            byte[] result = CompileShader(device.BackendType, bytecode, type);
+
+            ShaderDescription shaderDescription = new ShaderDescription
+            {
+                Stage = type,
+                EntryPoint = Entrypoint,
+                ShaderBytes = result
+            };
+
+
+            try
+            {
+                shader = device.ResourceFactory.CreateShader(shaderDescription);
+            }
+            catch (VeldridException)
+            {
+                Console.WriteLine(GetString(result));
+                throw;
+            }
         }
+
+
+
+        /// <summary>
+        /// Compiles GLSL Shader code to SPIRV, makes a Veldrid Shader object and does some basic
+        /// reflection to get the necessary pipeline data set up.
+        /// </summary>
+        /// <param name="type"></param>
+        /// <param name="device"></param>
+        /// <param name="path"></param>
+        void LoadShaderGLSL(ShaderStages type, GraphicsDevice device, string path, string Entrypoint = "main")
+        {
+            string src = File.ReadAllText(path);
+            byte[] bytecode = GLSLToSPIRV(src, type);
+            LoadShader(bytecode, type, device, Entrypoint);
+        }
+
+
+        byte[] GLSLToSPIRV(string text, ShaderStages stages)
+        {
+            SpirvCompilationResult result = SpirvCompilation.CompileGlslToSpirv(text, string.Empty, stages, GlslCompileOptions.Default);
+
+            return result.SpirvBytes;
+
+        }
+
+        byte[] CompileShader(GraphicsBackend backend, byte[] bytecode, ShaderStages stage)
+        {
+
+            if (backend == GraphicsBackend.Metal)
+            {
+                if (stage == ShaderStages.Vertex)
+                {
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, null, CrossCompileTarget.MSL);
+                    return GetBytes(data.FragmentShader);
+                }
+
+                if(stage == ShaderStages.Fragment)
+                {
+                    var data = SpirvCompilation.CompileVertexFragment(null, bytecode, CrossCompileTarget.MSL);
+                    return GetBytes(data.FragmentShader);
+                }
+            }
+            else if (backend == GraphicsBackend.OpenGL)
+            {
+                if (stage == ShaderStages.Vertex)
+                {
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.GLSL);
+                    return GetBytes(data.FragmentShader);
+                }
+
+                if(stage == ShaderStages.Fragment)
+                {
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.GLSL);
+                    return GetBytes(data.FragmentShader);
+                }
+            }
+            else if (backend == GraphicsBackend.Direct3D11)
+            {
+                if (stage == ShaderStages.Vertex)
+                {
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.HLSL);
+                    
+                    return GetBytes(data.FragmentShader);
+                }
+
+                if(stage == ShaderStages.Fragment)
+                {
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.HLSL);
+                    return GetBytes(data.FragmentShader);
+                }
+            }
+            else if (backend == GraphicsBackend.Vulkan)
+            {
+                return bytecode;
+            }
+            else
+            {
+                throw new NotImplementedException("Use a more robust implementation than this hack");
+            }
+
+            return bytecode;
+        }
+        
+
     }
 }

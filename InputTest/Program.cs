@@ -7,7 +7,7 @@ using Engine.Objects;
 
 namespace InputTest
 {
-    class Program
+    internal class Program
     {
         static void Main(string[] args)
         {
@@ -15,17 +15,23 @@ namespace InputTest
         }
     }
 
-    class GameClass : Game
+    internal class GameClass : Game
     {
         public override void Gamestart()
         {
+            Console.WriteLine("Game started");
             base.Gamestart();
-            var game = new InputObject();
+            InputObject game = new InputObject();
+
         }
     }
 
-    class InputObject : GameObject
+    internal class InputObject : GameObject
     {
+        internal InputObject()
+        {
+            Ticks = true;
+        }
         public override void _Process(double delta)
         {
             base._Process(delta);

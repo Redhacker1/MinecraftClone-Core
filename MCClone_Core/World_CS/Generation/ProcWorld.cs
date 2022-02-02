@@ -10,26 +10,33 @@ using System.Threading;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
+using Engine.Renderable;
+using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
+using Veldrid;
 using Random = Engine.Random.Random;
+using Shader = Engine.Rendering.Shader;
+using Texture = Engine.Rendering.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
 	public class ProcWorld : Level
 	{
-		int ChunksPerFrame = 1;
+		int _chunksPerFrame = 1;
 
 		public static bool Threaded = true;
+
+		bool ForceRenderDistanceCheck = false;
 
 		public static ProcWorld Instance;
 
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
 		
 		// Max chunks radius comes out to (_loadRadius*2)^2 
-		readonly int _loadRadius = 16;
+		public int _loadRadius = 32;
 
 		public static Random WorldRandom;
 		public static long WorldSeed;
@@ -48,26 +55,76 @@ namespace MCClone_Core.World_CS.Generation
 		
 
 		Thread _terrainThread;
-
-		
+		public Material _material;
+		static Texture atlas = null;
 
 		public ProcWorld(long seed)
 		{
+			Ticks = true;
+			PhysicsTick = true;
 			WorldSeed = seed;
 			WorldRandom = new Random(seed); 
 		}
-		
-		protected override void _Ready()
+
+		public override void _Ready()
 		{
 			if (Instance != null)
 				return;
 			Instance = this;
+			
+			MaterialDescription materialDescription = new MaterialDescription
+			{
+				BlendState = BlendStateDescription.SingleOverrideBlend,
+				ComparisonKind = ComparisonKind.LessEqual,
+				CullMode = FaceCullMode.Back,
+				Topology = PrimitiveTopology.TriangleList,
+				DepthTest = true,
+				WriteDepthBuffer = true,
+				FaceDir = FrontFace.Clockwise,
+				FillMode = PolygonFillMode.Solid,
+				Shaders = new Dictionary<ShaderStages, Shader>
+				{
+					{
+						ShaderStages.Fragment,
+						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+					},
+					{
+						ShaderStages.Vertex,
+						new Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
+					}
 
+
+				}
+			};
+
+			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("ViewBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+
+			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
+				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
+
+				atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			_material = new Material(materialDescription, 
+				new VertexLayoutDescription(
+					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
+					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
+				, 
+				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(vertexLayout),
+				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(fragmentLayout)
+			);
+			_material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
+			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.PointSampler, atlas._texture));	
+			
+			
+			
 			ConsoleLibrary.DebugPrint("Starting procworld");
 			
 			ConsoleLibrary.DebugPrint("Preparing Threadpool");
 			// Starts the threadpool;
-			_threads.InitializePool(0);
+			_threads.InitializePool();
 			_threads.IgniteThreadPool();
 			
 			ConsoleLibrary.DebugPrint("Registering Blocks");
@@ -87,18 +144,23 @@ namespace MCClone_Core.World_CS.Generation
 			ConsoleLibrary.BindCommand("reload_chunks", "reloads all currently loaded chunks", "reload_chunks", ReloadChunks, false);
 			ConsoleLibrary.BindCommand("reset", "Reloads world after saving, ","reset", Restart, false);
 			
-			
 		}
 
 		public override void _PhysicsProcess(double delta)
 		{
 			if (!Threaded)
 			{
-				for (int i = 0; i < ChunksPerFrame; i++)
+				for (int i = 0; i < _chunksPerFrame; i++)
 				{
 					GenerationProcess();	
 				}
 			}
+		}
+
+		public void UpdateRenderDistance(int distance)
+		{
+			_loadRadius = distance;
+			ForceRenderDistanceCheck = true;
 		}
 
 
@@ -109,70 +171,75 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			bool playerPosUpdated = _newChunkPos != _chunkPos;
 
-				_chunkPos = _newChunkPos;
+			_chunkPos = _newChunkPos;
 
-				_currentChunkPos = _newChunkPos;
+			_currentChunkPos = _newChunkPos;
 
-				if (playerPosUpdated)
+			if (ForceRenderDistanceCheck)
+			{
+				enforce_render_distance(_currentChunkPos);
+				ForceRenderDistanceCheck = false;
+			}
+			if (playerPosUpdated)
+			{
+				enforce_render_distance(_currentChunkPos);
+				_lastChunk = _load_chunk((int) _currentChunkPos.X, (int) _currentChunkPos.Y);
+				_currentLoadRadius = 1;
+			}
+			else
+			{
+				// Load next chunk based on the position of the last one
+				Vector2 deltaPos = _lastChunk - _currentChunkPos;
+				// Only have player chunk
+				if (deltaPos == Vector2.Zero)
 				{
-					enforce_render_distance(_currentChunkPos);
-					_lastChunk = _load_chunk((int) _currentChunkPos.X, (int) _currentChunkPos.Y);
-					_currentLoadRadius = 1;
+					// Move down one
+					_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y + 1);
 				}
-				else
+				else if (deltaPos.X < deltaPos.Y)
 				{
-					// Load next chunk based on the position of the last one
-					Vector2 deltaPos = _lastChunk - _currentChunkPos;
-					// Only have player chunk
-					if (deltaPos == Vector2.Zero)
+					// Either go right or up
+					// Prioritize going right
+					if ((Math.Abs(deltaPos.Y - _currentLoadRadius) < float.Epsilon) && (Math.Abs(-deltaPos.X - _currentLoadRadius) > float.Epsilon))
 					{
-						// Move down one
-						_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y + 1);
+						//Go right
+						_lastChunk = _load_chunk((int)_lastChunk.X - 1, (int) _lastChunk.Y);
 					}
-					else if (deltaPos.X < deltaPos.Y)
+					// Either moving in constant x or we just reached bottom right. Addendum by donovan: this looping on the X axis has happened to me actually
+					else if ((Math.Abs(-deltaPos.X - _currentLoadRadius) < float.Epsilon) || (Math.Abs(-deltaPos.X - deltaPos.Y) < float.Epsilon))
 					{
-						// Either go right or up
-						// Prioritize going right
-						if ((Math.Abs(deltaPos.Y - _currentLoadRadius) < float.Epsilon) && (Math.Abs(-deltaPos.X - _currentLoadRadius) > float.Epsilon))
-						{
-							//Go right
-							_lastChunk = _load_chunk((int)_lastChunk.X - 1, (int) _lastChunk.Y);
-						}
-						// Either moving in constant x or we just reached bottom right. Addendum by donovan: this looping on the X axis has happened to me actually
-						else if ((Math.Abs(-deltaPos.X - _currentLoadRadius) < float.Epsilon) || (Math.Abs(-deltaPos.X - deltaPos.Y) < float.Epsilon))
-						{
-							// Go up
-							_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y - 1);
-						}
-						else
-						{
-							// We increment here idk why
-							if (_currentLoadRadius < _loadRadius)
-							{
-								_currentLoadRadius++;
-							}
-						}
+						// Go up
+						_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y - 1);
 					}
 					else
 					{
-						//Either go left or down
-						//Prioritize going left
-						if ((Math.Abs(-deltaPos.Y - _currentLoadRadius) < float.Epsilon) && (Math.Abs(deltaPos.X - _currentLoadRadius) > float.Epsilon))
+						// We increment here idk why
+						if (_currentLoadRadius < _loadRadius)
 						{
-							//Go left
-							_lastChunk = _load_chunk((int) _lastChunk.X + 1, (int) _lastChunk.Y);	
-						}
-						else if ((Math.Abs(deltaPos.X - _currentLoadRadius) < float.Epsilon) || (Math.Abs(deltaPos.X - (-deltaPos.Y)) < float.Epsilon))
-						{
-							// Go down
-							// Stop the last one where we'd go over the limit
-							if (deltaPos.Y < _loadRadius)
-							{
-								_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y + 1);
-							}
+							_currentLoadRadius++;
 						}
 					}
 				}
+				else
+				{
+					//Either go left or down
+					//Prioritize going left
+					if ((Math.Abs(-deltaPos.Y - _currentLoadRadius) < float.Epsilon) && (Math.Abs(deltaPos.X - _currentLoadRadius) > float.Epsilon))
+					{
+						//Go left
+						_lastChunk = _load_chunk((int) _lastChunk.X + 1, (int) _lastChunk.Y);	
+					}
+					else if ((Math.Abs(deltaPos.X - _currentLoadRadius) < float.Epsilon) || (Math.Abs(deltaPos.X - (-deltaPos.Y)) < float.Epsilon))
+					{
+						// Go down
+						// Stop the last one where we'd go over the limit
+						if (deltaPos.Y < _loadRadius)
+						{
+							_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y + 1);
+						}
+					}
+				}
+			}
 		}
 		
 		
@@ -215,13 +282,13 @@ namespace MCClone_Core.World_CS.Generation
 
 		public string ReloadChunks(params string[] args)
 		{
-			IEnumerable<Vector2> chunks = LoadedChunks.Keys;
+			ICollection<Vector2> chunks = LoadedChunks.Keys;
 
 			foreach (Vector2 chunkPos in chunks)
 			{
 				update_player_pos(chunkPos);
 			}
-			return $"{chunks.Count()} Chunks sent to threadpool for processing...";
+			return $"{chunks.Count} Chunks sent to threadpool for processing...";
 		}
 
 		public override List<Aabb> GetAabbs(int collisionlayer, Aabb aabb)
@@ -340,11 +407,13 @@ namespace MCClone_Core.World_CS.Generation
 
 		void enforce_render_distance(Vector2 currentChunkPos)
 		{
-			List<Vector2> keyList = new List<Vector2>(LoadedChunks.Keys);
-			foreach (Vector2 location in keyList)
-				if (Math.Abs(location.X - currentChunkPos.X) > _loadRadius ||
-				    Math.Abs(location.Y - currentChunkPos.Y) > _loadRadius)
-					_unloadChunk((int) location.X, (int) location.Y);
+
+
+			foreach (var key in LoadedChunks.Keys)
+			{
+				if (Math.Abs(key.X - currentChunkPos.X) > _loadRadius || Math.Abs(key.Y - currentChunkPos.Y) > _loadRadius)
+					_unloadChunk((int) key.X, (int) key.Y);
+			}
 		}
 
 		void _unloadChunk(int cx, int cz)

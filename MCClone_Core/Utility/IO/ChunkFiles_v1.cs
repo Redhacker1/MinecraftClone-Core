@@ -4,12 +4,9 @@ using Godot;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Numerics;
 using MCClone_Core.World_CS.Generation;
-using File = System.IO.File;
-using Path = System.IO.Path;
-
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
-using Vector2 = System.Numerics.Vector2;
 
 namespace MCClone_Core.Utility.IO
 {
@@ -23,6 +20,7 @@ namespace MCClone_Core.Utility.IO
             // TODO Come up with newer and shorter filename structure that will work when I batch chunks together
             string filename = GetFilename(location,world,false);
             string filePath = Path.Combine(world.Directory, filename);
+            
             if (!File.Exists(filePath))
             {
                 filePath = Path.Combine(world.Directory,GetFilename(location,world,true));
@@ -33,6 +31,7 @@ namespace MCClone_Core.Utility.IO
                 }
                 compressed = true;
             }
+            
             FileStream fs = File.OpenRead(filePath);
 
             DeflateStream compressor = null;
@@ -72,8 +71,8 @@ namespace MCClone_Core.Utility.IO
             saveData.Location = new Vector2(x, y);
             
             // TODO: Add chunk dimensions to file format and have it calculate this value automatically
-            byte[] serializedBlockData = fileReader.ReadBytes(16 * 16 * 384);
-            saveData.ChunkBlocks = new byte[16 * 16 * 384];
+            byte[] serializedBlockData = fileReader.ReadBytes(98304);
+            saveData.ChunkBlocks = new byte[98304];
 
             for (int i = 0; i <  serializedBlockData.Length; i++)
             {
@@ -91,12 +90,8 @@ namespace MCClone_Core.Utility.IO
             {
                 BlockData = saveData.ChunkBlocks,
                 ChunkCoordinate = saveData.Location,
-
-            #if Core
                 Pos = new Vector3(ChunkCs.Dimension.X * saveData.Location.X, 0, ChunkCs.Dimension.X * saveData.Location.Y)
-            #else 
-                Translation = new Vector3(ChunkCs.Dimension.X * saveData.Location.X, 0, ChunkCs.Dimension.X * saveData.Location.Y).CastToGodot()
-            #endif
+
             };
             
 
@@ -146,7 +141,7 @@ namespace MCClone_Core.Utility.IO
                     File.Delete(uncompressedPath);
                 }
 
-                byte[] cdat = Compress(chunkdat.ToArray());
+                byte[] cdat = Compress(chunkdat.GetBuffer());
                 fs.Write(cdat, 0, cdat.Length);
             }
             else

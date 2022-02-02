@@ -1,16 +1,18 @@
-#version 330 core
-in vec3 fUv;
+#version 450
 
-uniform sampler2D uTexture0;
+layout(location = 0) in vec2 fsin_texCoords;
+layout(location = 0) out vec4 fsout_color;
 
-out vec4 FragColor;
+layout(set = 1, binding = 1) uniform texture2D SurfaceTexture;
+layout(set = 1, binding = 2) uniform sampler SurfaceSampler;
 
 void main()
 {
     
-    FragColor = texture(uTexture0, vec2(fUv.x, fUv.y));
-    //FragColor = vec4(1,1,1,1);
-  
-
     
+    if(texture(sampler2D(SurfaceTexture, SurfaceSampler), fsin_texCoords).a  < .1)
+    {
+        discard;
+    }
+    fsout_color =  texture(sampler2D(SurfaceTexture, SurfaceSampler), fsin_texCoords);
 }

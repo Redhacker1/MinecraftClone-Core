@@ -9,18 +9,20 @@ namespace Engine.Objects
     public class GameObject : MinimalObject, IDisposable
     {
         public static List<GameObject> Objects = new List<GameObject>();
-
+        internal bool Started = false;
+        public bool PhysicsTick = false;
+        public bool Ticks = false;
+        
         public GameObject()
         {
-            Objects.Add(this); 
-            _Ready();
+            Objects.Add((this)); 
         }
         
         
         /// <summary>
         /// Runs on initialization
         /// </summary>
-        protected virtual void _Ready()
+        public virtual void _Ready()
         {
         }
 
@@ -56,11 +58,6 @@ namespace Engine.Objects
         public void Free()
         {
             Dispose();
-        }
-
-        ~GameObject()
-        {
-            Free();
         }
 
         public void Dispose()

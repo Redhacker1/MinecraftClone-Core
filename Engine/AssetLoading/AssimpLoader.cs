@@ -1,92 +1,213 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Engine.Objects;
+using Engine.Renderable;
+using Engine.Windowing;
 using Silk.NET.Assimp;
-using Silk.NET.Core.Contexts;
 using File = System.IO.File;
 using Mesh = Engine.Renderable.Mesh;
+using Texture = Engine.Rendering.Texture;
+using assimp = Silk.NET.Assimp.Assimp;
+using PostProcessPreset = Silk.NET.Assimp.PostProcessPreset;
+using TextureType = Silk.NET.Assimp.TextureType;
 
 namespace Engine.AssetLoading
 {
     public class AssimpLoader
     {
-        public static unsafe Mesh[] LoadMesh(string MeshName, MinimalObject bindingObject)
+        
+        /// <summary>
+        /// Loads file from ASSIMP
+        /// </summary>
+        /// <param name="meshName"></param>
+        /// <param name="bindingObject"></param>
+        /// <returns></returns>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <summary>
+        public static unsafe (Mesh[],List<Texture>) LoadMesh(string meshName, GameObject BindingObject, Renderable.Material material)
         {
-            var thing = Assimp.GetApi();
-
-            if (!File.Exists(MeshName))
+            List<Texture> textures = new List<Texture>();
+            //Stride.Core.IO.
+            assimp things = assimp.GetApi();
+            
+            Console.WriteLine(Path.GetExtension(meshName));
+            string directory = Path.GetDirectoryName(meshName);
+            if (!File.Exists(meshName))
             {
-                throw new FileNotFoundException(message: "The specified Model was not found!");
-            } 
-            var pointer = thing.ImportFile(MeshName, 0);
-
-            if (pointer != null)
+                throw new FileNotFoundException("The specified Model was not found");
+            }
+            if(things.IsExtensionSupported(Path.GetExtension(meshName)) == 0)
             {
-                throw new NullReferenceException("Mesh failed to import");
+                throw new InvalidOperationException("the extension is unsupported!");
             }
             
-            
-            Mesh[] Meshes = new Mesh[pointer->MNumMeshes];
-            
+            var scene = things.ImportFile(meshName, (uint)PostProcessPreset.TargetRealTimeMaximumQuality);
 
-            for (int meshcount = 0; meshcount < pointer->MNumMeshes; meshcount++)
+
+            Console.WriteLine($"Texture count is {scene->MNumTextures}");
+            Console.WriteLine($"Material count is {scene->MNumMaterials}");
+
+
+            for (int materialIndex = 0; materialIndex < scene->MNumMaterials; materialIndex++)
             {
-                uint meshVertCount = pointer->MMeshes[meshcount]->MNumVertices;
-
-                var meshUvsptr = pointer->MMeshes[meshcount]->MTextureCoords;
-                var meshUvsArr = new Vector3[meshVertCount];
-                Vec3PointerAndOffsetToArray(ref meshUvsArr, meshUvsptr.Element0, meshVertCount);
-
-                var meshvertsptr = pointer->MMeshes[meshcount]->MVertices;
-                var meshVertsArr = new Vector3[meshVertCount];
-                if (meshvertsptr != null)
+                var currentMaterial = scene->MMaterials[materialIndex];
+                foreach (TextureType type in Enum.GetValues<TextureType>())
                 {
-                    Vec3PointerAndOffsetToArray(ref meshVertsArr, meshvertsptr, meshVertCount);   
+                    
+                    uint textureCount = things.GetMaterialTextureCount(currentMaterial, type);
+                    if (textureCount != 0)
+                    {
+                        Console.WriteLine($"Material {materialIndex} contains {textureCount} texture(s) of type {type}");
+                        
+                        //Console.WriteLine("Has Textures!");
+                        //List<Texture>
+                        //Console.WriteLine($"Material {MaterialIndex}, {type}, {texturetypecount}");
+
+                        for (int textureIndex = 0; textureIndex < textureCount; textureIndex++)
+                        {
+                            /*var texture = thing.GetMaterialTexture(currentMaterial, TextureType.TextureTypeBaseColor,
+                                (uint)textureIndex, Span<AssimpString>.Empty, Span<TextureMapping>.Empty,
+                                Span<uint>.Empty, Span<float>.Empty, Span<TextureOp>.Empty, Span<TextureMapMode>.Empty,
+                                Span<uint>.Empty); */
+
+                            //var Mat = things.GetMaterialTexture(currentMaterial,type, textureIndex, );
+
+                            //Material materialtest = Material.New();
+                        }
+                    }
+                }
+            }
+
+
+
+
+            Mesh[] meshes = new Mesh[scene->MNumMeshes];
+
+
+            for (int meshcount = 0; meshcount < scene->MNumMeshes; meshcount++)
+            {
+                var mesh = scene->MMeshes[meshcount];
+
+                uint meshVertCount = scene->MMeshes[meshcount]->MNumVertices;
+
+                var meshUvsptr = scene->MMeshes[meshcount]->MTextureCoords;
+                var meshUvsArr = new Vector3[mesh->MNumVertices];
+                if (meshUvsptr[0] != null)
+                {
+                    //Vec3PointerAndOffsetToArray(ref meshUvsArr, meshUvsptr.Element0, meshVertCount);
+
+                    for (int i = 0; i < mesh->MNumVertices; i++)
+                    {
+                        meshUvsArr[i] = new Vector3(meshUvsptr[0][i].X, meshUvsptr[0][i].Y, meshUvsptr[0][i].Z);
+                    }
                 }
 
-                var meshNormalsptr = pointer->MMeshes[meshcount]->MNormals;
+                var meshvertsptr = mesh->MVertices;
+                var meshVertsArr = new Vector3[mesh->MNumVertices];
+                if (meshvertsptr != null)
+                {
+                    //Vec3PointerAndOffsetToArray(ref meshVertsArr, meshvertsptr, meshVertCount); 
+                    for (int i = 0; i < mesh->MNumVertices; i++)
+                    {
+                        meshVertsArr[i] = new Vector3(mesh->MVertices[i].X, mesh->MVertices[i].Y, mesh->MVertices[i].Z);
+                    }
+                }
+
+                var meshNormalsptr = mesh->MNormals;
                 var meshNormalsArr = new Vector3[meshVertCount];
                 if (meshNormalsptr != null)
                 {
-                    Vec3PointerAndOffsetToArray(ref meshNormalsArr, meshNormalsptr, meshVertCount);   
+                    for (int i = 0; i < mesh->MNumVertices; i++)
+                    {
+                        meshNormalsArr[i] = new Vector3(mesh->MNormals[i].X, mesh->MNormals[i].Y, mesh->MNormals[i].Z);
+                    }
                 }
 
-                var meshTangentsptr = pointer->MMeshes[meshcount]->MTangents;
+                var meshTangentsptr = mesh->MTangents;
                 var meshTangentsArr = new Vector3[meshVertCount];
                 if (meshTangentsptr != null)
                 {
-                    Vec3PointerAndOffsetToArray(ref meshTangentsArr, meshTangentsptr, meshVertCount);   
+                    for (int i = 0; i < mesh->MNumVertices; i++)
+                    {
+                        meshTangentsArr[i] = new Vector3(mesh->MTangents[i].X, mesh->MTangents[i].Y, mesh->MTangents[i].Z);
+                    }
                 }
 
-                var meshBiTangentsptr = pointer->MMeshes[meshcount]->MTangents;
+                var meshBiTangentsptr = mesh->MBitangents;
                 var meshBiTangentsArr = new Vector3[meshVertCount];
                 if (meshBiTangentsptr != null)
                 {
-                    Vec3PointerAndOffsetToArray(ref meshBiTangentsArr, meshBiTangentsptr, meshVertCount);
+                    for (int i = 0; i < mesh->MNumVertices; i++)
+                    {
+                        meshBiTangentsArr[i] = new Vector3(mesh->MBitangents[i].X, mesh->MBitangents[i].Y, mesh->MBitangents[i].Z);
+                    }
                 }
+                
 
-                Meshes[meshcount] = new Mesh(meshVertsArr, meshUvsArr, bindingObject);
+                // I fully expect this to fail if the integer rolls over, that being said I want to try and preallocate where I can, might wanna look into it later.
+                var indicies = new List<uint>((int)mesh->MNumFaces * 3);
+                
+                for (uint face = 0; face < mesh->MNumFaces; face++)
+                {
+                    var currentface = mesh->MFaces[face];
+                    if (currentface.MNumIndices != 3u)
+                    {
+                        continue;
+                    }
 
+                    indicies.Add((uint)currentface.MIndices[0]);
+                    indicies.Add((uint)currentface.MIndices[1]);
+                    indicies.Add((uint)currentface.MIndices[2]);
+                }
+                
+                meshes[meshcount] = new Mesh(BindingObject, material);
+                MeshData data = new MeshData()
+                {
+                    _indices = indicies.ToArray(),
+                    _vertices = meshVertsArr,
+                    _uvs = meshUvsArr
+                    
+                };
+                meshes[meshcount].SetMeshData(data);
+                for (int Material = 0; Material < scene->MMaterials[mesh->MMaterialIndex]->MNumProperties ; Material++)
+                {
+                    var mat = scene->MMaterials[mesh->MMaterialIndex];
+
+                    foreach (var TexType in Enum.GetValues<TextureType>())
+                    {
+                        var TexturesInStack = things.GetMaterialTextureCount(mat, TexType);
+                        if (TexturesInStack > 0)
+                        {
+
+                            for (uint TextureIndex = 0; TextureIndex < TexturesInStack; TextureIndex++)
+                            {
+                                AssimpString pathData = new AssimpString();
+                                uint Flags = 0;
+                                var success = things.GetMaterialTexture(mat, TextureType.TextureTypeDiffuse, TextureIndex, ref pathData, null, null, null, null, null, ref Flags);
+
+                                if (success == Return.ReturnFailure)
+                                {
+                                    Console.WriteLine("Material failure!");
+                                }
+                                else
+                                {
+                                    textures.Add(new Texture(WindowClass._renderer.Device, Path.Combine(directory, pathData)));
+                                }
+                            }
+                        }
+                    }
+                    
+                }
             }
 
-            return Meshes;
+
+            things.Dispose();
+            return (meshes, textures);
         }
         
-        
-        private static unsafe void Vec3PointerAndOffsetToArray(ref Vector3[] destination, Vector3* item, uint Count )
-        {
-            if (destination == null)
-            {
-                throw new NullReferenceException("Destination is null!");
-            }
-            for (int i = 0; i < Count; i++)
-            {
-                destination[i] = item[i];
-            }
-        }
     }
-    
+
 }

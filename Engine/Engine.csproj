@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>9</LangVersion>
         <OutputType>Exe</OutputType>
@@ -16,30 +16,96 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Silk.NET.Assimp" Version="2.8.0" />
-      <PackageReference Include="Silk.NET.Input" Version="2.8.0" />
-      <PackageReference Include="Silk.NET.OpenGL" Version="2.8.0" />
-      <PackageReference Include="Silk.NET.OpenGL.Extensions.ImGui" Version="2.8.0" />
-      <PackageReference Include="SixLabors.ImageSharp" Version="1.0.3" />
+      <PackageReference Include="BepuPhysics" Version="2.3.0" />
+      <PackageReference Include="ImGui.NET" Version="1.86.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Silk.NET.Assimp" Version="2.12.0" />
+      <PackageReference Include="Silk.NET.Input" Version="2.12.0" />
+      <PackageReference Include="Silk.NET.OpenAL" Version="2.12.0" />
+      <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.12.0" />
+      <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+      <PackageReference Include="Veldrid" Version="4.9.0-beta1" />
+      <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="AssetLoading" />
       <Folder Include="Rendering\" />
+      <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Assets\shader.frag">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Assets\shader.vert">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-      <None Update="Assets\silk.png">
+        <Content Include="Assets\**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Agnostic\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="Agnostic\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Agnostic\**" />
+      <None Update="VeldridDebugSymbols\Veldrid.pdb">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
-      <None Update="Assets\TextureAtlas.tga">
+      <None Update="VeldridDebugSymbols\Veldrid.MetalBindings.pdb">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+      <None Update="VeldridDebugSymbols\Veldrid.OpenGLBindings.pdb">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+
+    <ItemGroup>
+        <EmbeddedResource Include="Assets/GLSL/imgui-vertex.glsl">
+            <LogicalName>imgui-vertex.glsl</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/GLSL/imgui-vertex-legacy.glsl">
+            <LogicalName>imgui-vertex-legacy.glsl</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/GLSL/imgui-frag.glsl">
+            <LogicalName>imgui-frag.glsl</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/GLSLES/imgui-vertex.glsles">
+            <LogicalName>imgui-vertex.glsles</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/GLSLES/imgui-vertex-legacy.glsles">
+            <LogicalName>imgui-vertex-legacy.glsles</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/GLSLES/imgui-frag.glsles">
+            <LogicalName>imgui-frag.glsles</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/HLSL/imgui-vertex.hlsl.bytes">
+            <LogicalName>imgui-vertex.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets\HLSL\imgui-vertex-legacy.hlsl.bytes">
+            <LogicalName>imgui-vertex-legacy.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/HLSL/imgui-frag.hlsl.bytes">
+            <LogicalName>imgui-frag.hlsl.bytes</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/SPIR-V/imgui-vertex.spv">
+            <LogicalName>imgui-vertex.spv</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/SPIR-V/imgui-frag.spv">
+            <LogicalName>imgui-frag.spv</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/Metal/imgui-vertex.metallib">
+            <LogicalName>imgui-vertex.metallib</LogicalName>
+        </EmbeddedResource>
+        <EmbeddedResource Include="Assets/Metal/imgui-frag.metallib">
+            <LogicalName>imgui-frag.metallib</LogicalName>
+        </EmbeddedResource>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SpirvReflectSharp\SpirvReflectSharp.csproj" />
     </ItemGroup>
     
     

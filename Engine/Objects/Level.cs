@@ -5,7 +5,7 @@ namespace Engine.Objects
 {
     public class Level : GameObject
     {
-        List<GameObject> Objects = new List<GameObject>();
+        List<GameObject> _objects = new List<GameObject>();
 
         public virtual List<Aabb> GetAabbs(int collisionlayer, Aabb collision)
         {

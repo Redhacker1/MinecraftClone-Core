@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+
 using MCClone_Core.World_CS.Generation;
 using File = System.IO.File;
 using Path = System.IO.Path;
@@ -53,18 +53,27 @@ namespace MCClone_Core.Utility.IO
             chunkSaveData.BiomeId = 0; // Currently Unused Will come eventually
             chunkSaveData.World = world.Directory + world.Name;
             chunkSaveData.ChunkBlocks = blocks;
+            
 
-            List<byte> distinctBlocks = blocks.Distinct().ToList();
+            List<byte> Blocks = new List<byte>(128);
+            for (int i = 0; i < blocks.Length; i++)
+            {
+                if (Blocks.Contains(blocks[i]) == false)
+                {
+                    Blocks.Add(blocks[i]);
+                }
+            }
 
-            if (optimizeStorage && distinctBlocks.Count < 16)
+            //IEnumerable<byte> blockTypes = distinctBlocks as byte[] ?? distinctBlocks.ToArray();
+            if (optimizeStorage && Blocks.Count < 16)
             {
                 chunkSaveData.VersionNumber = 0; // Tells the save file writer to compress the blocks into two per byte (or later as small as it can get it)
             }
 
 
-            Dictionary<byte, byte> blockDict = new Dictionary<byte, byte>();
+            Dictionary<byte, byte> blockDict = new Dictionary<byte, byte>();    
             byte serializedId = 0;
-            foreach (byte blockType in distinctBlocks)
+            foreach (byte blockType in Blocks)
             {
                 blockDict[blockType] = serializedId;
                 serializedId+=1;

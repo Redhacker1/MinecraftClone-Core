@@ -2,175 +2,163 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
 using Engine.Objects;
 using Engine.Rendering;
+using Engine.Rendering.Culling;
 using Engine.Windowing;
-using Silk.NET.OpenGL;
+using Veldrid;
 
 namespace Engine.Renderable
 {
-    public enum MeshState
+    public class Mesh : IDisposable
     {
-        Render,
-        Dirty,
-        Delete,
-        DontRender
-    }
-    public enum RenderMode
-    {
-        Triangle,
-        Line
-    }
-    
-    public class Mesh
-    {
-        readonly List<Vector3> _vertices;
-        readonly List<Vector3> _uvs;
-        readonly List<uint> _indices = new();
-
-        internal VertexArrayObject<float, uint> MeshReference;
+        //UniformBuffer<float> UVs;
+        IndexBuffer<uint> ebo;
+        VertexBuffer<float> vbo;
+        
+        internal static object scenelock = new object();
+        internal bool UseIndexedDrawing;
+        Material MeshMaterial;
+        internal bool UpdatingMesh = true;
+        public uint VertexElements => (uint) (_indices?.Length ?? _vertices.Length);
         public static List<Mesh> Meshes = new();
 
+        Vector3[] _vertices;
+        Vector3[] _uvs;
+        uint[] _indices;
 
-        internal Vector3 minpoint;
-        internal Vector3 maxpoint;
-        
-        internal MeshState ActiveState = MeshState.Dirty;
-        internal RenderMode ActiveRenderMode = RenderMode.Triangle;
+        internal Vector3 Minpoint;
+        internal Vector3 Maxpoint;
 
-
-        public Engine.MathLib.DoublePrecision_Numerics.Vector3 Position => _objectReference.Pos;
+        public MathLib.DoublePrecision_Numerics.Vector3 Position => _objectReference.Pos;
 
         readonly MinimalObject _objectReference;
 
-        public readonly float Scale = 1;
+        public float Scale = 1;
 
-        public readonly Quaternion Rotation  = Quaternion.Identity;
+        public Quaternion Rotation  = Quaternion.Identity;
 
         //Note: The order here does matter.
-        public Matrix4x4 ViewMatrix => Matrix4x4.Identity * Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)_objectReference.Rotation.X, (float)_objectReference.Rotation.Y, (float)_objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(_objectReference.Pos -Camera.MainCamera.Pos);
-
+        public Matrix4x4 ViewMatrix => Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)_objectReference.Rotation.X, (float)_objectReference.Rotation.Y, (float)_objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(_objectReference.Pos -Camera.MainCamera.Pos);
         
         
-        public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector2> uvs, MinimalObject bindingobject)
+        public Mesh(MinimalObject bindingobject, Material material)
         {
-            ActiveState = MeshState.DontRender;
+            MeshMaterial = material;
             _objectReference = bindingobject;
-            _vertices = (List<Vector3>)vertices;
-            _uvs = new List<Vector3>(uvs.Count);
-
-            if (vertices.Count == uvs.Count)
-            {
-                for (int i = 0; i < uvs.Count; i++)
-                {
-                    _uvs.Add( new Vector3(uvs[i].X, uvs[i].Y, 0));
-                }
-                Meshes.Add(this);
-            }
-            else
-            {
-                throw new ArgumentException(message: "Uvs and Vertex List sizes do not match!");
-            }
-        }
-        
-        public Mesh(IReadOnlyList<Vector3> vertices, IReadOnlyList<Vector3> uvs, MinimalObject bindingobject)
-        {
-            _objectReference = bindingobject;
-            _vertices = vertices.ToList();
-            _uvs = uvs.ToList();
             
-            if (vertices.Count == uvs.Count)
-            {
-                Meshes.Add(this);
-            }
-            else
-            {
-                throw new ArgumentException(message: "Uvs and Vertex List sizes do not match!");
-            }
+                Meshes.Add(this);   
+            
         }
-        
+
 
         float[] CreateVertexArray()
         {
-            var tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
-            var tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            List<float> values = new List<float>((_vertices.Count * 3) + (_uvs.Count * 3));
-            for (int i = 0; i < _vertices?.Count; i++)
+            Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+            Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+            float[] values = new float[_vertices.Length * 6];
+            for (int i = 0; i < _vertices.Length; i++)
             {
-                tempmin.X = Math.Min(tempmin.X, _vertices[i].X);
-                tempmin.Y = Math.Min(tempmin.Y, _vertices[i].Y);
-                tempmin.Z = Math.Min(tempmin.Z, _vertices[i].Z);
                 
-                tempmax.X = Math.Max(tempmax.X, _vertices[i].X);
-                tempmax.Y = Math.Max(tempmax.Y, _vertices[i].Y);
-                tempmax.Z = Math.Max(tempmax.Z, _vertices[i].Z);
+                
+                values[i * 6] = (_vertices[i].X);
+                values[i * 6 + 1] = _vertices[i].Y;
+                values[i * 6 + 2] =(_vertices[i].Z);
+                //values[i + 3] = 0;
+                values[i * 6 + 3] =(_uvs[i].X);
+                values[i * 6 + 4] =(_uvs[i].Y);
+                values[i * 6 + 5] =(_uvs[i].Z);
+                //values[i + 6] = 0;
 
-
-                values.Add(_vertices[i].X);
-                values.Add(_vertices[i].Y);
-                values.Add(_vertices[i].Z);
-                values.Add(_uvs[i].X);
-                values.Add(_uvs[i].Y);
-                values.Add(_uvs[i].Z);
+                tempmin = Vector3.Min(_vertices[i] * Scale, tempmin);
+                tempmax = Vector3.Max(_vertices[i] * Scale, tempmax);
             }
 
-            maxpoint = tempmax;
-            minpoint = tempmin;
-            return values.ToArray();
+            Maxpoint = tempmax;
+            Minpoint = tempmin;
+            return values;
         }
 
+        [Obsolete("Use Generate mesh instead")]
         public void QueueVaoRegen()
         {
-            ActiveState = MeshState.Dirty;
+            GenerateMesh();
         }
 
 
-        internal VertexArrayObject<float, uint> RegenerateVao()
+
+        public void SetMeshData(MeshData meshData)
         {
-            uint[] indices = _indices.ToArray();
+            _vertices =meshData._vertices;
+            _uvs = meshData._uvs;
+            _indices = meshData._indices;
+            UseIndexedDrawing = (meshData._indices != null && meshData._indices.Length > 0);
+
+
+        }
+
+        /// <summary>
+        /// Updates the Vertex Array, this allows for the mesh to be updated.
+        /// </summary>
+        public void GenerateMesh()
+        {
+            
             float[] vertices = CreateVertexArray();
 
-            BufferObject<uint> ebo = new(WindowClass.GlHandle, new Span<uint>(indices), BufferTargetARB.ElementArrayBuffer);
-            BufferObject<float> vbo = new(WindowClass.GlHandle, new Span<float>(vertices), BufferTargetARB.ArrayBuffer);
-            VertexArrayObject<float, uint> vao = new(vbo, ebo);
+            UpdatingMesh = true;
 
-            vao?.VertexAttributePointer(0, 3, VertexAttribPointerType.Float, 5, 0);
-            vao?.VertexAttributePointer(1, 2, VertexAttribPointerType.Float, 5, 3);
-            
-            return vao;
+            if (_indices?.Length > 0)
+            {
+                ebo = new IndexBuffer<uint>(WindowClass._renderer.Device, _indices);   
+            }
+            vbo = new VertexBuffer<float>(WindowClass._renderer.Device, vertices);
+            UpdatingMesh = false;
         }
-        
 
-        internal void Dispose()
+
+        public void Dispose()
         {
-            MeshReference?.Dispose();
+            ebo?.Dispose();
+            vbo?.Dispose();
+            Meshes.Remove(this);
         }
 
+        
+        
+        [Obsolete]
         public void QueueDeletion()
         {
-            ActiveState = MeshState.Delete;
+            
         }
 
-        public void SetRenderMode(RenderMode mode)
+        public uint GetMeshSize()
         {
-            ActiveRenderMode = mode;
-        }
-
-        public GLEnum GetRenderMode()
-        {
-            if (ActiveRenderMode == RenderMode.Triangle)
+            if (UpdatingMesh == false)
             {
-                return GLEnum.Triangles;
-            }
-            else if (ActiveRenderMode == RenderMode.Line)
-            {
-                return GLEnum.Lines;
+                return VertexElements;
             }
             else
             {
-                return GLEnum.LineLoop;
+                return 0;
             }
         }
+        
+        
+
+        internal bool BindResources(CommandList list)
+        {
+            bool success = MeshMaterial != null && MeshMaterial.BindMaterial(list);
+            if (vbo != null && success)
+            {
+                vbo.Bind(list);
+                ebo?.Bind(list);
+
+                return true;
+            }
+
+            return false;
+
+        }
+        
     }
 }

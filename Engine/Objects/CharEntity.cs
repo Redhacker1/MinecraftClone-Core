@@ -73,7 +73,8 @@ namespace Engine.Objects
 
         public CharacterEntity(Vector3 position, Vector2 rotation, Level level)
         {
-            
+            PhysicsTick = true;
+            Ticks = true;
             Pos = position;
             double w = AabbWidth / 2.0;
             double h = AabbHeight / 2.0;
@@ -86,6 +87,7 @@ namespace Engine.Objects
         public CharacterEntity()
         {
             PhysicsTick = true;
+            Ticks = true;
             
             double w = AabbWidth / 2.0;
             double h = AabbHeight / 2.0;

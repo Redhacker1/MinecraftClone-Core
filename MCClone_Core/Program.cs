@@ -4,6 +4,7 @@ using System.Numerics;
 using Engine;
 using Engine.Initialization;
 using Engine.Objects;
+using Engine.Renderable;
 using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
@@ -30,11 +31,12 @@ namespace MCClone_Core
     internal class MinecraftCloneCore: Game
     {
         
-        
-
+        ImGUIPanel _panel = new ImGUIPanel();
+        ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
         public override void Gamestart()
         {
+            ConsoleLibrary.InitConsole(consoleBox.SetConsoleScrollback);
             Console.WriteLine("Initializing Steam API");
             try
             {
@@ -58,8 +60,6 @@ namespace MCClone_Core
             WorldScript script = new WorldScript(world);
             script._player = player;
             player.World = world;
-            
-            ConsoleLibrary.InitConsole(o => { Console.WriteLine(o.ToString()); });   
         }
 
         public override void GameEnded()

@@ -141,7 +141,7 @@ namespace MCClone_Core.Utility.IO
                     File.Delete(uncompressedPath);
                 }
 
-                byte[] cdat = Compress(chunkdat.ToArray());
+                byte[] cdat = Compress(chunkdat.GetBuffer());
                 fs.Write(cdat, 0, cdat.Length);
             }
             else

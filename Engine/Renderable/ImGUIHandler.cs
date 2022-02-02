@@ -1,17 +1,19 @@
-﻿using ImGuiNET;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Numerics;
 using System.Reflection;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
+using System.Security.Cryptography;
+using Engine.Input;
+using ImGuiNET;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using Veldrid;
+using Vortice.D3DCompiler;
 
-namespace Veldrid
+namespace Engine.Renderable
 {
     /// <summary>
     /// Can render draw lists produced by ImGui.
@@ -440,11 +442,17 @@ namespace Veldrid
             io.MouseDown[0] = mouseState.IsButtonPressed(MouseButton.Left);
             io.MouseDown[1] = mouseState.IsButtonPressed(MouseButton.Right);
             io.MouseDown[2] = mouseState.IsButtonPressed(MouseButton.Middle);
-
-            var point = new Point((int) mouseState.Position.X, (int) mouseState.Position.Y);
-            io.MousePos = new Vector2(point.X, point.Y);
+            if (mouseState.Cursor.CursorMode == CursorMode.Normal)
+            {
+                io.MousePos = new Vector2((int) mouseState.Position.X, (int) mouseState.Position.Y);   
+            }
+            else
+            {
+                io.MousePos = -Vector2.One;
+            }
 
             var wheel = mouseState.ScrollWheels[0];
+            
             io.MouseWheel = wheel.Y;
             io.MouseWheelH = wheel.X;
 
@@ -492,6 +500,13 @@ namespace Veldrid
             io.KeyMap[(int) ImGuiKey.X] = (int) Key.X;
             io.KeyMap[(int) ImGuiKey.Y] = (int) Key.Y;
             io.KeyMap[(int) ImGuiKey.Z] = (int) Key.Z;
+            
+            
+            InputHandler.Context.Keyboards[0].KeyChar += (_, character ) =>
+                {
+                    io.AddInputCharacter(character);
+                };
+
         }
 
         private unsafe void RenderImDrawData(ImDrawDataPtr draw_data, GraphicsDevice gd, CommandList cl)

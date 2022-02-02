@@ -55,6 +55,11 @@ namespace Engine.Input
             _mice[id].SetMouseMode(mode);
         }
         
+        public static CursorMode GetMouseMode(int id)
+        {
+            return _mice[id].GetMouseMode();
+        }
+        
         
 
         /// <summary>

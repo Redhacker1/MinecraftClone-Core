@@ -48,7 +48,7 @@ namespace Engine.Rendering.Culling
         internal Plane[] Planes;
         internal MathLib.DoublePrecision_Numerics.Vector3 camerapos;
 
-        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos)
+        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos, Plane[] planes)
         {
             camerapos = Pos;
             Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
@@ -76,26 +76,21 @@ namespace Engine.Rendering.Culling
             Vector3 nearTopLeft = (nearCenter + mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f)) * 1f;
             Vector3 nearTopRight = (nearCenter + mat1 * (nearHeight * 0.5f) + mat0 * (nearWidth * 0.5f)) * 1f;
             Vector3 nearBottomLeft = (nearCenter - mat1 * (nearHeight * 0.5f) - mat0 * (nearWidth * 0.5f)) * 1f;
+            
 
-            Planes = new[]
-            {
-                //Near
-                new Plane(nearTopRight, nearTopLeft, nearBottomLeft),
-
-                //Far
-                new Plane(farTopLeft,farTopRight, farBottomRight),
-
-                //Left
-                new Plane(nearTopLeft, farTopLeft, nearBottomLeft),
-
-                //Right
-                new Plane(farTopRight, nearTopRight, farBottomRight),
-
-                //Top
-                new Plane(nearTopLeft, nearTopRight, farTopLeft),
-                //Bottom
-                new Plane(nearBottomLeft , farBottomLeft, farBottomRight),
-            };
+            // Near
+            planes[0] = new Plane(nearTopRight, nearTopLeft, nearBottomLeft);
+            // Far
+            planes[1] = new Plane(farTopLeft, farTopRight, farBottomRight);
+            // Left
+            planes[2] = new Plane(nearTopLeft, farTopLeft, nearBottomLeft);
+            // Right
+            planes[3] = new Plane(farTopRight, nearTopRight, farBottomRight);
+            // Top
+            planes[4] = new Plane(nearTopLeft, nearTopRight, farTopLeft);
+            //Bottom
+            planes[5] = new Plane(nearBottomLeft, farBottomLeft, farBottomRight);
+            Planes =  planes;
         }
     }
 

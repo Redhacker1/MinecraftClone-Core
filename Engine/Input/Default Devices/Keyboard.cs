@@ -9,7 +9,7 @@ namespace Engine.Input.Default_Devices
         
         Dictionary<Key, bool> _allKeys = new Dictionary<Key, bool>();
         Dictionary<Key, bool> _keysJustPressed = new Dictionary<Key, bool>();
-        Dictionary<Key, bool> _keysJustReleased = new Dictionary<Key, bool>();
+        Dictionary<Key, bool> KeyRearmed = new Dictionary<Key, bool>();
         
         
         internal Keyboard(int id, IKeyboard keyboard, string name = "")
@@ -22,7 +22,7 @@ namespace Engine.Input.Default_Devices
             {
                 _allKeys.Add(key, false);
                 _keysJustPressed.Add(key, false);
-                _keysJustReleased.Add(key, false);
+                KeyRearmed.Add(key, false);
             }
         }
         
@@ -33,13 +33,14 @@ namespace Engine.Input.Default_Devices
             {
                 bool keyPressed = _keyboardDevice.IsKeyPressed(currentKey);
 
-                if (_keysJustPressed[currentKey] == false && keyPressed == true)
+                if (_keysJustPressed[currentKey] == false && keyPressed == true && KeyRearmed[currentKey])
                 {
-                    _keysJustPressed[currentKey] = true;   
+                    _keysJustPressed[currentKey] = true;
+                    KeyRearmed[currentKey] = false;
                 }
-                else if (keyPressed == false && _allKeys[currentKey])
+                else if (keyPressed == false && KeyRearmed[currentKey] == false)
                 {
-                    _keysJustReleased[currentKey] = false;
+                    KeyRearmed[currentKey] = true;
                 }
                 else
                 {

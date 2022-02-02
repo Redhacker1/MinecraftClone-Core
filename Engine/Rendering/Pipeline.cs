@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Veldrid;
+using Vortice.Direct3D11;
 
 namespace Engine.Rendering
 {
@@ -20,7 +21,7 @@ namespace Engine.Rendering
 
         internal Veldrid.Pipeline _pipeline;
 
-        public Pipeline(bool depthTest, bool writeDepthBuffer, ComparisonKind compare, FaceCullMode cullmode, FrontFace dir, PrimitiveTopology topology, IReadOnlyDictionary<ShaderStages ,Shader> shaders, GraphicsDevice device, VertexLayoutDescription vertexLayout,  params ResourceLayout[] layouts)
+        public Pipeline(bool depthTest, bool writeDepthBuffer, ComparisonKind compare, FaceCullMode cullmode, FrontFace dir, PrimitiveTopology topology, PolygonFillMode filltype, IReadOnlyDictionary<ShaderStages ,Shader> shaders, GraphicsDevice device, VertexLayoutDescription vertexLayout,  params ResourceLayout[] layouts)
         {
             WriteDepthBuffer = writeDepthBuffer;
             DepthTest = depthTest;
@@ -29,7 +30,7 @@ namespace Engine.Rendering
             _cullMode = cullmode;
             faceDir = dir;
             _topology = topology;
-            FillMode = PolygonFillMode.Solid;
+            FillMode = filltype;
             _shaders = shaders;
             
             List<Veldrid.Shader> Shader = new List<Veldrid.Shader>();
@@ -57,7 +58,7 @@ namespace Engine.Rendering
                 (
                     blendState,
                     new DepthStencilStateDescription(depthTest, writeDepthBuffer, compare),
-                    new RasterizerStateDescription(cullmode, PolygonFillMode.Solid, faceDir, true, false),
+                    new RasterizerStateDescription(cullmode, filltype, faceDir, true, false),
                     topology, 
                     shaderSet, 
                     layouts, 

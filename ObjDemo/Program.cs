@@ -25,13 +25,13 @@ namespace ObjDemo
         {
             base.Gamestart();
 
-            FpsEntity entity = new FpsEntity();
-            Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX , 1.777778F, true );
+            DebugPanel panel = new DebugPanel();
+            Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX , 1.77777F, true );
             MeshSpawner thing = new MeshSpawner();
             
+            
             InputHandler.SetMouseMode(0, CursorMode.Normal);
-
-            //BenchmarkEntity entTest = new BenchmarkEntity();
+            
         }
     }
 
@@ -49,6 +49,8 @@ namespace ObjDemo
 
         public override void _Ready()
         {
+
+	        RotationPanel panel = new RotationPanel(this);
             base._Ready();
             
             
@@ -60,7 +62,7 @@ namespace ObjDemo
 				Topology = PrimitiveTopology.TriangleList,
 				DepthTest = true,
 				WriteDepthBuffer = true,
-				FaceDir = FrontFace.Clockwise,
+				FaceDir = FrontFace.CounterClockwise,
 				FillMode = PolygonFillMode.Solid,
 				Shaders = new Dictionary<ShaderStages, Shader>
 				{
@@ -104,31 +106,13 @@ namespace ObjDemo
             //ImGUI_ModelViewer viewer = new ImGUI_ModelViewer();
             new Player();
             
-            _meshes = AssimpLoader.LoadMesh(@"Assets\Mickey Mouse.obj", this, _material);
+            _meshes = AssimpLoader.LoadMesh(@"Assets\Bistro\BistroExterior.fbx", this, _material).Item1;
 
             foreach (var mesh in _meshes)
             {
+	            this.Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, 200, 0);
                 mesh.Scale = .1f;
                 mesh.GenerateMesh();  
-            }
-        }
-    }
-
-    internal class FpsEntity : Entity
-    {
-        Stopwatch _fpstimer = Stopwatch.StartNew();
-        int _frames;
-
-       
-        public override void _Process(double delta)
-        {
-            _frames+=1;
-            if (_fpstimer.Elapsed.Seconds >= 1)
-            {
-                Console.WriteLine($"Elapsed: {(_fpstimer.Elapsed.Seconds * 1000)}");
-                Console.WriteLine($"Frames: {_frames}");
-                _frames = 0;
-                _fpstimer.Restart();
             }
         }
     }

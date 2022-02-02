@@ -12,7 +12,7 @@ namespace Engine.Renderable
             layouts = resourceLayouts;
             pipeline_object = new Pipeline(description.DepthTest, description.WriteDepthBuffer,
                 description.ComparisonKind,
-                description.CullMode, description.FaceDir, description.Topology,
+                description.CullMode, description.FaceDir, description.Topology, description.FillMode,
                 description.Shaders, WindowClass._renderer.Device, vertexLayoutDescription, resourceLayouts);
             
             Sets = new ResourceSet[layouts.Length];

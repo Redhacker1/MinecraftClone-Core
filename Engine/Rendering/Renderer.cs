@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Culling;
-using Engine.Rendering.Culling;
 using ImGuiNET;
-using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
+using Plane = Engine.Rendering.Culling.Plane;
 
 
 internal struct ViewProj
@@ -40,7 +39,7 @@ namespace Engine.Rendering
         {
             unsafe
             {
-                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
+                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
                 _list = Device.ResourceFactory.CreateCommandList();
                 ProjectionBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
                 ViewBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
@@ -48,13 +47,19 @@ namespace Engine.Rendering
                 _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport,
                     InputHandler.Context);
             }
+
+            //Device.SyncToVerticalBlank = true;
         }
 
         public GraphicsDevice Device;
         readonly CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
+        public uint FPS = 0;
+        Frustrum? frustum;
+        Plane[] sides = new Plane[6];
         internal void OnRender(double time)
         {
+
             _stopwatch.Restart();
             //_stopwatch.Start();
             if (Camera.MainCamera != null)
@@ -62,17 +67,20 @@ namespace Engine.Rendering
                 Device.UpdateBuffer(ProjectionBuffer, 0 , Camera.MainCamera.GetProjectionMatrix());
                 Device.UpdateBuffer(ViewBuffer, 0 , Camera.MainCamera.GetViewMatrix());
             }
-            Frustrum? frustum =  Camera.MainCamera?.GetViewFrustum();
+            frustum =  Camera.MainCamera?.GetViewFrustum(sides);
+            
             _list.Begin();
-            //Console.WriteLine("New frame");
-            //Console.WriteLine("Frame Begin!");
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
             _list.ClearColorTarget(0, RgbaFloat.Black);
             _list.ClearDepthStencil(1f);
+
+
+            Mesh[] sceneMeshes = Mesh.Meshes.ToArray();
+            List<Mesh> meshes = new List<Mesh>(Mesh.Meshes.Count /2);
             
             
-            List<Mesh> meshes = new List<Mesh>(Mesh.Meshes.Count);
-            Parallel.ForEach(Mesh.Meshes, (mesh) =>
+            
+            Parallel.ForEach(sceneMeshes, (mesh) =>
             {
                 if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
                 {
@@ -86,7 +94,7 @@ namespace Engine.Rendering
             foreach (Mesh mesh in meshes)
             {
 
-                if(!mesh.UpdatingMesh && mesh?.BindResources(_list) == true)
+                if(!mesh.UpdatingMesh && mesh.BindResources(_list))
                 {
                     _list.UpdateBuffer(WorldBuffer, 0, mesh.ViewMatrix);
 
@@ -122,13 +130,17 @@ namespace Engine.Rendering
             _list.End();
             Device.SubmitCommands(_list);
             Device.SwapBuffers();
-            
-            
-            //Console.WriteLine(_stopwatch.ElapsedMilliseconds);
 
-            
+
+            if (_stopwatch.ElapsedMilliseconds != 0)
+            {
+                FPS = (uint) (1000f/ _stopwatch.Elapsed.TotalMilliseconds);   
+            }
+            //Console.WriteLine(FPS);
+
+
             //Device.WaitForIdle();
-            
+
         }
         
         internal void OnResize(Vector2D<int> size)

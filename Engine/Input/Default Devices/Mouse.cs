@@ -39,6 +39,11 @@ namespace Engine.Input.Default_Devices
             _inputDevice.Cursor.CursorMode = mode;
         }
 
+        internal CursorMode GetMouseMode()
+        {
+            return _inputDevice.Cursor.CursorMode;
+        }
+
         internal bool MouseButtonDown(MouseButton key)
         {
             return _allMouseKeys[key];

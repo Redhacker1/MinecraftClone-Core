@@ -180,14 +180,14 @@ namespace Engine.Rendering
             {
                 if (stage == ShaderStages.Vertex)
                 {
-                    var data = SpirvCompilation.CompileVertexFragment(bytecode, null, CrossCompileTarget.HLSL);
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.HLSL);
                     
                     return GetBytes(data.FragmentShader);
                 }
 
                 if(stage == ShaderStages.Fragment)
                 {
-                    var data = SpirvCompilation.CompileVertexFragment(null, bytecode, CrossCompileTarget.HLSL);
+                    var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.HLSL);
                     return GetBytes(data.FragmentShader);
                 }
             }

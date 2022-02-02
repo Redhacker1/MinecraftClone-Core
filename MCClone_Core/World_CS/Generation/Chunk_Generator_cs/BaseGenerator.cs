@@ -1,5 +1,6 @@
 ﻿using System;
 using Engine.MathLib;
+using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Noise;
 using Random = Engine.Random.Random;
 
@@ -98,7 +99,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
         
         internal static bool IsBlockAir(ChunkCs Chunk, int X, int Y, int Z)
         {
-            return false;  //Chunk.BlockData[ChunkCs.GetFlattenedDimension(X, Y - 1, Z)] == 0;
+            return BlockHelper.BlockTypes[Chunk.BlockData[ChunkCs.GetFlattenedDimension(X, Y - 1, Z)]].Air;
         }
 
 

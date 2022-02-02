@@ -55,24 +55,6 @@ namespace Engine.Windowing
             gameinstance = GameClass;
         }
         
-        float framesPerSecond = 0.0f;
-        static int fps;
-        float lastTime = 0.0f;
-        double currentTime;
-        int CalculateFPS(double time)
-        {
-            currentTime += time;
-            if (currentTime >= 1f)
-            {
-                fps = 0;
-                currentTime = 0;
-            }
-
-            fps++;
-            
-            return fps;
-        }
-        
 
         void OnLoad()
         {
@@ -82,7 +64,7 @@ namespace Engine.Windowing
             _renderer = new Renderer(Handle);
             Handle.FramebufferResize += _renderer.OnResize;
             Handle.Render += _renderer.OnRender;
-            
+
             gameinstance.Gamestart();
             
         }
@@ -114,8 +96,11 @@ namespace Engine.Windowing
                         gameObject._Ready();
                         gameObject.Started = true;
                     }
-                    
-                    gameObject._Process(delta);
+
+                    if (gameObject.Ticks)
+                    {
+                        gameObject._Process(delta);
+                    }
                     if (physicsProcess && gameObject.PhysicsTick)
                     {
                         gameObject._PhysicsProcess(physicsDelta);

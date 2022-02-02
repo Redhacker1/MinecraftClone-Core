@@ -30,14 +30,37 @@ namespace Engine.Rendering
             img.Dispose();
         }
 
+        Texture()
+        {
+            
+        }
 
-        void Load(GraphicsDevice graphicsDevice, IEnumerable<Rgba32> data, uint width, uint height)
+
+
+        public static Texture GenTextureFromBytes(GraphicsDevice device, byte[] data)
+        {
+            var img = Image.Load(data);
+            var tex = new Texture();
+            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
+            {
+                tex.Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
+            }
+            else
+            {
+                throw new Exception("Engine failed to read texture");
+            }
+            img.Dispose();
+            return tex;
+        }
+
+
+        void Load(GraphicsDevice graphicsDevice, Rgba32[] data, uint width, uint height)
         {
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
                 PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
              _texture = graphicsDevice.ResourceFactory.CreateTexture(textureDescription);
             
-            graphicsDevice.UpdateTexture(_texture, data.ToArray(),0, 0,0, width, height, 1, 0, 0);
+            graphicsDevice.UpdateTexture(_texture, data,0, 0,0, width, height, 1, 0, 0);
         }
 
         public void Dispose()

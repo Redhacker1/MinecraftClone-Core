@@ -19,6 +19,7 @@ namespace InputTest
     {
         public override void Gamestart()
         {
+            Console.WriteLine("Game started");
             base.Gamestart();
             InputObject game = new InputObject();
 
@@ -27,6 +28,10 @@ namespace InputTest
 
     internal class InputObject : GameObject
     {
+        internal InputObject()
+        {
+            Ticks = true;
+        }
         public override void _Process(double delta)
         {
             base._Process(delta);

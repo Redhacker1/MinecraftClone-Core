@@ -27,7 +27,9 @@ namespace ObjDemo
 
 		public override void _Ready()
 		{
+			Rotation = Vector3.Zero;
 			_fpCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			_fpCam.Rotation = System.Numerics.Vector3.Zero;
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
 		}
@@ -35,8 +37,29 @@ namespace ObjDemo
 		public override void _Process(double delta)
 		{
 			_fpCam.Pos = Pos;
-			Freelook();
+			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
+			{
+				if (MoveMouse)
+				{
+					InputHandler.SetMouseMode(0, CursorMode.Normal);
+					MoveMouse = false;
+				}
+				else
+				{
+					InputHandler.SetMouseMode(0, CursorMode.Raw);
+					MoveMouse = true;
+				}
+				
+			}
+
+			if (MoveMouse)
+			{
+				Freelook();				
+			}
+
 		}
+
+		public bool MoveMouse { get; set; }
 
 		public override void _PhysicsProcess(double delta)
 		{

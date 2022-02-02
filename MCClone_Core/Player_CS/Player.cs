@@ -11,6 +11,7 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
 using Engine.Rendering;
+using ImGuiNET;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 using Silk.NET.Input;
@@ -40,6 +41,7 @@ namespace MCClone_Core.Player_CS
 		bool _paused;
 
 		Camera FPCam;
+		bool MoveMouse = false;
 
 
 		void toggle_pause()
@@ -59,10 +61,11 @@ namespace MCClone_Core.Player_CS
 		public override void _Ready()
 		{
 			PhysicsTick = true;
-			
+
 			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8, Pos.Z), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
+			MoveMouse = true;
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			#else
 				SetPos(new Vector3(Translation.x, Translation.y, Translation.z));
@@ -85,12 +88,32 @@ namespace MCClone_Core.Player_CS
 			}'
 			#endif
 		}
-
+		
 		public override void _Process(double delta)
 		{
-			FPCam.Pos = new Vector3(Pos.X, Pos.Y + 0, Pos.Z);
-			Freelook();
+
+			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
+			{
+				if (MoveMouse)
+				{
+					InputHandler.SetMouseMode(0, CursorMode.Normal);
+					MoveMouse = false;
+				}
+				else
+				{
+					InputHandler.SetMouseMode(0, CursorMode.Raw);
+					MoveMouse = true;
+				}
+				
+			}
 			
+			
+			FPCam.Pos = new Vector3(Pos.X, Pos.Y + 0, Pos.Z);
+			if (MoveMouse)
+			{
+				Freelook();
+			}
+
 			Vector3 Location = Pos;
 			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
 			Vector3 pos = result.Location;

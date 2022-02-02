@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Engine.Objects;
 using Engine.Renderable;
+using Engine.Windowing;
+using Silk.NET.Assimp;
 using File = System.IO.File;
 using Mesh = Engine.Renderable.Mesh;
 using Texture = Engine.Rendering.Texture;
@@ -24,13 +27,14 @@ namespace Engine.AssetLoading
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
         /// <summary>
-        public static unsafe Mesh[] LoadMesh(string meshName, GameObject BindingObject, Renderable.Material material)
+        public static unsafe (Mesh[],List<Texture>) LoadMesh(string meshName, GameObject BindingObject, Renderable.Material material)
         {
+            List<Texture> textures = new List<Texture>();
             //Stride.Core.IO.
             assimp things = assimp.GetApi();
             
             Console.WriteLine(Path.GetExtension(meshName));
-
+            string directory = Path.GetDirectoryName(meshName);
             if (!File.Exists(meshName))
             {
                 throw new FileNotFoundException("The specified Model was not found");
@@ -168,11 +172,40 @@ namespace Engine.AssetLoading
                     
                 };
                 meshes[meshcount].SetMeshData(data);
+                for (int Material = 0; Material < scene->MMaterials[mesh->MMaterialIndex]->MNumProperties ; Material++)
+                {
+                    var mat = scene->MMaterials[mesh->MMaterialIndex];
+
+                    foreach (var TexType in Enum.GetValues<TextureType>())
+                    {
+                        var TexturesInStack = things.GetMaterialTextureCount(mat, TexType);
+                        if (TexturesInStack > 0)
+                        {
+
+                            for (uint TextureIndex = 0; TextureIndex < TexturesInStack; TextureIndex++)
+                            {
+                                AssimpString pathData = new AssimpString();
+                                uint Flags = 0;
+                                var success = things.GetMaterialTexture(mat, TextureType.TextureTypeDiffuse, TextureIndex, ref pathData, null, null, null, null, null, ref Flags);
+
+                                if (success == Return.ReturnFailure)
+                                {
+                                    Console.WriteLine("Material failure!");
+                                }
+                                else
+                                {
+                                    textures.Add(new Texture(WindowClass._renderer.Device, Path.Combine(directory, pathData)));
+                                }
+                            }
+                        }
+                    }
+                    
+                }
             }
 
 
             things.Dispose();
-            return meshes;
+            return (meshes, textures);
         }
         
     }

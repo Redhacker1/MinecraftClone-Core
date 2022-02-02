@@ -81,7 +81,6 @@ namespace MCClone_Core.World_CS.Generation
 		public void Update()
 		{
 			
-			
 			List<Vector3> blocks = new List<Vector3>();
 			List<Vector3> blocksNormals = new List<Vector3>();
 			List<uint> chunkIndices = new List<uint>();
@@ -96,7 +95,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				
 				byte block = BlockData[GetFlattenedDimension(x, y, z)];
-				check_transparent_neighbours(x, y, z, ref transparent);
+				check_transparent_neighbours(x, y, z, ref transparent, _visibilityMask[x,y,z]);
 				//TODO: AO Code goes here!
 				if (transparent.Contains(true))
 				{
@@ -168,14 +167,14 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-		void check_transparent_neighbours(int x, int y, int z, ref Span<bool> output)
+		void check_transparent_neighbours(int x, int y, int z, ref Span<bool> output, bool DiscardOnlyAir = false)
 		{
-			output[0] = is_block_transparent(x, y + 1, z);
-			output[1] = is_block_transparent(x, y - 1, z);
-			output[2] = is_block_transparent(x - 1, y, z);
-			output[3] = is_block_transparent(x + 1, y, z);
-			output[4] = is_block_transparent(x, y, z - 1);
-			output[5] = is_block_transparent(x, y, z + 1);
+			output[0] = is_block_transparent(x, y + 1, z, DiscardOnlyAir);
+			output[1] = is_block_transparent(x, y - 1, z, DiscardOnlyAir);
+			output[2] = is_block_transparent(x - 1, y, z, DiscardOnlyAir);
+			output[3] = is_block_transparent(x + 1, y, z, DiscardOnlyAir);
+			output[4] = is_block_transparent(x, y, z - 1, DiscardOnlyAir);
+			output[5] = is_block_transparent(x, y, z + 1, DiscardOnlyAir);
 		}
 
 		void _create_block(Span<bool> check, int x, int y, int z, byte block, List<Vector3> blocks, List<Vector3> blocksNormals, List<Vector3> uVs, List<uint> indices, ref uint index)
@@ -256,7 +255,7 @@ namespace MCClone_Core.World_CS.Generation
 			return x + y * (int)Dimension.Z + z * (int)Dimension.Y * (int)Dimension.X;
 		}
 		
-		bool is_block_transparent(int x, int y, int z)
+		bool is_block_transparent(int x, int y, int z, bool DiscardAir = false)
 		{
 			if (x < 0 || x >= Dimension.X || z < 0 || z >= Dimension.Z)
 			{
@@ -272,16 +271,27 @@ namespace MCClone_Core.World_CS.Generation
 
 				if (ProcWorld.Instance.LoadedChunks.ContainsKey(cpos))
 				{
+					if (DiscardAir)
+					{
+						int Index = GetFlattenedDimension(bx, y, bz);
+						return !BlockHelper.BlockTypes[ProcWorld.Instance.LoadedChunks[cpos].BlockData[Index]].Air;
+					}
+					
 					return ProcWorld.Instance.LoadedChunks[cpos]._visibilityMask[bx, y, bz];
 				}
-				return true;
+				return false;
 			}
 
 			if (y < 0 || y >= Dimension.Y)
 			{
 				return false;	
 			}
-
+			
+			
+			if (DiscardAir)
+			{
+				return !BlockHelper.BlockTypes[BlockData[GetFlattenedDimension(x,y,z)]].Air;
+			}
 			return _visibilityMask[x,y,z];
 		}
 		

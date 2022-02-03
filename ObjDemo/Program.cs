@@ -99,20 +99,23 @@ namespace ObjDemo
 
 				);
 			_material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
-			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.Aniso4xSampler, atlas._texture));	
+			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.Aniso4xSampler, atlas._texture));
+
+			//_material.ResourceSet(0, );
             
             
             
             //ImGUI_ModelViewer viewer = new ImGUI_ModelViewer();
             new Player();
-            
-            _meshes = AssimpLoader.LoadMesh(@"Assets\Bistro\BistroExterior.fbx", this, _material).Item1;
+
+            (Mesh[], IReadOnlyDictionary<string, Texture>) outAssimpValues = AssimpLoader.LoadMesh(@"Assets\Bistro\BistroExterior.fbx", this, _material);
+            _meshes = outAssimpValues.Item1;
 
             foreach (var mesh in _meshes)
             {
-	            this.Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, 200, 0);
+	            Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, 200, 0);
                 mesh.Scale = .1f;
-                mesh.GenerateMesh();  
+                //mesh.GenerateMesh();  
             }
         }
     }

@@ -95,14 +95,14 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				
 				byte block = BlockData[GetFlattenedDimension(x, y, z)];
-				check_transparent_neighbours(x, y, z, ref transparent, _visibilityMask[x,y,z]);
-				//TODO: AO Code goes here!
-				if (transparent.Contains(true))
+				if (block != 0)
 				{
-					if (block != 0)
+					check_transparent_neighbours(x, y, z, ref transparent, _visibilityMask[x,y,z]);
+					//TODO: AO Code goes here!
+					if (transparent.Contains(true))
 					{
-						_create_block(transparent, x, y, z, block, blocks, blocksNormals, uVs, chunkIndices , ref index);	
-					}
+						_create_block(transparent, x, y, z, block, blocks, blocksNormals, uVs, chunkIndices , ref index);
+					}		
 				}
 			}
 
@@ -112,8 +112,8 @@ namespace MCClone_Core.World_CS.Generation
 				_indices = chunkIndices.ToArray(),
 				_vertices = blocks.ToArray()
 			};
-			ChunkMesh.SetMeshData(meshData);
-			ChunkMesh.GenerateMesh();
+			//ChunkMesh.SetMeshData(meshData);
+			ChunkMesh.GenerateMesh(ref meshData);
 
 
 		}
@@ -222,9 +222,8 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				blocks.AddRange(new[] {V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset, V[I[3]] + offset});
 				indices.AddRange(new[] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3});
-				currentindex += 4;
-
 				uVs.AddRange(new[] {uvOffset, uvB, uvC, uvD});	
+				currentindex += 4;
 			}
 			else
 			{
@@ -274,7 +273,7 @@ namespace MCClone_Core.World_CS.Generation
 					if (DiscardAir)
 					{
 						int Index = GetFlattenedDimension(bx, y, bz);
-						return !BlockHelper.BlockTypes[ProcWorld.Instance.LoadedChunks[cpos].BlockData[Index]].Air;
+						return BlockHelper.BlockTypes[ProcWorld.Instance.LoadedChunks[cpos].BlockData[Index]].Air;
 					}
 					
 					return ProcWorld.Instance.LoadedChunks[cpos]._visibilityMask[bx, y, bz];
@@ -290,7 +289,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			if (DiscardAir)
 			{
-				return !BlockHelper.BlockTypes[BlockData[GetFlattenedDimension(x,y,z)]].Air;
+				return BlockHelper.BlockTypes[BlockData[GetFlattenedDimension(x,y,z)]].Air;
 			}
 			return _visibilityMask[x,y,z];
 		}

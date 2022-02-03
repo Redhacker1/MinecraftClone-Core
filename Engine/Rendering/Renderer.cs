@@ -37,16 +37,13 @@ namespace Engine.Rendering
         ViewProj _worldDataBuffer;
         internal Renderer(IView viewport)
         {
-            unsafe
-            {
-                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
-                _list = Device.ResourceFactory.CreateCommandList();
-                ProjectionBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
-                ViewBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
-                WorldBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
-                _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport,
-                    InputHandler.Context);
-            }
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
+            _list = Device.ResourceFactory.CreateCommandList();
+            ProjectionBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
+            ViewBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
+            WorldBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
+            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport,
+                InputHandler.Context);
 
             //Device.SyncToVerticalBlank = true;
         }
@@ -89,12 +86,12 @@ namespace Engine.Rendering
                         meshes.Add(mesh);
                     }
                 }
-            });   
+            });
 
+            Material prevmaterial = null;
             foreach (Mesh mesh in meshes)
             {
-
-                if(!mesh.UpdatingMesh && mesh.BindResources(_list))
+                if(!mesh.UpdatingMesh && mesh.BindResources(_list, prevmaterial))
                 {
                     _list.UpdateBuffer(WorldBuffer, 0, mesh.ViewMatrix);
 
@@ -106,6 +103,8 @@ namespace Engine.Rendering
                     {
                         _list.Draw(mesh.VertexElements);   
                     }
+
+                    prevmaterial = mesh.MeshMaterial;
                 }
 
             }

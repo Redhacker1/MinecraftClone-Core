@@ -273,7 +273,7 @@ namespace MCClone_Core.World_CS.Generation
 					if (DiscardAir)
 					{
 						int Index = GetFlattenedDimension(bx, y, bz);
-						return !BlockHelper.BlockTypes[ProcWorld.Instance.LoadedChunks[cpos].BlockData[Index]].Air;
+						return BlockHelper.BlockTypes[ProcWorld.Instance.LoadedChunks[cpos].BlockData[Index]].Air;
 					}
 					
 					return ProcWorld.Instance.LoadedChunks[cpos]._visibilityMask[bx, y, bz];
@@ -289,7 +289,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			if (DiscardAir)
 			{
-				return !BlockHelper.BlockTypes[BlockData[GetFlattenedDimension(x,y,z)]].Air;
+				return BlockHelper.BlockTypes[BlockData[GetFlattenedDimension(x,y,z)]].Air;
 			}
 			return _visibilityMask[x,y,z];
 		}

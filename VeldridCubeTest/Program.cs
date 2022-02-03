@@ -116,7 +116,7 @@ namespace VeldridCubeTest
 			};
 			var Object = new Entity(Engine.MathLib.DoublePrecision_Numerics.Vector3.One, Vector2.Zero);
 			Mesh mesh = new Mesh(Object, material);
-			mesh.GenerateMesh(data);
+			mesh.GenerateMesh(ref data);
 
         }
         

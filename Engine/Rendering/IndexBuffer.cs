@@ -58,7 +58,7 @@ namespace Engine.Rendering
                     bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
                 }
             }
-            device.UpdateBuffer(bufferObject, 0, data.ToArray());
+            device.UpdateBuffer(bufferObject, 0, data);
         }
     }
 }

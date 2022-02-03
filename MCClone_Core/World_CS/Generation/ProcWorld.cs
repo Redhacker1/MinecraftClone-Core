@@ -164,12 +164,11 @@ namespace MCClone_Core.World_CS.Generation
 		}
 
 
-
-
+        private bool playerPosUpdated;
 
 		void GenerationProcess()
 		{
-			bool playerPosUpdated = _newChunkPos != _chunkPos;
+			playerPosUpdated = _newChunkPos != _chunkPos;
 
 			_chunkPos = _newChunkPos;
 

@@ -1,11 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
+using System;
+using System.IO;
+using Pfim;
 using Veldrid;
+using IS = SixLabors.ImageSharp;
 
 namespace Engine.Rendering
 {
@@ -17,7 +16,43 @@ namespace Engine.Rendering
 
         public unsafe Texture(GraphicsDevice device, string path)
         {
-            Image<Rgba32> img = (Image<Rgba32>) Image.Load(path);
+            IS.Image<Rgba32> img;
+
+            if (Path.GetExtension(path) != ".dds")
+            {
+                img = (IS.Image<Rgba32>) IS.Image.Load(path);
+            }
+            else
+            {
+                byte[] newData;
+                int width;
+                int height;
+                using (IImage image = Pfim.Pfim.FromFile(path))
+                {
+                    width = image.Width;
+                    height = image.Height;
+                    
+                    // Since image sharp can't handle data with line padding in a stride
+                    // we create an stripped down array if any padding is detected
+                    var tightStride = image.Width * image.BitsPerPixel / 8;
+                    if (image.Stride != tightStride)
+                    {
+                        newData = new byte[image.Height * tightStride];
+                        for (int i = 0; i < image.Height; i++)
+                        {
+                            Buffer.BlockCopy(image.Data, i * image.Stride, newData, i * tightStride, tightStride);
+                        }
+                    }
+                    else
+                    {
+                        newData = image.Data;
+                    }
+                    image.Dispose();
+                }
+                
+                img = IS.Image.LoadPixelData<Rgba32>(newData, width, height);
+            }
+            
             //img.Mutate(x => x.Flip(FlipMode.Horizontal));
             if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
@@ -37,9 +72,9 @@ namespace Engine.Rendering
 
 
 
-        public static Texture GenTextureFromBytes(GraphicsDevice device, byte[] data)
+        public Texture(GraphicsDevice device, byte[] data)
         {
-            var img = Image.Load(data);
+            var img = IS.Image.Load(data);
             var tex = new Texture();
             if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
@@ -50,7 +85,6 @@ namespace Engine.Rendering
                 throw new Exception("Engine failed to read texture");
             }
             img.Dispose();
-            return tex;
         }
 
 

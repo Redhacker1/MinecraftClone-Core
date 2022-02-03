@@ -19,6 +19,7 @@
       <PackageReference Include="BepuPhysics" Version="2.3.0" />
       <PackageReference Include="ImGui.NET" Version="1.86.0" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="Pfim" Version="0.10.3" />
       <PackageReference Include="Silk.NET.Assimp" Version="2.12.0" />
       <PackageReference Include="Silk.NET.Input" Version="2.12.0" />
       <PackageReference Include="Silk.NET.OpenAL" Version="2.12.0" />

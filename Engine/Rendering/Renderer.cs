@@ -39,7 +39,7 @@ namespace Engine.Rendering
         {
             unsafe
             {
-                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
+                Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
                 _list = Device.ResourceFactory.CreateCommandList();
                 ProjectionBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
                 ViewBuffer = Device.ResourceFactory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer));
@@ -89,12 +89,12 @@ namespace Engine.Rendering
                         meshes.Add(mesh);
                     }
                 }
-            });   
+            });
 
+            Material prevmaterial = null;
             foreach (Mesh mesh in meshes)
             {
-
-                if(!mesh.UpdatingMesh && mesh.BindResources(_list))
+                if(!mesh.UpdatingMesh && mesh.BindResources(_list, prevmaterial))
                 {
                     _list.UpdateBuffer(WorldBuffer, 0, mesh.ViewMatrix);
 
@@ -106,6 +106,8 @@ namespace Engine.Rendering
                     {
                         _list.Draw(mesh.VertexElements);   
                     }
+
+                    prevmaterial = mesh.MeshMaterial;
                 }
 
             }

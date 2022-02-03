@@ -27,9 +27,9 @@ namespace Engine.AssetLoading
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
         /// <summary>
-        public static unsafe (Mesh[],List<Texture>) LoadMesh(string meshName, GameObject BindingObject, Renderable.Material material)
+        public static unsafe (Mesh[],IReadOnlyDictionary<string ,Texture>) LoadMesh(string meshName, GameObject BindingObject, Renderable.Material material)
         {
-            List<Texture> textures = new List<Texture>();
+            Dictionary<string ,Texture> textures = new Dictionary<string ,Texture>();
             //Stride.Core.IO.
             assimp things = assimp.GetApi();
             
@@ -171,7 +171,7 @@ namespace Engine.AssetLoading
                     _uvs = meshUvsArr
                     
                 };
-                meshes[meshcount].SetMeshData(data);
+                meshes[meshcount].GenerateMesh(ref data);
                 for (int Material = 0; Material < scene->MMaterials[mesh->MMaterialIndex]->MNumProperties ; Material++)
                 {
                     var mat = scene->MMaterials[mesh->MMaterialIndex];
@@ -194,7 +194,11 @@ namespace Engine.AssetLoading
                                 }
                                 else
                                 {
-                                    textures.Add(new Texture(WindowClass._renderer.Device, Path.Combine(directory, pathData)));
+                                    var path = Path.Combine(directory, pathData);
+                                    if (textures.ContainsKey(path) == false)
+                                    {
+                                        textures.Add(path, new Texture(WindowClass._renderer.Device, path));
+                                    }
                                 }
                             }
                         }

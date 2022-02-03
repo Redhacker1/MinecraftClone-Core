@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
+using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 using Engine.Windowing;
 using Veldrid;
 
@@ -18,14 +17,12 @@ namespace Engine.Renderable
         
         internal static object scenelock = new object();
         internal bool UseIndexedDrawing;
-        Material MeshMaterial;
         internal bool UpdatingMesh = true;
-        public uint VertexElements => (uint) (_indices?.Length ?? _vertices.Length);
+        internal Material MeshMaterial;
+        public uint VertexElements = 0;
         public static List<Mesh> Meshes = new();
 
-        Vector3[] _vertices;
-        Vector3[] _uvs;
-        uint[] _indices;
+
 
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
@@ -39,7 +36,11 @@ namespace Engine.Renderable
         public Quaternion Rotation  = Quaternion.Identity;
 
         //Note: The order here does matter.
-        public Matrix4x4 ViewMatrix => Matrix4x4.CreateFromQuaternion(Quaternion.CreateFromYawPitchRoll((float)_objectReference.Rotation.X, (float)_objectReference.Rotation.Y, (float)_objectReference.Rotation.Z)) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(_objectReference.Pos -Camera.MainCamera.Pos);
+        public Matrix4x4 ViewMatrix => Matrix4x4.CreateFromQuaternion(
+            Quaternion.CreateFromYawPitchRoll((float)MathHelper.DegreesToRadians(_objectReference.Rotation.X), 
+                (float)MathHelper.DegreesToRadians(_objectReference.Rotation.Y), 
+                (float)MathHelper.DegreesToRadians(_objectReference.Rotation.Z))) * Matrix4x4.CreateScale(Scale)
+              * Matrix4x4.CreateTranslation(_objectReference.Pos -Camera.MainCamera.Pos);
         
         
         public Mesh(MinimalObject bindingobject, Material material)
@@ -52,64 +53,48 @@ namespace Engine.Renderable
         }
 
 
-        float[] CreateVertexArray()
+        float[] CreateVertexArray(MeshData data)
         {
             Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            float[] values = new float[_vertices.Length * 6];
-            for (int i = 0; i < _vertices.Length; i++)
+            float[] values = new float[data._vertices.Length * 6];
+            for (int i = 0; i <data._vertices.Length; i++)
             {
                 
                 
-                values[i * 6] = (_vertices[i].X);
-                values[i * 6 + 1] = _vertices[i].Y;
-                values[i * 6 + 2] =(_vertices[i].Z);
+                values[i * 6] = (data._vertices[i].X);
+                values[i * 6 + 1] = data._vertices[i].Y;
+                values[i * 6 + 2] =(data._vertices[i].Z);
                 //values[i + 3] = 0;
-                values[i * 6 + 3] =(_uvs[i].X);
-                values[i * 6 + 4] =(_uvs[i].Y);
-                values[i * 6 + 5] =(_uvs[i].Z);
+                values[i * 6 + 3] =(data._uvs[i].X);
+                values[i * 6 + 4] =(data._uvs[i].Y);
+                values[i * 6 + 5] =(data._uvs[i].Z);
                 //values[i + 6] = 0;
 
-                tempmin = Vector3.Min(_vertices[i] * Scale, tempmin);
-                tempmax = Vector3.Max(_vertices[i] * Scale, tempmax);
+                tempmin = Vector3.Min(data._vertices[i] * Scale, tempmin);
+                tempmax = Vector3.Max(data._vertices[i] * Scale, tempmax);
             }
-
+            
+            VertexElements = (uint) (data._indices?.Length ?? data._vertices.Length);
             Maxpoint = tempmax;
             Minpoint = tempmin;
             return values;
         }
 
-        [Obsolete("Use Generate mesh instead")]
-        public void QueueVaoRegen()
-        {
-            GenerateMesh();
-        }
-
-
-
-        public void SetMeshData(MeshData meshData)
-        {
-            _vertices =meshData._vertices;
-            _uvs = meshData._uvs;
-            _indices = meshData._indices;
-            UseIndexedDrawing = (meshData._indices != null && meshData._indices.Length > 0);
-
-
-        }
-
         /// <summary>
-        /// Updates the Vertex Array, this allows for the mesh to be updated.
+        /// Updates the Vertex Array, this allows for the mesh to be updated with the supplied data from the MeshData.
         /// </summary>
-        public void GenerateMesh()
+        public void GenerateMesh(ref MeshData data)
         {
             
-            float[] vertices = CreateVertexArray();
+            float[] vertices = CreateVertexArray(data);
 
             UpdatingMesh = true;
 
-            if (_indices?.Length > 0)
+            if (data._indices?.Length > 0)
             {
-                ebo = new IndexBuffer<uint>(WindowClass._renderer.Device, _indices);   
+                ebo = new IndexBuffer<uint>(WindowClass._renderer.Device, data._indices);
+                UseIndexedDrawing = true;
             }
             vbo = new VertexBuffer<float>(WindowClass._renderer.Device, vertices);
             UpdatingMesh = false;
@@ -123,31 +108,31 @@ namespace Engine.Renderable
             Meshes.Remove(this);
         }
 
-        
-        
-        [Obsolete]
-        public void QueueDeletion()
-        {
-            
-        }
-
         public uint GetMeshSize()
         {
             if (UpdatingMesh == false)
             {
                 return VertexElements;
             }
-            else
-            {
-                return 0;
-            }
+
+            return 0;
         }
         
         
 
-        internal bool BindResources(CommandList list)
+        internal bool BindResources(CommandList list, Material DontSwitchIfme)
         {
-            bool success = MeshMaterial != null && MeshMaterial.BindMaterial(list);
+            bool success = false;
+            if (MeshMaterial != DontSwitchIfme)
+            {
+                success = MeshMaterial != null && MeshMaterial.BindMaterial(list);    
+            }
+            else
+            {
+                success = true;
+            }
+            
+            
             if (vbo != null && success)
             {
                 vbo.Bind(list);

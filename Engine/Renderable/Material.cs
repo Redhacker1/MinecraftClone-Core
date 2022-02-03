@@ -1,4 +1,5 @@
-﻿using Engine.Windowing;
+﻿using Engine.Rendering;
+using Engine.Windowing;
 using Veldrid;
 using Pipeline = Engine.Rendering.Pipeline;
 
@@ -53,8 +54,12 @@ namespace Engine.Renderable
             }
             return false;
         }
-        
 
+
+        public void ResourceSet(uint slot, params IGraphicsResource[] resources)
+        {
+            throw new System.NotImplementedException();
+        }
     }
     
 }

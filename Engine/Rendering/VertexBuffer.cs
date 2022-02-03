@@ -43,7 +43,7 @@ namespace Engine.Rendering
             bufferObject.Dispose();
         }
         
-        public void ModifyBuffer(TDataType[] data, GraphicsDevice device)
+        public void ModifyBuffer(Span<TDataType> data, GraphicsDevice device)
         {
             if (data.Length > Length)
             {

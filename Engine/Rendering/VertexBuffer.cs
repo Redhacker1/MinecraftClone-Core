@@ -12,7 +12,7 @@ namespace Engine.Rendering
         where TDataType : unmanaged
     {
         
-        public unsafe VertexBuffer(GraphicsDevice gDevice, TDataType[] data)
+        public unsafe VertexBuffer(GraphicsDevice gDevice, ReadOnlySpan<TDataType> data)
         {
             bufferObject = gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  data.Length),
                 BufferUsage.VertexBuffer));
@@ -43,7 +43,7 @@ namespace Engine.Rendering
             bufferObject.Dispose();
         }
         
-        public void ModifyBuffer(Span<TDataType> data, GraphicsDevice device)
+        public void ModifyBuffer(ReadOnlySpan<TDataType> data, GraphicsDevice device)
         {
             if (data.Length > Length)
             {

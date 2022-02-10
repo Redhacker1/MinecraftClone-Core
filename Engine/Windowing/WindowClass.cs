@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using Engine.Input;
+﻿using Engine.Input;
 using Engine.Objects;
 using Engine.Rendering;
-using Silk.NET.GLFW;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using System;
+using System.Diagnostics;
 using Shader = Engine.Rendering.Shader;
 using Texture = Engine.Rendering.Texture;
 
@@ -88,15 +88,23 @@ namespace Engine.Windowing
 
             for (int  index = 0;  index < GameObject.Objects.Count; index++)
             {
-                var gameObject = GameObject.Objects[index];
-                if (gameObject != null)
+                WeakReference<GameObject> objectReference = GameObject.Objects[index];
+                bool successful = objectReference.TryGetTarget(out GameObject gameObject);
+                
+                if (successful)
                 {
+
+                    if (gameObject.cleanup)
+                    {
+                        gameObject.Dispose();
+                        continue;
+                    }
+
                     if (gameObject.Started != true)
                     {
                         gameObject._Ready();
                         gameObject.Started = true;
                     }
-
                     if (gameObject.Ticks)
                     {
                         gameObject._Process(delta);
@@ -105,6 +113,10 @@ namespace Engine.Windowing
                     {
                         gameObject._PhysicsProcess(physicsDelta);
                     }
+                }
+                else
+                {
+                    GameObject.Objects.Remove(objectReference);
                 }
             }
 

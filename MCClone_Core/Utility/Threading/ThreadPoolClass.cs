@@ -10,6 +10,8 @@ namespace MCClone_Core.Utility.Threading
         // An array of threads
         PooledThreadClass[] _pooledThreadClasses;
 
+        public bool Started;
+        
         /// <summary>
         /// Number of threads currently in use
         /// </summary>
@@ -91,6 +93,7 @@ namespace MCClone_Core.Utility.Threading
         /// </summary>
         public void IgniteThreadPool()
         {
+            Started = true;
             foreach (PooledThreadClass Thread in _pooledThreadClasses)
             {
                 Thread.PrepareThread();
@@ -116,13 +119,13 @@ namespace MCClone_Core.Utility.Threading
                     Monitor.Pulse(PooledThreadClass.ThreadLocker);
                 }
             }
+            Started = false;
         }
 
         /// <summary>
         /// Unsure of this works, this might crash the program, that being said is supposed to signal true if the threadpool is completely idle
         /// </summary>
         /// <returns> true if the threadpool is idle, false if it is not</returns>
-        [SuppressMessage("ReSharper", "LoopCanBeConvertedToQuery")]
         public bool AllThreadsIdle()
         {
             foreach (PooledThreadClass Thread in _pooledThreadClasses)

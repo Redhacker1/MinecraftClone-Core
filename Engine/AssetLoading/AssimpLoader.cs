@@ -158,9 +158,9 @@ namespace Engine.AssetLoading
                         continue;
                     }
 
-                    indicies.Add((uint)currentface.MIndices[0]);
-                    indicies.Add((uint)currentface.MIndices[1]);
-                    indicies.Add((uint)currentface.MIndices[2]);
+                    indicies.Add(currentface.MIndices[0]);
+                    indicies.Add(currentface.MIndices[1]);
+                    indicies.Add(currentface.MIndices[2]);
                 }
                 
                 meshes[meshcount] = new Mesh(BindingObject, material);
@@ -171,7 +171,7 @@ namespace Engine.AssetLoading
                     _uvs = meshUvsArr
                     
                 };
-                meshes[meshcount].GenerateMesh(ref data);
+                meshes[meshcount].GenerateMesh(data);
                 for (int Material = 0; Material < scene->MMaterials[mesh->MMaterialIndex]->MNumProperties ; Material++)
                 {
                     var mat = scene->MMaterials[mesh->MMaterialIndex];

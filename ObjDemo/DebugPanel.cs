@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
+using Engine.MathLib;
 using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Rendering.Culling;
@@ -12,6 +13,7 @@ namespace Engine
 {
     class DebugPanel : ImGUIPanel
     {
+        bool ThreadPool;
         int Distance;
         bool PressedBefore;
         internal bool Movable = false;
@@ -23,6 +25,7 @@ namespace Engine
             AddFlag(ImGuiWindowFlags.AlwaysAutoResize);
             AddFlag(ImGuiWindowFlags.NoCollapse);
             PanelName = "Debugging";
+
         }
 
         object thing = new object();
@@ -57,8 +60,9 @@ namespace Engine
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
 
-            Vector3 camerapos = Camera.MainCamera.Pos;
+            Vector3 camerapos = Camera.MainCamera.Pos.CastToNumerics();
             ImGui.InputFloat3("Player Location: ", ref camerapos, null, ImGuiInputTextFlags.ReadOnly);
+            
 
 
         }

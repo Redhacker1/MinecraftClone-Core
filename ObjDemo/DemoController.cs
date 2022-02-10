@@ -1,4 +1,5 @@
 ﻿using Engine.Input;
+using Engine.MathLib;
 using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Objects;
 using Engine.Rendering;
@@ -20,8 +21,8 @@ namespace CullingTests
         public void Move(double deltatime)
         {
             Vector3 direction = new Vector3();
-            Vector3 cameraForward = Camera.MainCamera.Front;
-            Vector3 cameraLeft = -Camera.MainCamera.Right;
+            Vector3 cameraForward = Camera.MainCamera.Front.CastToDouble();
+            Vector3 cameraLeft = -Camera.MainCamera.Right.CastToDouble();
 
             if (InputHandler.KeyboardKeyDown(0,Key.W))
             {

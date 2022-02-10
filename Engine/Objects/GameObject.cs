@@ -8,14 +8,19 @@ namespace Engine.Objects
     /// </summary>
     public class GameObject : MinimalObject, IDisposable
     {
-        public static List<GameObject> Objects = new List<GameObject>();
+        public static List<WeakReference<GameObject>> Objects = new List<WeakReference<GameObject>>();
         internal bool Started = false;
         public bool PhysicsTick = false;
         public bool Ticks = false;
+        internal bool cleanup;
+        bool Freed = false;
         
+        WeakReference<GameObject> ownWeakRef;
+
         public GameObject()
         {
-            Objects.Add((this)); 
+            ownWeakRef = new WeakReference<GameObject>((this));
+            Objects.Add(ownWeakRef); 
         }
         
         
@@ -57,13 +62,24 @@ namespace Engine.Objects
         /// </summary>
         public void Free()
         {
-            Dispose();
+            cleanup = true;
         }
 
         public void Dispose()
         {
+            Freed = true;
             OnFree();
-            Objects.Remove(this);
+            Objects.Remove(ownWeakRef);
+        }
+
+        ~GameObject()
+        {
+            if (Freed == false)
+            {
+                Console.WriteLine("Object Leak!");
+                OnFree();
+                Objects.Remove(ownWeakRef);   
+            }
         }
     }
 }

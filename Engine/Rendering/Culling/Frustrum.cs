@@ -1,23 +1,27 @@
 ﻿using System;
 using System.Numerics;
+using Engine.MathLib;
 using Engine.Renderable;
 
 namespace Engine.Rendering.Culling
 {
+    struct OBB
+    {
+        Vector3 center;
+        Vector3 extents;
+        // Orthonormal basis
+        Quaternion Rotation;
+};
 
     public struct AABB // Alternative: aabb_t { float3 min; float3 max; };
     {
         public Vector3 center;
         public Vector3 extents;
-        public Vector3 Max;
-        public Vector3 Min;
 
         public AABB(Vector3 min, Vector3 max)
         {
             center = (min + max) * .5f;
             extents = max - center;
-            Max = max;
-            Min = min;
         }
     }
     public struct Plane
@@ -54,10 +58,10 @@ namespace Engine.Rendering.Culling
             Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
 
             
-            Vector3 mat3 = new Vector3(thingmat.M41, thingmat.M42, thingmat.M43);
-            Vector3 mat2 = new Vector3(thingmat.M31, thingmat.M32, thingmat.M33);
-            Vector3 mat1 = new Vector3(thingmat.M21, thingmat.M22, thingmat.M23);
-            Vector3 mat0 = new Vector3(thingmat.M11, thingmat.M12, thingmat.M13);
+            Vector3 mat3 = new(thingmat.M41, thingmat.M42, thingmat.M43);
+            Vector3 mat2 = new(thingmat.M31, thingmat.M32, thingmat.M33);
+            Vector3 mat1 = new(thingmat.M21, thingmat.M22, thingmat.M23);
+            Vector3 mat0 = new(thingmat.M11, thingmat.M12, thingmat.M13);
             
             Vector3 nearCenter = mat3 - mat2 * near;
             Vector3 farCenter = mat3 - mat2 * far;
@@ -79,17 +83,17 @@ namespace Engine.Rendering.Culling
             
 
             // Near
-            planes[0] = new Plane(nearTopRight, nearTopLeft, nearBottomLeft);
+            planes[0] = new(nearTopRight, nearTopLeft, nearBottomLeft);
             // Far
-            planes[1] = new Plane(farTopLeft, farTopRight, farBottomRight);
+            planes[1] = new(farTopLeft, farTopRight, farBottomRight);
             // Left
-            planes[2] = new Plane(nearTopLeft, farTopLeft, nearBottomLeft);
+            planes[2] = new(nearTopLeft, farTopLeft, nearBottomLeft);
             // Right
-            planes[3] = new Plane(farTopRight, nearTopRight, farBottomRight);
+            planes[3] = new(farTopRight, nearTopRight, farBottomRight);
             // Top
-            planes[4] = new Plane(nearTopLeft, nearTopRight, farTopLeft);
+            planes[4] = new(nearTopLeft, nearTopRight, farTopLeft);
             //Bottom
-            planes[5] = new Plane(nearBottomLeft, farBottomLeft, farBottomRight);
+            planes[5] = new(nearBottomLeft, farBottomLeft, farBottomRight);
             Planes =  planes;
         }
     }
@@ -99,35 +103,39 @@ namespace Engine.Rendering.Culling
         private static int SphereToPlane(ref Plane plane, ref Sphere sphere)
         {
             float num = Vector3.Dot(sphere.Position, plane.Normal) - plane.Offset;
-            if ((double) num > (double) sphere.Radius)
+            if (num > sphere.Radius)
                 return 1;
-            return (double) num < -(double) sphere.Radius ? -1 : 0;
+            return num < - sphere.Radius ? -1 : 0;
         }
 
         public static int AABBToPlane(ref Plane plane, ref AABB aabb)
         {
-            Sphere sphere = new Sphere(Vector3.Dot(Vector3.Abs(new Vector3(plane.Normal.X, plane.Normal.Y, plane.Normal.Z)), aabb.extents), aabb.center);
-            return IntersectionHandler.SphereToPlane(ref plane, ref sphere);
+
+            Sphere sphere = new(Vector3.Dot(Vector3.Abs(new(plane.Normal.X, plane.Normal.Y, plane.Normal.Z)), aabb.extents), aabb.center);
+            return SphereToPlane(ref plane, ref sphere);
         }
 
         public static bool MeshInFrustrum(Mesh mesh, Frustrum? frustum)
         {
             if (frustum.HasValue && mesh != null)
             {
-                AABB aabb = new AABB((Vector3) (mesh.Position - frustum.Value.camerapos) + mesh.Minpoint, (Vector3) (mesh.Position - frustum.Value.camerapos) + mesh.Maxpoint);
-                return IntersectionHandler.aabb_to_frustum(ref aabb, frustum.Value);   
+                Span<Vector3> outValues = stackalloc Vector3[2];
+                mesh.GetMinMaxRotated(outValues, frustum.Value.camerapos.CastToNumerics());
+                AABB aabb = new(outValues[0], outValues[1]);
+                return aabb_to_frustum(ref aabb, frustum.Value);   
             }
             else
             {
                 return false;
             }
         }
+        
 
         private static bool aabb_to_frustum(ref AABB aabb, Frustrum frustum)
         {
             for (int index = 0; index < frustum.Planes.Length; ++index)
             {
-                if (IntersectionHandler.AABBToPlane(ref frustum.Planes[index], ref aabb) == 1)
+                if (AABBToPlane(ref frustum.Planes[index], ref aabb) == 1)
                     return false;
             }
             return true;

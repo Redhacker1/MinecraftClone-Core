@@ -28,7 +28,7 @@ namespace ObjDemo
 		public override void _Ready()
 		{
 			Rotation = Vector3.Zero;
-			_fpCam = new Camera(Pos, -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(Pos.CastToNumerics(), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			_fpCam.Rotation = System.Numerics.Vector3.Zero;
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
@@ -87,7 +87,7 @@ namespace ObjDemo
 					cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
+					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection).CastToNumerics();
 				}
 			}
 		}

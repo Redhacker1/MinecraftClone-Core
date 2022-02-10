@@ -99,7 +99,7 @@ namespace MCClone_Core.Utility.IO
 
             saveData.Location = new Vector2(x, y);
             
-            // TODO: Add chunk dimensions to file format and have it calculate this value automatically
+            // TODO: Add chunk Maxs to file format and have it calculate this value automatically
             byte[] serializedBlockData = fileReader.ReadBytes(16 * 16 * 384);
             saveData.ChunkBlocks = new byte[16 * 16 * 384];
 
@@ -113,15 +113,15 @@ namespace MCClone_Core.Utility.IO
             compressor?.Close();
             fs.Close();
 
-            ChunkCs referencedChunk = new ChunkCs
+            ChunkCs referencedChunk = new ChunkCs()
             {
                 BlockData = saveData.ChunkBlocks,
                 ChunkCoordinate = saveData.Location,
 
             #if Core
-                Pos = new Vector3(ChunkCs.Dimension.X * saveData.Location.X, 0, ChunkCs.Dimension.Z * saveData.Location.Y)
+                Pos = new Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxZ * saveData.Location.Y)
             #else
-                Translation = new Godot.Vector3(ChunkCs.Dimension.X * saveData.Location.X, 0, ChunkCs.Dimension.Z * saveData.Location.Y)
+                Translation = new Godot.Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxZ * saveData.Location.Y)
             #endif
             };
 
@@ -176,7 +176,7 @@ namespace MCClone_Core.Utility.IO
                 int y = fileReader.ReadInt32();
 
                 saveData.Location = new Vector2(x, y);
-                // TODO: Add chunk dimensions to file format and have it calculate this value automatically
+                // TODO: Add chunk Maxs to file format and have it calculate this value automatically
                 byte[] serializedBlockData = fileReader.ReadBytes(16 * 16 * 384);
                 saveData.ChunkBlocks = new byte[16 * 16 * 384];
 
@@ -190,7 +190,8 @@ namespace MCClone_Core.Utility.IO
             return chunks;
         }
 
-        public override void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world, bool optimizeSave = true)
+        public override void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+            bool optimizeSave = true)
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
             string filename;

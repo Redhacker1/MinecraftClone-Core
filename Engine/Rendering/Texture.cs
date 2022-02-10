@@ -13,6 +13,7 @@ namespace Engine.Rendering
     public class Texture : IDisposable, IGraphicsResource
     {
         public Veldrid.Texture _texture;
+        
 
         public unsafe Texture(GraphicsDevice device, string path)
         {
@@ -100,6 +101,11 @@ namespace Engine.Rendering
         public void Dispose()
         {
             _texture.Dispose();
+        }
+
+        (ResourceKind, BindableResource) IGraphicsResource.GetUnderlyingResources()
+        {
+            return (ResourceKind.TextureReadOnly, _texture);
         }
     }
 }

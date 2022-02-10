@@ -4,6 +4,7 @@
 using Godot;
 #endif
 using Engine.Input;
+using Engine.MathLib;
 using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Rendering;
 using Silk.NET.Input;
@@ -26,8 +27,8 @@ namespace MCClone_Core.Player_CS
             //direction.X = 1;
             //direction.Z = 1;
 
-            Vector3 CameraForward = Camera.MainCamera.Front;
-            Vector3 CameraLeft = -Camera.MainCamera.Right;
+            Vector3 CameraForward = Camera.MainCamera.Front.CastToDouble();
+            Vector3 CameraLeft = -Camera.MainCamera.Right.CastToDouble();
 
             if (InputHandler.KeyboardKeyDown(0, Key.W))
             {

@@ -1,7 +1,7 @@
 using System;
 using Engine.MathLib;
 using MCClone_Core.World_CS.Generation.Noise;
-using Random = Engine.Random.Random;
+using Random = Engine.MathLib.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
@@ -47,8 +47,8 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 
 			for (int NTree = 0; NTree < Rng.NextInt(2, 8); NTree++)
 			{
-				int PosX = Rng.NextInt(treeWidth, (int) ChunkCs.Dimension.X - treeWidth - 1);
-				int PosZ = Rng.NextInt(treeWidth, (int) ChunkCs.Dimension.Z - treeWidth - 1);
+				int PosX = Rng.NextInt(treeWidth, ChunkCs.MaxX - treeWidth - 1);
+				int PosZ = Rng.NextInt(treeWidth, ChunkCs.MaxZ - treeWidth - 1);
 				int TreeHeight = Rng.NextInt(4, 8);
 				
 				for (int I = 0; I < TreeHeight; I++)
@@ -89,8 +89,8 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 
 				for (int NShrub = 0; NShrub < Rng.NextInt(6, 10); NShrub++)
 				{
-					int X = Rng.NextInt(0, (int)ChunkCs.Dimension.X - 1);
-					int Z = Rng.NextInt(0, (int)ChunkCs.Dimension.Z - 1);
+					int X = Rng.NextInt(0, ChunkCs.MaxX - 1);
+					int Z = Rng.NextInt(0, ChunkCs.MaxZ - 1);
 					int Y = GroundHeight[X,Z];
 					
 					// 11 is block ID for tall grass
@@ -102,8 +102,8 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 
 				for (int NFlower = 0; NFlower < Rng.NextInt(4, 6); NFlower++)
 				{
-					int X = Rng.NextInt(0, (int)ChunkCs.Dimension.X - 1);
-					int Z = Rng.NextInt(0, (int)ChunkCs.Dimension.Z - 1);
+					int X = Rng.NextInt(0, ChunkCs.MaxX - 1);
+					int Z = Rng.NextInt(0, ChunkCs.MaxZ - 1);
 					int Y = GroundHeight[X,Z];
 					
 					// 3 is BID for flower

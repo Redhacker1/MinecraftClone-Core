@@ -70,7 +70,7 @@ namespace MCClone_Core.Utility.IO
 
             saveData.Location = new Vector2(x, y);
             
-            // TODO: Add chunk dimensions to file format and have it calculate this value automatically
+            // TODO: Add chunk Maxs to file format and have it calculate this value automatically
             byte[] serializedBlockData = fileReader.ReadBytes(98304);
             saveData.ChunkBlocks = new byte[98304];
 
@@ -86,11 +86,11 @@ namespace MCClone_Core.Utility.IO
             
             fs.Close();
 
-            ChunkCs referencedChunk = new ChunkCs
+            ChunkCs referencedChunk = new ChunkCs()
             {
                 BlockData = saveData.ChunkBlocks,
                 ChunkCoordinate = saveData.Location,
-                Pos = new Vector3(ChunkCs.Dimension.X * saveData.Location.X, 0, ChunkCs.Dimension.X * saveData.Location.Y)
+                Pos = new Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxX * saveData.Location.Y)
 
             };
             
@@ -100,7 +100,8 @@ namespace MCClone_Core.Utility.IO
             return referencedChunk;
         }
 
-        public override void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world, bool optimizeSave = true)
+        public override void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+            bool optimizeSave = true)
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
             

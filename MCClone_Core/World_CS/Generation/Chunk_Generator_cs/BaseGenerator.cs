@@ -2,7 +2,7 @@
 using Engine.MathLib;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Noise;
-using Random = Engine.Random.Random;
+using Random = Engine.MathLib.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
@@ -22,11 +22,11 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             //noise.SetFrequency(0.0001f);
             MixedNoiseClass HeightNoise = new MixedNoiseClass(3, noise);
 
-            int[,] groundHeight = new int[(int)ChunkCs.Dimension.X, (int)ChunkCs.Dimension.Z];
+            int[,] groundHeight = new int[ChunkCs.MaxX, ChunkCs.MaxZ];
 
-            for (int x = 0; x < ChunkCs.Dimension.X; x++)
+            for (int x = 0; x < ChunkCs.MaxX; x++)
             {
-                for (int z = 0; z < ChunkCs.Dimension.Z; z++)
+                for (int z = 0; z < ChunkCs.MaxZ; z++)
                 {
                     double hNoise = MathHelper.Clamp(((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z)))/2,  0, 1);
                     int yHeight = (int) (hNoise * (GenHeight - 1) + 1);
@@ -41,14 +41,14 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 
         public void Generate(ChunkCs  chunk, int X, int Z, long Seed)
         {
-            X *= (int)ChunkCs.Dimension.X;
-            Z *= (int)ChunkCs.Dimension.Z;
+            X *= ChunkCs.MaxX;
+            Z *= ChunkCs.MaxZ;
             
             int[,] surfaceheight = GenerateHeightmap(X,Z,Seed);
 
-            for (int x = 0; x < ChunkCs.Dimension.X; x++)
+            for (int x = 0; x < ChunkCs.MaxX; x++)
             {
-                for (int z = 0; z < ChunkCs.Dimension.Z; z++)
+                for (int z = 0; z < ChunkCs.MaxZ; z++)
                 {
                     generate_surface(chunk ,surfaceheight[x,z], x, z); 
                     GenerateTopsoil(chunk,surfaceheight[x,z], x, z, Seed);	
@@ -80,9 +80,9 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 			
             Noisegen.SetFractalOctaves(100);
 
-            for (int Z = 0; Z < ChunkCs.Dimension.Z; Z++)
+            for (int Z = 0; Z < ChunkCs.MaxZ; Z++)
             {
-                for (int X = 0; X < ChunkCs.Dimension.X; X++)
+                for (int X = 0; X < ChunkCs.MaxX; X++)
                 {
                     for (int Y = 0 + MinTerrainHeight; Y == Height[X, Z]; Y++)
                     {
@@ -99,7 +99,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
         
         internal static bool IsBlockAir(ChunkCs Chunk, int X, int Y, int Z)
         {
-            return BlockHelper.BlockTypes[Chunk.BlockData[ChunkCs.GetFlattenedDimension(X, Y - 1, Z)]].Air;
+            return BlockHelper.BlockTypes[Chunk.BlockData[ChunkCs.GetFlattenedMax(X, Y - 1, Z)]].Air;
         }
 
 

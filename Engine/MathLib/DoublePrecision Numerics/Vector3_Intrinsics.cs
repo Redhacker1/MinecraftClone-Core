@@ -71,7 +71,7 @@ namespace Engine.MathLib.DoublePrecision_Numerics
         /// Copies the contents of the vector into the given array, starting from index.
         /// </summary>
         /// <exception cref="ArgumentNullException">If array is null.</exception>
-        /// <exception cref="RankException">If array is multidimensional.</exception>
+        /// <exception cref="RankException">If array is multiMaxal.</exception>
         /// <exception cref="ArgumentOutOfRangeException">If index is greater than end of the array or index is less than zero.</exception>
         /// <exception cref="ArgumentException">If number of elements in source vector is greater than those available in destination array.</exception>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

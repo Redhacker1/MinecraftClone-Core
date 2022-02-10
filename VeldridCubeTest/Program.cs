@@ -60,8 +60,7 @@ namespace VeldridCubeTest
 				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
-
-	        Texture atlas = new(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			
 			material = new Material(materialDescription, 
 				new VertexLayoutDescription(
 					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
@@ -70,8 +69,13 @@ namespace VeldridCubeTest
 				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(fragmentLayout)
 
 				);
-			material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
-			material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.Aniso4xSampler, atlas._texture));
+			
+			
+			var atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+			
+			material.ResourceSet(0, WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer);
+			material.ResourceSet(1, WindowClass._renderer.WorldBuffer,pointSampler, atlas);
 
 
 
@@ -116,7 +120,7 @@ namespace VeldridCubeTest
 			};
 			var Object = new Entity(Engine.MathLib.DoublePrecision_Numerics.Vector3.One, Vector2.Zero);
 			Mesh mesh = new Mesh(Object, material);
-			mesh.GenerateMesh(ref data);
+			mesh.GenerateMesh(data);
 
         }
         

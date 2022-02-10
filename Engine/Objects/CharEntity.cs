@@ -116,7 +116,7 @@ namespace Engine.Objects
             double h = AabbHeight / 2.0;
             
             Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
-            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
+            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w)).CastToNumerics();
         }
 
         public virtual void Rotate(double rotX, double rotY)

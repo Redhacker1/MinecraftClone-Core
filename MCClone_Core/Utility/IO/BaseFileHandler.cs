@@ -14,7 +14,8 @@ namespace MCClone_Core.Utility.IO
         public string FileExtension = ".cdat";
 
         public abstract ChunkCs GetChunkData(WorldData world, Vector2 location, out bool chunkExists);
-        public abstract void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world, bool optimizeSave = true);
+        public abstract void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+            bool optimizeSave = true);
 
         public virtual string GetFilename(Vector2 chunkCoords, WorldData world, bool compressed)
         {
@@ -44,7 +45,8 @@ namespace MCClone_Core.Utility.IO
         }
         
         
-        protected virtual SaveInfo SerializeChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world, bool optimizeStorage)
+        protected virtual SaveInfo SerializeChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+            bool optimizeStorage)
         {
             SaveInfo chunkSaveData = new SaveInfo();
             chunkSaveData.BlockSize = 1; // Default the block size to 1, I will determine if further optimizations are needed in the next step

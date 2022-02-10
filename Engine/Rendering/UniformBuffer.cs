@@ -20,18 +20,17 @@ namespace Engine.Rendering
             
         }
         
-        
-        public uint Length
+        public UniformBuffer(GraphicsDevice gDevice, uint Length)
         {
-            get
-            {
-                unsafe
-                {
-                    return (uint) (bufferObject == null ? 0 : bufferObject.SizeInBytes / sizeof(TDataType)) ;
-                }
-            }
+            bufferObject =
+                gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  Length),
+                    BufferUsage.UniformBuffer));
         }
+
         
+        
+        public uint Length => (uint) (bufferObject == null ? 0 : bufferObject.SizeInBytes / sizeof(TDataType));
+
         public void Dispose()
         {
             bufferObject.Dispose();
@@ -49,12 +48,29 @@ namespace Engine.Rendering
                     bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
                 }
             }
-            device.UpdateBuffer(bufferObject, 0, data.ToArray());
+            device.UpdateBuffer(bufferObject, 0, data);
+        }
+        
+        public void ModifyBuffer(Span<TDataType> data, CommandList list, GraphicsDevice device)
+        {
+            if (data.Length > Length)
+            {
+                bufferObject.Dispose();
+                
+                BufferDescription bufferDescription = new((uint)(data.Length * sizeof(TDataType)), BufferUsage.UniformBuffer);
+                bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);
+            }
+            list.UpdateBuffer(bufferObject, 0, data);
         }
 
         internal override DeviceBuffer GetBuffer()
         {
             return bufferObject;
+        }
+
+        (ResourceKind, BindableResource) IGraphicsResource.GetUnderlyingResources()
+        {
+            return (ResourceKind.UniformBuffer, bufferObject);
         }
     }
 }

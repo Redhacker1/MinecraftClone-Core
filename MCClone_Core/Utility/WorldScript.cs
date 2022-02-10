@@ -19,8 +19,8 @@ namespace MCClone_Core.Utility
 	{
 		Vector2 _chunkPos;
 
-		long _chunkX = 1;
-		long _chunkZ = 1;
+		int _chunkX = 1;
+		int _chunkZ = 1;
 		public Player _player;
 
 		public static DebugLines lines = new DebugLines();
@@ -83,8 +83,8 @@ namespace MCClone_Core.Utility
 			//base._Process(delta);
 			
 			if (_player == null) return;
-			_chunkX = ((long) Math.Floor(_player.Pos.X)) / ((int)ChunkCs.Dimension.X);
-			_chunkZ = ((long) Math.Floor(_player.Pos.Z)) / ((int)ChunkCs.Dimension.Z);
+			_chunkX = (int) (Math.Floor(_player.Pos.X) / ChunkCs.MaxX);
+			_chunkZ = (int) (Math.Floor(_player.Pos.Z) / ChunkCs.MaxZ);
 
 			Vector2 newChunkPos = new Vector2(_chunkX, _chunkZ);
 

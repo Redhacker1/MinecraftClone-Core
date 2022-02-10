@@ -4,9 +4,9 @@ namespace Engine.MathLib
 {
     public static class MathHelper
     {
-        public static double DegreesToRadians(double yRotation)
+        public static float DegreesToRadians(double yRotation)
         {
-            return yRotation * (Math.PI / 180);
+            return (float) (yRotation * (Math.PI / 180));
         }
         
         public static float DegreesToRadians(float yRotation)

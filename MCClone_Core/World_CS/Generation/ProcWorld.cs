@@ -11,13 +11,14 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
 using Engine.Renderable;
+using Engine.Rendering;
 using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
 using Veldrid;
-using Random = Engine.Random.Random;
+using Random = Engine.MathLib.Random.Random;
 using Shader = Engine.Rendering.Shader;
 using Texture = Engine.Rendering.Texture;
 
@@ -25,6 +26,7 @@ namespace MCClone_Core.World_CS.Generation
 {
 	public class ProcWorld : Level
 	{
+		public bool UseThreadPool = false;
 		int _chunksPerFrame = 1;
 
 		public static bool Threaded = true;
@@ -105,8 +107,7 @@ namespace MCClone_Core.World_CS.Generation
 				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
-
-				atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			
 			_material = new Material(materialDescription, 
 				new VertexLayoutDescription(
 					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
@@ -115,18 +116,21 @@ namespace MCClone_Core.World_CS.Generation
 				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(vertexLayout),
 				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(fragmentLayout)
 			);
-			_material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
-			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.PointSampler, atlas._texture));	
 			
+			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
 			
-			
+			_material.ResourceSet(0, WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer);
+			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer,pointSampler, atlas);
+
+
+
 			ConsoleLibrary.DebugPrint("Starting procworld");
 			
 			ConsoleLibrary.DebugPrint("Preparing Threadpool");
 			// Starts the threadpool;
 			_threads.InitializePool();
-			_threads.IgniteThreadPool();
-			
+
 			ConsoleLibrary.DebugPrint("Registering Blocks");
 			// Sets the blocks used in the base game up.
 			BlockHelper.RegisterBaseBlocks();
@@ -272,8 +276,7 @@ namespace MCClone_Core.World_CS.Generation
 				}
 				
 				LoadedChunks[cpos] = c;
-
-				c?.UpdateVisMask();
+				c.UpdateVisMask();
 				_update_chunk(cx, cz);
 			}
 			return cpos;
@@ -304,7 +307,7 @@ namespace MCClone_Core.World_CS.Generation
 					{
 						byte block = GetBlockIdFromWorldPos(x, y, z);
 						if (BlockHelper.BlockTypes[block].NoCollision || block == 0) continue;
-						Aabb c = new Aabb(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
+						Aabb c = new Aabb(new Engine.MathLib.DoublePrecision_Numerics.Vector3(x, y, z), new Engine.MathLib.DoublePrecision_Numerics.Vector3(x + 1, y + 1, z + 1));
 						aabbs.Add(c);
 					}
 				}
@@ -327,17 +330,17 @@ namespace MCClone_Core.World_CS.Generation
 		public byte GetBlockIdFromWorldPos(int x, int y, int z)
 		{
 			
-			int cx = (int) Math.Floor(x / ChunkCs.Dimension.X);
-			int cz = (int) Math.Floor(z / ChunkCs.Dimension.X);
+			int cx = x / ChunkCs.MaxX;
+			int cz = z / ChunkCs.MaxX;
 
-			int bx = (int) (MathHelper.Modulo((float) Math.Floor((double)x), ChunkCs.Dimension.X));
-			int bz = (int) (MathHelper.Modulo((float) Math.Floor((double)z), ChunkCs.Dimension.Z));
+			int bx = (int) (MathHelper.Modulo((float) Math.Floor((double)x), ChunkCs.MaxX));
+			int bz = (int) (MathHelper.Modulo((float) Math.Floor((double)z), ChunkCs.MaxZ));
 
 			Vector2 chunkpos = new Vector2(cx, cz);
 
 			if (LoadedChunks.ContainsKey(chunkpos) && ValidPlace(bx, y, bz))
 			{
-				return LoadedChunks[chunkpos].BlockData[ChunkCs.GetFlattenedDimension(bx, y, bz)];
+				return LoadedChunks[chunkpos].BlockData[ChunkCs.GetFlattenedMax(bx, y, bz)];
 			}
 
 			return 0;
@@ -353,12 +356,12 @@ namespace MCClone_Core.World_CS.Generation
 		/// <returns>whether it is safe to write or read from the block in the chunk</returns>
 		public static bool ValidPlace(int x, int y, int z)
 		{
-			if (x < 0 || x >= ChunkCs.Dimension.X || z < 0 || z >= ChunkCs.Dimension.Z)
+			if (x < 0 || x >= ChunkCs.MaxX || z < 0 || z >= ChunkCs.MaxZ)
 			{
 				return false;
 			}
 
-			if(y < 0 || y > ChunkCs.Dimension.Y - 1)
+			if(y < 0 || y > ChunkCs.MaxY - 1)
 			{
 				return false;
 			}
@@ -373,7 +376,7 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
-			if (c.BlockData[ChunkCs.GetFlattenedDimension(bx, @by, bz)] == T) return;
+			if (c.BlockData[ChunkCs.GetFlattenedMax(bx, @by, bz)] == T) return;
 			ConsoleLibrary.DebugPrint($"Changed block at {bx} {@by} {bz} in chunk {cx}, {cz}");
 			c?._set_block_data(bx,@by,bz,T);
 			_update_chunk(cx, cz);
@@ -383,8 +386,12 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			Vector2 cpos = new Vector2(cx, cz);
 
-			if (Threaded)
+			if (Threaded && UseThreadPool)
 			{
+				if (_threads.AllThreadsIdle() && _threads.Started == false)
+				{
+					_threads.IgniteThreadPool();
+				}
 				_threads.AddRequest(() =>
 				{
 					if (LoadedChunks.ContainsKey(cpos))
@@ -397,6 +404,11 @@ namespace MCClone_Core.World_CS.Generation
 			}
 			else
 			{
+				if (_threads.Started && _threads.AllThreadsIdle())
+				{
+					_threads.ShutDownHandler();
+				}
+				
 				if (LoadedChunks.ContainsKey(cpos))
 				{
 					LoadedChunks[cpos]?.Update();

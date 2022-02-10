@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Engine.MathLib;
 using Engine.Objects;
 using Engine.Renderable;
 using ImGuiNET;
@@ -16,11 +17,11 @@ namespace ObjDemo
 
         public override void CreateUI()
         {
-            Vector3 Rotation = ObjectReference.Rotation;
+            Vector3 Rotation = ObjectReference.Rotation.CastToNumerics();
 
             if (ImGui.InputFloat3("Rotation", ref Rotation))
             {
-                ObjectReference.Rotation = Rotation;
+                ObjectReference.Rotation = Rotation.CastToDouble();
             }
             
             

@@ -1,5 +1,6 @@
 ﻿
 
+using Engine.MathLib;
 using Engine.MathLib.DoublePrecision_Numerics;
 
 namespace Engine.Physics
@@ -8,18 +9,18 @@ namespace Engine.Physics
   {
     const double Epsilon = 0.01;
     public Vector3 MinLoc;
-    public Vector3 MaxLoc;
+    public System.Numerics.Vector3 MaxLoc;
 
     public Aabb(Vector3 minLoc, Vector3 maxLoc)
     {
       MinLoc = minLoc;
-      MaxLoc = maxLoc;
+      MaxLoc = maxLoc.CastToNumerics();
     }
 
     public Aabb Expand(Vector3 size)
     {
       Vector3 minLoc = MinLoc;
-      Vector3 maxLoc = MaxLoc;
+      Vector3 maxLoc = MaxLoc.CastToDouble();
       if (size.X < 0.01)
         minLoc.X += size.X;
       if (size.X > 0.01)
@@ -35,7 +36,7 @@ namespace Engine.Physics
       return new Aabb(minLoc, maxLoc);
     }
 
-    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, MaxLoc + size);
+    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, (MaxLoc.CastToDouble() + size));
 
     public double ClipXCollide(Aabb c, double xa)
     {
@@ -85,7 +86,7 @@ namespace Engine.Physics
     public void Move(Vector3 a)
     {
       MinLoc += a;
-      MaxLoc += a;
+      MaxLoc += a.CastToNumerics();
     }
   }
 }

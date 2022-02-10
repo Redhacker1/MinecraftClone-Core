@@ -62,7 +62,7 @@ namespace MCClone_Core.Player_CS
 		{
 			PhysicsTick = true;
 
-			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8, Pos.Z), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8, Pos.Z).CastToNumerics(), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
 			MoveMouse = true;
@@ -115,7 +115,7 @@ namespace MCClone_Core.Player_CS
 			}
 
 			Vector3 Location = Pos;
-			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
+			HitResult result = Raycast.CastInDirection(Location,FPCam.Front.CastToDouble(), -1, 5);
 			Vector3 pos = result.Location;
 			
 				
@@ -137,11 +137,11 @@ namespace MCClone_Core.Player_CS
 		public override void _PhysicsProcess(double delta)
 		{
 			
-			double cx = Math.Floor((Pos.X ) / ChunkCs.Dimension.X);
-			double cz = Math.Floor((Pos.Z) / ChunkCs.Dimension.Z);
-			double px = Pos.X - cx * ChunkCs.Dimension.X;
+			double cx = Math.Floor((Pos.X ) / ChunkCs.MaxX);
+			double cz = Math.Floor((Pos.Z) / ChunkCs.MaxZ);
+			double px = Pos.X - cx * ChunkCs.MaxX;
 			double py = Pos.Y;
-			double pz = Pos.Z - cz * ChunkCs.Dimension.Z;
+			double pz = Pos.Z - cz * ChunkCs.MaxZ;
 			Vector3 forward = Vector3.UnitZ;
 			
 			
@@ -190,7 +190,7 @@ namespace MCClone_Core.Player_CS
 
 							if (Vector3.Distance(pos, Translation.CastToCore()) > 1.2)
 							{
-								int by = (int) (MathHelper.Modulo(MathHelper.Round(pos.Y), ChunkCs.Dimension.Y) + .5);
+								int by = (int) (MathHelper.Modulo(MathHelper.Round(pos.Y), ChunkCs.MaxY) + .5);
 								_on_Player_place_block(pos,norm, _selectedBlock);
 								if (!OnGround )
 								{
@@ -209,12 +209,12 @@ namespace MCClone_Core.Player_CS
 		{
 			pos += norm * .5f;
 
-			int cx = (int) Math.Floor(pos.X / ChunkCs.Dimension.X);
-			int cz = (int) Math.Floor(pos.Z / ChunkCs.Dimension.Z);
+			int cx = (int) Math.Floor(pos.X / ChunkCs.MaxX);
+			int cz = (int) Math.Floor(pos.Z / ChunkCs.MaxZ);
 
-			int bx = (int) (MathHelper.Modulo((float) Math.Floor(pos.X), ChunkCs.Dimension.X) + .5f);
-			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.Dimension.Y) + .5f);
-			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.Dimension.Z) + .5f);
+			int bx = (int) (MathHelper.Modulo((float) Math.Floor(pos.X), ChunkCs.MaxX) + .5f);
+			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.MaxY) + .5f);
+			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.MaxZ) + .5f);
 			
 			Console.WriteLine(World == null);
 			World?.change_block(cx, cz, bx, by, bz, 0);
@@ -225,12 +225,12 @@ namespace MCClone_Core.Player_CS
 		{
 			pos += norm * .5f;
 
-			int cx = (int) Math.Floor(pos.X / ChunkCs.Dimension.X);
-			int cz = (int) Math.Floor(pos.Z / ChunkCs.Dimension.Z);
+			int cx = (int) Math.Floor(pos.X / ChunkCs.MaxX);
+			int cz = (int) Math.Floor(pos.Z / ChunkCs.MaxZ);
 
-			int bx = (int) (MathHelper.Modulo((float) Math.Floor(pos.X), ChunkCs.Dimension.X) + 0.5);
-			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.Dimension.Y) + 0.5);
-			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.Dimension.Z) + 0.5);
+			int bx = (int) (MathHelper.Modulo((float) Math.Floor(pos.X), ChunkCs.MaxX) + 0.5);
+			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.MaxY) + 0.5);
+			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.MaxZ) + 0.5);
 
 			World?.change_block(cx, cz, bx, by, bz, _selectedBlockIndex);	
 			
@@ -241,12 +241,12 @@ namespace MCClone_Core.Player_CS
 		{
 			pos -= norm * .5f;
 			
-			int cx = (int) Math.Floor(pos.X / ChunkCs.Dimension.X);
-			int cz = (int) Math.Floor(pos.Z / ChunkCs.Dimension.Z);
+			int cx = (int) Math.Floor(pos.X / ChunkCs.MaxX);
+			int cz = (int) Math.Floor(pos.Z / ChunkCs.MaxZ);
 
-			int bx = (int) (MathHelper.Modulo((float) Math.Floor(pos.X), ChunkCs.Dimension.X) + 0.5);
-			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.Dimension.Y) + 0.5);
-			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.Dimension.Z) + 0.5);
+			int bx = (int) (MathHelper.Modulo((float) Math.Floor(pos.X), ChunkCs.MaxX) + 0.5);
+			int by = (int) (MathHelper.Modulo((float) Math.Floor(pos.Y), ChunkCs.MaxY) + 0.5);
+			int bz = (int) (MathHelper.Modulo((float) Math.Floor(pos.Z), ChunkCs.MaxZ) + 0.5);
 
 
 		}
@@ -276,7 +276,7 @@ namespace MCClone_Core.Player_CS
 					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
+					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection).CastToNumerics();
 				}
 			}
 		}

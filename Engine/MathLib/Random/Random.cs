@@ -1,6 +1,6 @@
 using System;
 
-namespace Engine.Random
+namespace Engine.MathLib.Random
 {
     public class Random
     {

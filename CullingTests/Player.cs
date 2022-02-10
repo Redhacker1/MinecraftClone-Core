@@ -23,7 +23,7 @@ namespace CullingTests
 
 		public override void _Ready()
 		{
-			_fpCam = new Camera(Pos, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(Pos.CastToNumerics(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
 		}
@@ -60,7 +60,7 @@ namespace CullingTests
 					cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Engine.MathLib.DoublePrecision_Numerics.Vector3.Normalize(cameraDirection);
+					Camera.MainCamera.Front = Engine.MathLib.DoublePrecision_Numerics.Vector3.Normalize(cameraDirection).CastToNumerics();
 				}
 			}
 		}

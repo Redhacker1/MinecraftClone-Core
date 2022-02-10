@@ -9,7 +9,8 @@ namespace MCClone_Core.Temp
         where T : unmanaged
     {
         private T* _head;
-        
+
+        public HeapPool Pool { get; }
         public T* Buffer { get; private set; }
         public T* Head => _head;
 
@@ -22,38 +23,42 @@ namespace MCClone_Core.Temp
         public unsafe Span<T> Span => new(Buffer, (int)Count);
         public unsafe Span<T> FullSpan => new(Buffer, (int)Capacity);
 
-        public ByteStore(T* buffer, uint byteCapacity)
+        public ByteStore(HeapPool pool, T* buffer, uint byteCapacity)
         {
+            Pool = pool ?? throw new ArgumentNullException(nameof(pool));
             ByteCapacity = byteCapacity;
             Buffer = buffer;
             _head = Buffer;
-            
         }
 
-        public ByteStore()
+        public ByteStore(HeapPool pool) : this(pool, null, 0)
         {
-            ByteCapacity = (uint) Unsafe.SizeOf<T>();
-            Buffer = (T*) NativeMemory.Alloc((nuint) Unsafe.SizeOf<T>());
-            _head = Buffer;
         }
 
-        public ByteStore(uint capacity) : this(null, 0)
+        public ByteStore(HeapPool pool, uint capacity) : this(pool, null, 0)
         {
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity));
             Resize(capacity);
         }
 
-        public ByteStore<T> Clone(ref ByteStore<T> Destination)
+        public ByteStore<T> Clone(HeapPool pool)
         {
             uint byteCount = ByteCount;
             if (byteCount == 0)
-                return new ByteStore<T>();
+                return new ByteStore<T>(pool);
 
-            IntPtr newBuffer = (IntPtr) NativeMemory.Alloc(byteCount);
+            IntPtr newBuffer = pool.Rent(byteCount, out uint newByteCapacity);
             Unsafe.CopyBlockUnaligned((void*)newBuffer, Buffer, byteCount);
 
-            ByteStore<T> newStore = new((T*)newBuffer, byteCount);
+            ByteStore<T> newStore = new(pool, (T*)newBuffer, newByteCapacity);
             newStore._head = (T*)((byte*)newStore._head + byteCount);
             return newStore;
+        }
+
+        public ByteStore<T> Clone()
+        {
+            return Clone(Pool);
         }
 
         public void MoveByteHead(uint byteCount)
@@ -68,25 +73,33 @@ namespace MCClone_Core.Temp
             _head += count;
         }
 
-        public static ByteStore<T> Create(uint capacity)
+        public static ByteStore<T> Create(HeapPool pool, uint capacity)
         {
-            IntPtr buffer = (IntPtr) NativeMemory.AllocZeroed(capacity * (uint)Unsafe.SizeOf<T>());
-            return new ByteStore<T>((T*)buffer, capacity * (uint)Unsafe.SizeOf<T>());
+            IntPtr buffer = pool.Rent(capacity * (uint)Unsafe.SizeOf<T>(), out uint actualByteCapacity);
+            return new ByteStore<T>(pool, (T*)buffer, actualByteCapacity);
         }
 
         private unsafe void Resize(uint newCapacity)
         {
             uint byteCount = ByteCount;
-            IntPtr newBuffer = (IntPtr) NativeMemory.Realloc(Buffer, newCapacity * (uint)Unsafe.SizeOf<T>());
+            IntPtr newBuffer = Pool.Rent(newCapacity * (uint)Unsafe.SizeOf<T>(), out uint newByteCapacity);
+
+            IntPtr oldBuffer = (IntPtr)Buffer;
+            if (oldBuffer != IntPtr.Zero)
+            {
+                Unsafe.CopyBlockUnaligned((void*)newBuffer, (void*)oldBuffer, byteCount);
+                Pool.Return(ByteCapacity, oldBuffer);
+            }
 
             Buffer = (T*)newBuffer;
             _head = (T*)((byte*)Buffer + byteCount);
-            ByteCapacity = newCapacity * (uint)Unsafe.SizeOf<T>();
+            ByteCapacity = newByteCapacity;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureCapacity(uint capacity)
         {
+            Debug.Assert(Pool != null);
 
             if (ByteCapacity < capacity * Unsafe.SizeOf<T>())
             {
@@ -118,7 +131,8 @@ namespace MCClone_Core.Temp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AppendRange(ReadOnlySpan<T> values)
         {
-            values.CopyTo(new(_head, values.Length));
+            var slice = GetAppendSpan((uint) values.Length);
+            values.CopyTo(slice);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -138,7 +152,7 @@ namespace MCClone_Core.Temp
         {
             IntPtr buffer = (IntPtr)Buffer;
             if (buffer != IntPtr.Zero)
-                NativeMemory.Free((void*) buffer);
+                Pool.Return(ByteCapacity, buffer);
             Buffer = null;
             _head = null;
         }

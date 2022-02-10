@@ -9,6 +9,8 @@ namespace Engine.Input.Default_Devices
         public Vector2 Position;
         public Vector2 Delta;
         Vector2 _lastPos;
+
+        MouseButton[] buttons;
         
 
         readonly Dictionary<MouseButton, bool> _allMouseKeys = new Dictionary<MouseButton, bool>();
@@ -20,15 +22,16 @@ namespace Engine.Input.Default_Devices
 
         internal Mouse(int id, IMouse mouse, string name = "")
         {
+            
             DeviceName = name;
             Id = id;
             _inputDevice = mouse;
-
-            foreach (MouseButton buttons in mouse.SupportedButtons)
+            buttons = (MouseButton[]) _inputDevice.SupportedButtons;
+            foreach (MouseButton button in buttons)
             {
-                _allMouseKeys.Add(buttons, false);
-                _mouseKeysJustPressed.Add(buttons, false);
-                _mouseKeysJustReleased.Add(buttons, false);
+                _allMouseKeys.Add(button, false);
+                _mouseKeysJustPressed.Add(button, false);
+                _mouseKeysJustReleased.Add(button, false);
             }
             
 

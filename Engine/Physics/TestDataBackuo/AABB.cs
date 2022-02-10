@@ -1,6 +1,7 @@
 ﻿
 
 using System.Numerics;
+using Engine.MathLib;
 
 namespace Engine.Physics.TestDataBackuo
 {
@@ -63,8 +64,8 @@ namespace Engine.Physics.TestDataBackuo
         SubtractAmount = c.MinLoc;
       }
       
-      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
-      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
+      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
       
       if (cInternal.MaxLoc.Y < Internal.MinLoc.Y || cInternal.MinLoc.Y >= Internal.MaxLoc.Y || cInternal.MaxLoc.Z < Internal.MinLoc.Z ||
           cInternal.MinLoc.Z >= Internal.MaxLoc.Z || cInternal.MaxLoc.Y - Internal.MinLoc.Y <= 0.01f ||
@@ -91,8 +92,8 @@ namespace Engine.Physics.TestDataBackuo
         SubtractAmount = c.MinLoc;
       }
       
-      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
-      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
+      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
       
       if (c.MaxLoc.X - MinLoc.X <= 0.01f || c.MinLoc.X - MaxLoc.X >= 0.01f ||
           c.MaxLoc.Z - MinLoc.Z <= 0.01f || c.MinLoc.Z - MaxLoc.Z >= 0.01f)
@@ -117,8 +118,8 @@ namespace Engine.Physics.TestDataBackuo
         SubtractAmount = c.MinLoc;
       }
       
-      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
-      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
+      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
       
       if (cInternal.MaxLoc.X - Internal.MinLoc.X <= 0.01f || cInternal.MinLoc.X - Internal.MaxLoc.X >= 0.01f ||
           cInternal.MaxLoc.Y - Internal.MinLoc.Y <= 0.01f || cInternal.MinLoc.Y - Internal.MaxLoc.Y >= 0.01f)
@@ -143,8 +144,8 @@ namespace Engine.Physics.TestDataBackuo
       {
         SubtractAmount = c.MinLoc;
       }
-      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
-      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
+      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
       
       return Internal.MaxLoc.X > cInternal.MinLoc.X && Internal.MaxLoc.Y > cInternal.MinLoc.Y &&
              Internal.MaxLoc.Z > cInternal.MinLoc.Z && Internal.MinLoc.X < cInternal.MaxLoc.X &&

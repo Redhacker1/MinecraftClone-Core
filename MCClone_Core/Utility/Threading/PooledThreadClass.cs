@@ -21,7 +21,7 @@ namespace MCClone_Core.Utility.Threading
         /// <summary>
         /// Is true if the thread has no work to do and the manual reset event is triggered.
         /// </summary>
-        public bool BIsIdle;
+        public bool BIsIdle = true;
 
         /// <summary>
         /// Underlying thread class that runs, really should private as there is no way to ensure that the thread is not running/finished therefore it is unsafe to manipulate outside of the thread class on the GrabEvent and/or constructor. You should expose the isAlive etc through this 

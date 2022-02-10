@@ -9,7 +9,7 @@ using Plane = Engine.Rendering.Culling.Plane;
 namespace Engine.Rendering
 {
     // TODO: More elegant Camera class, preferably one that can more easily accommodate more than one camera. 
-    public class Camera : MinimalObject
+    public class Camera
     {
         public static Camera MainCamera;
         public Vector3 Front { get; set; }
@@ -27,10 +27,12 @@ namespace Engine.Rendering
         public float FarPlane = 1000;
 
         public Vector3 Forward => GetLookDir();
+        public Vector3 Rotation { get; set; }
+        public MathLib.DoublePrecision_Numerics.Vector3 Pos { get; set; }
 
         public Camera(Vector3 pos, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
         {
-            Pos = pos;
+            Pos = pos.CastToDouble();
             AspectRatio = aspectRatio;
             Front = front;
             Up = up;
@@ -40,6 +42,7 @@ namespace Engine.Rendering
                 MainCamera = this;
             }
         }
+        
 
         Vector3 GetLookDir()
         {

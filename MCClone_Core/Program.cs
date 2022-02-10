@@ -30,7 +30,7 @@ namespace MCClone_Core
 
     internal class MinecraftCloneCore: Game
     {
-        
+        WorldScript script;
         ImGUIPanel _panel = new ImGUIPanel();
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
@@ -57,7 +57,7 @@ namespace MCClone_Core
             
             Player player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
             player.Noclip = false;
-            WorldScript script = new WorldScript(world);
+            script = new WorldScript(world);
             script._player = player;
             player.World = world;
         }

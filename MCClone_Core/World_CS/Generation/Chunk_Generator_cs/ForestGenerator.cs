@@ -1,6 +1,6 @@
 using System;
 using Engine.MathLib;
-using MCClone_Core.World_CS.Generation.Noise;
+using Engine.MathLib.Random;
 using Random = Engine.MathLib.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs

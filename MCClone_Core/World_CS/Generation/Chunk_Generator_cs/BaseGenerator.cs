@@ -1,7 +1,7 @@
 ﻿using System;
 using Engine.MathLib;
+using Engine.MathLib.Random;
 using MCClone_Core.World_CS.Blocks;
-using MCClone_Core.World_CS.Generation.Noise;
 using Random = Engine.MathLib.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs

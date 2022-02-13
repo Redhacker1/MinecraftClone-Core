@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using Engine;
+using Engine.Debug;
 using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;

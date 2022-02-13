@@ -1,16 +1,16 @@
 ﻿using System.Collections.Generic;
-using Engine.Rendering;
+using Engine.Renderable;
 using Engine.Windowing;
 using Veldrid;
-using Pipeline = Engine.Rendering.Pipeline;
 
-namespace Engine.Renderable
+namespace Engine.Rendering
 {
 
     public abstract class MaterialBase
     {
         internal ResourceLayout[] layouts;
         internal ResourceSet[] Sets;
+        internal List<Mesh> _references;
 
         internal abstract bool Bind(CommandList list);
         

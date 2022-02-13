@@ -1,6 +1,4 @@
-using Engine.Renderable;
-
-namespace Veldrid
+namespace Engine.Renderable
 {
     /// <summary>
     /// Identifies the kind of color space handling that an <see cref="ImGuiRenderer"/> uses.

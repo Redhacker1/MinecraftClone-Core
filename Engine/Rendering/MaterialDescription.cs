@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using Veldrid;
-using Shader = Engine.Rendering.Shader;
 
-namespace Engine.Renderable
+namespace Engine.Rendering
 {
     public struct MaterialDescription
     {

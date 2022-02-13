@@ -335,3 +335,4 @@ ASALocalRun/
 
 #Assets I dont want to put in the license currently
 ObjDemo/Assets/*
+*.diagsession

@@ -11,6 +11,7 @@ using File = System.IO.File;
 using Mesh = Engine.Renderable.Mesh;
 using Texture = Engine.Rendering.Texture;
 using assimp = Silk.NET.Assimp.Assimp;
+using Material = Engine.Rendering.Material;
 using PostProcessPreset = Silk.NET.Assimp.PostProcessPreset;
 using TextureType = Silk.NET.Assimp.TextureType;
 
@@ -27,7 +28,7 @@ namespace Engine.AssetLoading
         /// <returns></returns>
         /// <exception cref="FileNotFoundException"></exception>
         /// <summary>
-        public static unsafe (Mesh[],IReadOnlyDictionary<string ,Texture>) LoadMesh(string meshName, GameObject BindingObject, Renderable.Material material)
+        public static unsafe (Mesh[],IReadOnlyDictionary<string ,Texture>) LoadMesh(string meshName, GameObject BindingObject, Material material)
         {
             Dictionary<string ,Texture> textures = new Dictionary<string ,Texture>();
             //Stride.Core.IO.

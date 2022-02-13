@@ -13,16 +13,15 @@ using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
 using Plane = Engine.Rendering.Culling.Plane;
 
-
-internal struct ViewProj
-{
-    public Matrix4x4 view;
-    public Matrix4x4 Projection;
-
-}
 namespace Engine.Rendering
 {
-    
+    internal struct ViewProj
+    {
+        public Matrix4x4 view;
+        public Matrix4x4 Projection;
+
+    }
+
     /// <summary>
     /// Rendering Logic goes here, potentially could be the base for other rendering backends.
     /// </summary>

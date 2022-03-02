@@ -1,6 +1,5 @@
-﻿using Engine.Input;
-using Engine.MathLib;
-using Engine.MathLib.DoublePrecision_Numerics;
+﻿using System.Numerics;
+using Engine.Input;
 using Engine.Rendering;
 using Silk.NET.Input;
 
@@ -9,7 +8,7 @@ namespace VeldridCubeTest
     public class DemoController
     {
         readonly CharacterEntity _pawn;
-        Vector3 _velocity = new Vector3();
+        Vector3 _velocity;
         float _speed = 25.498592f;
 
         public DemoController(CharacterEntity character)
@@ -19,8 +18,8 @@ namespace VeldridCubeTest
         public void Move(double deltatime)
         {
             Vector3 direction = new Vector3();
-            Vector3 cameraForward = Camera.MainCamera.Front.CastToDouble();
-            Vector3 cameraLeft = -Camera.MainCamera.Right.CastToDouble();
+            Vector3 cameraForward = Camera.MainCamera.Front;
+            Vector3 cameraLeft = -Camera.MainCamera.Right;
 
             if (InputHandler.KeyboardKeyDown(0,Key.W))
             {
@@ -42,11 +41,11 @@ namespace VeldridCubeTest
             }
 
 
-            _velocity.X = (direction.X * _speed * deltatime);
-            _velocity.Z = (direction.Z * _speed * deltatime);
+            _velocity.X = (direction.X * _speed * (float)deltatime);
+            _velocity.Z = (direction.Z * _speed * (float)deltatime);
             if (_pawn.Noclip)
             {
-                _velocity.Y = (direction.Y * _speed * deltatime);
+                _velocity.Y = (direction.Y * _speed * (float)deltatime);
             }
 
             _pawn.MoveRelative(_velocity.X, _velocity.Z, _speed);

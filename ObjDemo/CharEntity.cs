@@ -1,23 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace ObjDemo
 {
-    using Vector3 = Vector3;
-
-
-
     /// <summary>
     /// Used for entities that move around. This is based off of Entity
     /// </summary>
     public abstract class CharacterEntity : Entity
     {
         public bool OnGround;
-        public double EyeOffset = 1.6f;
+        public float EyeOffset = 1.6f;
         public bool Noclip = true;
         
 
@@ -32,11 +26,11 @@ namespace ObjDemo
             Aabb.Move(acceleration);
 
 
-            OnGround = Math.Abs(o.Y - acceleration.Y) > double.Epsilon && o.Y < 0;
+            OnGround = Math.Abs(o.Y - acceleration.Y) > 0.001f && o.Y < 0;
 
-            if (Math.Abs(o.X - acceleration.X) > float.Epsilon) PosDelta.X = 0;
-            if (Math.Abs(o.Y - acceleration.Y) > float.Epsilon) PosDelta.Y = 0;
-            if (Math.Abs(o.Z - acceleration.Z) > float.Epsilon) PosDelta.Z = 0;
+            if (Math.Abs(o.X - acceleration.X) > 0.001f) PosDelta.X = 0;
+            if (Math.Abs(o.Y - acceleration.Y) > 0.001f) PosDelta.Y = 0;
+            if (Math.Abs(o.Z - acceleration.Z) > 0.001f) PosDelta.Z = 0;
 
             Pos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
             Pos.Y = (Aabb.MinLoc.Y + EyeOffset);
@@ -51,8 +45,8 @@ namespace ObjDemo
             PhysicsTick = true;
             Ticks = true;
             Pos = position;
-            double w = AabbWidth / 2.0;
-            double h = AabbHeight / 2.0;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
             
             Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
@@ -63,8 +57,8 @@ namespace ObjDemo
             PhysicsTick = true;
             Ticks = true;
             
-            double w = AabbWidth / 2.0;
-            double h = AabbHeight / 2.0;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
             
             Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
@@ -86,20 +80,20 @@ namespace ObjDemo
         public virtual void SetPos(Vector3 pos)
         {
             Pos = pos;
-            double w = AabbWidth / 2.0;
-            double h = AabbHeight / 2.0;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
             
             Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
-            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w)).CastToNumerics();
+            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
         }
 
-        public virtual void Rotate(double rotX, double rotY)
+        public virtual void Rotate(float rotX, float rotY)
         {
-            Rotation.X = (Rotation.Y - rotX * 0.15);
-            Rotation.Y = ((Rotation.Y + rotY * 0.15) % 360.0);
+            Rotation.X = (Rotation.Y - rotX * 0.15f);
+            Rotation.Y = ((Rotation.Y + rotY * 0.15f) % 360.0f);
             
-            if (Rotation.X < -90.0) Rotation.X = -90.0;
-            if (Rotation.X > 90.0) Rotation.X = 90.0;
+            if (Rotation.X < -90.0) Rotation.X = -90.0f;
+            if (Rotation.X > 90.0) Rotation.X = 90.0f;
         }
     }
 }

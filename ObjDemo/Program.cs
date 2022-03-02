@@ -1,10 +1,7 @@
 #nullable enable
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using Engine;
-using Engine.AssetLoading;
 using Engine.AssetLoading.Assimp;
 using Engine.Debug;
 using Engine.Initialization;
@@ -12,7 +9,6 @@ using Engine.Input;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 using Engine.Windowing;
 using Silk.NET.Input;
 using Veldrid;
@@ -113,7 +109,7 @@ namespace ObjDemo
 
         public override void _Ready()
         {
-	        Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, -90, 0);
+	        Rotation = new Vector3(0, -90, 0);
 
 	        RotationPanel panel = new RotationPanel(this);
             base._Ready();

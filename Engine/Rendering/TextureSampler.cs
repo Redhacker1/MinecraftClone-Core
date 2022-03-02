@@ -5,9 +5,9 @@ namespace Engine.Rendering
     public class TextureSampler : IGraphicsResource
     {
 
-        Veldrid.Sampler _sampler;
+        Sampler _sampler;
 
-        public TextureSampler(Veldrid.Sampler samplertype)
+        public TextureSampler(Sampler samplertype)
         {
             _sampler = samplertype;
         }

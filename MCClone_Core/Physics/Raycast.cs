@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Numerics;
 using Engine.MathLib;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Physics
 {
@@ -36,7 +36,7 @@ namespace MCClone_Core.Physics
             {
                 Vector3 tvec = ((position + sign).Floor() - position) / direction;
                 
-                double t = Math.Min(tvec.X, Math.Min(tvec.Y, tvec.Z));
+                float t = Math.Min(tvec.X, Math.Min(tvec.Y, tvec.Z));
 
                 position += direction * (t + 0.001f); // +0.001 is an epsilon value so that you dont get precision issues
                 //position.Floor();

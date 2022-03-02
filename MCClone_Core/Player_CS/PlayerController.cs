@@ -3,9 +3,8 @@
 #if !Core
 using Godot;
 #endif
+using System.Numerics;
 using Engine.Input;
-using Engine.MathLib;
-using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Rendering;
 using Silk.NET.Input;
 
@@ -27,8 +26,8 @@ namespace MCClone_Core.Player_CS
             //direction.X = 1;
             //direction.Z = 1;
 
-            Vector3 CameraForward = Camera.MainCamera.Front.CastToDouble();
-            Vector3 CameraLeft = -Camera.MainCamera.Right.CastToDouble();
+            Vector3 CameraForward = Camera.MainCamera.Front;
+            Vector3 CameraLeft = -Camera.MainCamera.Right;
 
             if (InputHandler.KeyboardKeyDown(0, Key.W))
             {
@@ -53,18 +52,18 @@ namespace MCClone_Core.Player_CS
 
             if (InputHandler.KeyboardKeyDown(0, Key.Space) && pawn.OnGround)
             {
-                _velocity.Y = 6f * delta;
+                _velocity.Y = 6f * (float)delta;
             }
 
             if (!pawn.OnGround && !pawn.Noclip)
             {
-                _velocity.Y -= .2f * delta;
+                _velocity.Y -= .2f * (float)delta;
             }
             else
             {
                 if (InputHandler.KeyboardKeyDown(0, Key.Space))
                 {
-                    _velocity.Y = 6f * delta;
+                    _velocity.Y = 6f * (float)delta;
                 }
                 else
                 {

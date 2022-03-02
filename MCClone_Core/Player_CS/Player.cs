@@ -4,20 +4,16 @@ using Godot;
 #endif
 
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 using Engine.Debug;
 using Engine.Input;
 using Engine.MathLib;
-using Engine.Objects;
 using Engine.Rendering;
-using ImGuiNET;
 using MCClone_Core.Physics;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 using Silk.NET.Input;
 using Raycast = MCClone_Core.Utility.Raycast;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Player_CS
 {
@@ -43,7 +39,7 @@ namespace MCClone_Core.Player_CS
 		bool _paused;
 
 		Camera FPCam;
-		bool MoveMouse = false;
+		bool MoveMouse;
 
 
 		void toggle_pause()
@@ -68,7 +64,7 @@ namespace MCClone_Core.Player_CS
 		{
 			PhysicsTick = true;
 
-			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8, Pos.Z).CastToNumerics(), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8f, Pos.Z), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
 			MoveMouse = true;
@@ -121,7 +117,7 @@ namespace MCClone_Core.Player_CS
 			}
 
 			Vector3 Location = Pos;
-			HitResult result = Raycast.CastInDirection(Location,FPCam.Front.CastToDouble(), -1, 5);
+			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
 			Vector3 pos = result.Location;
 
 
@@ -291,7 +287,7 @@ namespace MCClone_Core.Player_CS
 					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection).CastToNumerics();
+					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
 				}
 			}
 		}

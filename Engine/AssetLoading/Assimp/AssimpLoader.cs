@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
+using Engine.MathLib;
 using Engine.Renderable;
 using Engine.Windowing;
 using Silk.NET.Assimp;
+using assimp = Silk.NET.Assimp.Assimp;
 using File = System.IO.File;
 using Texture = Engine.Rendering.Texture;
-using assimp = Silk.NET.Assimp.Assimp;
-using PostProcessPreset = Silk.NET.Assimp.PostProcessPreset;
-using TextureType = Silk.NET.Assimp.TextureType;
 
 namespace Engine.AssetLoading.Assimp
 {
@@ -54,12 +53,12 @@ namespace Engine.AssetLoading.Assimp
             Console.WriteLine($"Material count is {scene->MNumMaterials}");
 
 
-            scene->MRootNode->MTransformation = Matrix4x4.CreateFromYawPitchRoll(0, MathLib.MathHelper.DegreesToRadians(90), 0);
+            scene->MRootNode->MTransformation = Matrix4x4.CreateFromYawPitchRoll(0, MathHelper.DegreesToRadians(90), 0);
             AssimpMaterialStruct[] Materials = new AssimpMaterialStruct[scene->MNumMaterials];
             Dictionary<string, Texture> textures = new Dictionary<string, Texture>();
             for (int Material = 0; Material < scene->MNumMaterials; Material++)
             {
-                Silk.NET.Assimp.Material* AssimpMaterial = scene->MMaterials[Material];
+                Material* AssimpMaterial = scene->MMaterials[Material];
 
                 for (int propertyIndex = 0; propertyIndex < AssimpMaterial->MNumProperties; propertyIndex++)
                 {
@@ -268,13 +267,13 @@ namespace Engine.AssetLoading.Assimp
                     indicies.Add(currentface.MIndices[2]);
                 }
                 
-                MeshData data = new MeshData()
+                MeshData data = new MeshData
                 {
                     _indices = indicies.ToArray(),
                     _vertices = meshVertsArr,
                     _uvs = meshUvsArr
                 };
-                AssimpMeshes[meshcount] = new AssimpMeshBuilder()
+                AssimpMeshes[meshcount] = new AssimpMeshBuilder
                 {
                     Data = data,
                     MaterialIndex = mesh->MMaterialIndex

@@ -14,7 +14,7 @@ namespace Engine.Rendering
 
 
         ThreadSafeList<Material> MaterialsInPass = new ThreadSafeList<Material>();
-        Camera _camera;
+        Camera _camera => Camera.MainCamera;
 
         Frustrum Frustrum;
         
@@ -29,7 +29,7 @@ namespace Engine.Rendering
 
         public BasicMaterialRenderPass(Camera camera, Renderer _backingRenderer) : base(_backingRenderer)
         {
-            _camera = camera;
+            //_camera = camera;
             backingRenderer = _backingRenderer;
             ViewProjBuffer = new UniformBuffer<Matrix4x4>(_backingRenderer.Device, 2);
             WorldBuffer = new UniformBuffer<Matrix4x4>(_backingRenderer.Device, 1);

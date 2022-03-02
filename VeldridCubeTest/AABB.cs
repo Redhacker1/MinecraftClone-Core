@@ -1,9 +1,7 @@
-﻿
-
-using Engine.MathLib;
+﻿using Engine.MathLib;
 using Engine.MathLib.DoublePrecision_Numerics;
 
-namespace Engine.Physics
+namespace VeldridCubeTest
 {
   public class Aabb
   {

@@ -1,26 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering;
+using Engine.Rendering.Culling;
 using Engine.Windowing;
 using Veldrid;
 
 namespace Engine.Renderable
 {
-    public class Mesh : IDisposable
+    public class Mesh : Renderable, IDisposable
     {
-        //UniformBuffer<float> UVs;
-        IndexBuffer<uint> ebo;
-        VertexBuffer<float> vbo;
-        
+
         internal static object scenelock = new object();
         internal bool UseIndexedDrawing;
         internal bool UpdatingMesh = true;
-        internal Material MeshMaterial;
         public uint VertexElements = 0;
+
         public static List<Mesh> Meshes = new();
 
 
@@ -28,32 +25,37 @@ namespace Engine.Renderable
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
 
-        public MathLib.DoublePrecision_Numerics.Vector3 Position => _objectReference.Pos;
+        public MathLib.DoublePrecision_Numerics.Vector3 Position => GetObjectReference().Pos;
 
-        readonly MinimalObject _objectReference;
+        readonly WeakReference<MinimalObject> _objectReference;
 
         public float Scale = 1;
 
         public Quaternion Rotation =>
-            Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(_objectReference.Rotation.X),
-                MathHelper.DegreesToRadians(_objectReference.Rotation.Y),
-                MathHelper.DegreesToRadians(_objectReference.Rotation.Z));
+            Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(GetObjectReference().Rotation.X),
+                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Y),
+                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Z));
 
         //Note: The order here does matter.
         public Matrix4x4 ViewMatrix => Matrix4x4.CreateFromQuaternion(
-            Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(_objectReference.Rotation.X), 
-                MathHelper.DegreesToRadians(_objectReference.Rotation.Y), 
-                MathHelper.DegreesToRadians(_objectReference.Rotation.Z))) * Matrix4x4.CreateScale(Scale)
-                                                                           * Matrix4x4.CreateTranslation(_objectReference.Pos.CastToNumerics() -Camera.MainCamera.Pos.CastToNumerics());
+            Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(GetObjectReference().Rotation.X), 
+                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Y), 
+                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Z))) * Matrix4x4.CreateScale(Scale)
+                                                                               * Matrix4x4.CreateTranslation(GetObjectReference().Pos.CastToNumerics() -Camera.MainCamera.Pos.CastToNumerics());
         
         
         public Mesh(MinimalObject bindingobject, Material material)
         {
-            MeshMaterial = material;
-            _objectReference = bindingobject;
-            
-                Meshes.Add(this);   
-            
+            _objectReference = new WeakReference<MinimalObject>(bindingobject);
+            Meshes.Add(this);
+
+        }
+
+        MinimalObject GetObjectReference()
+        {
+            MinimalObject objectReference;
+            _objectReference.TryGetTarget(out objectReference);
+            return objectReference;
         }
 
 
@@ -62,11 +64,8 @@ namespace Engine.Renderable
             Matrix4x4 rotation = Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateScale(Scale);
             Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
-            //float[] values = new float[_vertices.Length * 6];
             for (int i = 0; i <_vertices.Length; i++)
             {
-                
-                
                 vertexArray[i * 6] = (_vertices[i].X);
                 vertexArray[i * 6 + 1] = _vertices[i].Y;
                 vertexArray[i * 6 + 2] =(_vertices[i].Z);
@@ -85,15 +84,19 @@ namespace Engine.Renderable
             Minpoint = tempmin;
         }
 
-        internal void GetMinMaxRotated(Span<Vector3> outValues, Vector3 Offset)
+        internal void GetMinMaxScaled(Span<Vector3> outValues, Vector3 Offset)
         {
-            Matrix4x4 rotation = 
-                Matrix4x4.CreateFromQuaternion(Rotation) * 
-                Matrix4x4.CreateScale(Scale) * 
-                Matrix4x4.CreateTranslation(_objectReference.Pos.CastToNumerics() - Offset);
 
-            outValues[0] = Vector3.Transform(Minpoint, rotation);
-            outValues[1] = Vector3.Transform(Maxpoint, rotation);
+            if (_objectReference != null)
+            {
+                outValues[0] = Minpoint * Scale + (Position.CastToNumerics() - Offset);
+                outValues[1] = Maxpoint * Scale + (Position.CastToNumerics() - Offset);   
+            }
+            else
+            {
+                outValues[0] = Vector3.Zero;
+                outValues[1] = Vector3.Zero;
+            }
 
         }
 
@@ -102,7 +105,7 @@ namespace Engine.Renderable
         /// </summary>
         public void GenerateMesh(Span<Vector3> _vertices, Span<Vector3> _uvs, Span<uint> _indices)
         {
-            Span<float> vertsTest = stackalloc float[_vertices.Length * 6];
+            Span<float> vertsTest = new float[_vertices.Length * 6];
             CreateVertexArray(_vertices, _uvs, ref vertsTest);
 
             UpdatingMesh = true;
@@ -146,29 +149,15 @@ namespace Engine.Renderable
         
         
 
-        internal bool BindResources(CommandList list, Material DontSwitchIfme)
+        internal override void BindResources(CommandList list)
         {
-            bool success = false;
-            if (MeshMaterial != DontSwitchIfme)
-            {
-                success = MeshMaterial != null && MeshMaterial.Bind(list);    
-            }
-            else
-            {
-                success = true;
-            }
-            
-            
-            if (vbo != null && success)
-            {
-                vbo.Bind(list);
-                ebo?.Bind(list);
+            vbo.Bind(list);
+            ebo?.Bind(list);
+        }
 
-                return true;
-            }
-
-            return false;
-
+        internal override bool ShouldRender(Frustrum frustum)
+        {
+            return !UpdatingMesh && IntersectionHandler.MeshInFrustrum(this, frustum);
         }
     }
 }

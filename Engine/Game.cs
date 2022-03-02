@@ -1,6 +1,4 @@
-﻿using Engine.Objects;
-
-namespace Engine
+﻿namespace Engine
 {
     public abstract class Game
     {

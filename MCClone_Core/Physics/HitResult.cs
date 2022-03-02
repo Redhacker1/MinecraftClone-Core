@@ -1,6 +1,6 @@
 ﻿using Engine.MathLib.DoublePrecision_Numerics;
 
-namespace Engine.Physics
+namespace MCClone_Core.Physics
 {
     public struct HitResult
     {

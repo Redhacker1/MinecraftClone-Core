@@ -9,7 +9,7 @@ using Engine.Windowing;
 using ImGuiNET;
 using Plane = Engine.Rendering.Culling.Plane;
 
-namespace Engine
+namespace ObjDemo
 {
     class DebugPanel : ImGUIPanel
     {
@@ -33,13 +33,20 @@ namespace Engine
         {
             var frustum = Camera.MainCamera.GetViewFrustum(sides);
             ulong VertexCount = 0;
-            var currentsnapshot = Mesh.Meshes.ToArray();
+            Mesh[] currentsnapshot = Mesh.Meshes.ToArray();
 
             List<Mesh> meshes = new List<Mesh>();
             
+            
+            
+            
+            
+            
+            
+            
             Parallel.ForEach(currentsnapshot, (mesh) =>
             {
-                if (IntersectionHandler.MeshInFrustrum(mesh,frustum ))
+                if (IntersectionHandler.MeshInFrustrum(mesh, frustum ))
                 {
                     lock (thing)
                     {

@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Numerics;
 using Engine;
 using Engine.AssetLoading;
+using Engine.AssetLoading.Assimp;
+using Engine.Debug;
 using Engine.Initialization;
 using Engine.Input;
 using Engine.Objects;
@@ -16,11 +18,13 @@ using Silk.NET.Input;
 using Veldrid;
 using Shader = Engine.Rendering.Shader;
 using Texture = Engine.Rendering.Texture;
+using TextureType = Silk.NET.Assimp.TextureType;
 
 namespace ObjDemo
 {
     internal class ObjDemo : Game
     {
+	    ConsoleText debug_console = new ConsoleText();
         public override void Gamestart()
         {
             base.Gamestart();
@@ -30,6 +34,9 @@ namespace ObjDemo
             MeshSpawner thing = new MeshSpawner();
             
             
+            
+            ConsoleLibrary.InitConsole(debug_console.SetConsoleScrollback);
+
             InputHandler.SetMouseMode(0, CursorMode.Normal);
             
         }
@@ -45,15 +52,16 @@ namespace ObjDemo
 
     internal class MeshSpawner : GameObject
     {
+	    Player player;
         Mesh[] _meshes;
+        Material[] Materials;
+        Material baseMaterial;
+        Texture atlas;
 
-        public override void _Ready()
+
+
+        void CreateBaseMaterial()
         {
-
-	        RotationPanel panel = new RotationPanel(this);
-            base._Ready();
-            
-            
 	        MaterialDescription materialDescription = new MaterialDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
@@ -80,43 +88,72 @@ namespace ObjDemo
 			};
 
 			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
-				new ResourceLayoutElementDescription("ViewBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
-
-				var atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			var _material = new Material(materialDescription, 
+			
+			baseMaterial = new Material(materialDescription, 
 				new VertexLayoutDescription(
 					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
-				, 
-				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(vertexLayout),
-				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(fragmentLayout)
+				,WindowClass._renderer,
+				
+				vertexLayout,
+				fragmentLayout
 
 				);
-			_material.Sets[0] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[0], WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer));	
-			_material.Sets[1] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(new ResourceSetDescription(_material.layouts[1],WindowClass._renderer.WorldBuffer, WindowClass._renderer.Device.Aniso4xSampler, atlas._texture));
+			
+			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			baseMaterial.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
+			baseMaterial.ResourceSet(1, WindowClass._renderer.WorldBuffer, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), atlas);
+        }
 
-			//_material.ResourceSet(0, );
+        public override void _Ready()
+        {
+	        Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, -90, 0);
+
+	        RotationPanel panel = new RotationPanel(this);
+            base._Ready();
+            CreateBaseMaterial();
+            
+            
+            
             
             
             
             //ImGUI_ModelViewer viewer = new ImGUI_ModelViewer();
-            new Player();
+            player = new Player();
 
-            (Mesh[], IReadOnlyDictionary<string, Texture>) outAssimpValues = AssimpLoader.LoadMesh(@"Assets\Bistro\BistroExterior.fbx", this, _material);
-            _meshes = outAssimpValues.Item1;
+            (AssimpMeshBuilder[]? assimpMeshBuilders, AssimpMaterialStruct[]? assimpMaterialStructs) = AssimpLoader.LoadMesh(@"Assets\Bistro\BistroExterior.fbx");
+	        _meshes = new Mesh[assimpMeshBuilders.Length];
+	        Materials = new Material[assimpMaterialStructs.Length];
+	        uint[] meshMaterialMap = new uint[assimpMeshBuilders.Length];
 
-            foreach (var mesh in _meshes)
-            {
-	            Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, 200, 0);
-                mesh.Scale = .1f;
-                //mesh.GenerateMesh();  
-            }
+	        for (int materialIndex = 0; materialIndex < Materials.Length; materialIndex++)
+	        {
+		        Materials[materialIndex] = new Material(baseMaterial);
+		        
+		        AssimpMaterialStruct ASSIMPmaterial = assimpMaterialStructs[materialIndex];
+		        var Diffuse = ASSIMPmaterial._textures[TextureType.TextureTypeDiffuse];
+
+		        //Console.WriteLine(Diffuse[0].path);
+
+		        Materials[materialIndex].ResourceSet(1, WindowClass._renderer.WorldBuffer, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), Diffuse[0]._texture); 
+	        }
+	        
+
+	        for (int meshIndex = 0; meshIndex < _meshes.Length; meshIndex++)
+	        {
+		        AssimpMeshBuilder currentassimpMesh = assimpMeshBuilders[meshIndex];
+		        _meshes[meshIndex] = new Mesh(this, Materials[currentassimpMesh.MaterialIndex]);
+		        _meshes[meshIndex].GenerateMesh(assimpMeshBuilders[meshIndex].Data);
+		        meshMaterialMap[meshIndex] = currentassimpMesh.MaterialIndex;
+		        _meshes[meshIndex].Scale = .1f;
+		        Materials[meshMaterialMap[meshIndex]].AddReference(_meshes[meshIndex]);
+	        }
         }
     }
 

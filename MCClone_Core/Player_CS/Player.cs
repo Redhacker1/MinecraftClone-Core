@@ -6,15 +6,17 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Engine.Debug;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Physics;
 using Engine.Rendering;
 using ImGuiNET;
+using MCClone_Core.Physics;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 using Silk.NET.Input;
+using Raycast = MCClone_Core.Utility.Raycast;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Player_CS
@@ -55,7 +57,11 @@ namespace MCClone_Core.Player_CS
 
 		public Player(Vector3 pos, Vector2 dir, Level level) : base(pos, dir, level)
 		{
-			
+			ConsoleLibrary.BindCommand("Noclip", "Enables or Disables noclip", "Noclip", arguments =>
+			{
+				ToggleNoclip();
+				return "";
+			}, false);
 		}
 
 		public override void _Ready()
@@ -117,21 +123,30 @@ namespace MCClone_Core.Player_CS
 			Vector3 Location = Pos;
 			HitResult result = Raycast.CastInDirection(Location,FPCam.Front.CastToDouble(), -1, 5);
 			Vector3 pos = result.Location;
-			
-				
-			if (InputHandler.KeyboardKeyDown(0, Key.E))
+
+
+			if (MoveMouse)
 			{
-				Console.WriteLine("Pressed");
-				Vector3 norm = result.Normal;
-				_on_Player_destroy_block(pos, norm);
+				if (InputHandler.KeyboardKeyDown(0, Key.E))
+				{
+					Console.WriteLine("Pressed");
+					Vector3 norm = result.Normal;
+					_on_Player_destroy_block(pos, norm);
+				}
+
+				if (InputHandler.KeyboardJustKeyPressed(0, Key.C))
+				{
+					ConsoleLibrary.SendCommand("Noclip");
+				}
 			}
 
-			if (InputHandler.KeyboardJustKeyPressed(0, Key.C))
-			{
-				Noclip = !Noclip;
-			}
+
+		}
 
 
+		void ToggleNoclip()
+		{
+			Noclip = !Noclip;
 		}
 
 		public override void _PhysicsProcess(double delta)
@@ -146,7 +161,7 @@ namespace MCClone_Core.Player_CS
 			
 			
 
-			if (!_paused)
+			if (!_paused && MoveMouse)
 			{
 				Vector3 Location = Pos;
 				HitResult result = Raycast.CastInDirection(Location,forward, -1, 5);

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using Engine.Physics;
+using Engine.Objects;
 
-namespace Engine.Objects
+namespace MCClone_Core.Physics
 {
     public class Level : GameObject
     {

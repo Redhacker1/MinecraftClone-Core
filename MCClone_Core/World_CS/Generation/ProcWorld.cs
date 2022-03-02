@@ -10,11 +10,11 @@ using System.Threading;
 using Engine.Debug;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Physics;
 using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Windowing;
 using MCClone_Core.Debug_and_Logging;
+using MCClone_Core.Physics;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
@@ -101,11 +101,10 @@ namespace MCClone_Core.World_CS.Generation
 			};
 
 			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
-				new ResourceLayoutElementDescription("ViewBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("ModelBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
 			
@@ -113,16 +112,16 @@ namespace MCClone_Core.World_CS.Generation
 				new VertexLayoutDescription(
 					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
-				, 
-				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(vertexLayout),
-				WindowClass._renderer.Device.ResourceFactory.CreateResourceLayout(fragmentLayout)
+				, WindowClass._renderer,
+				vertexLayout,
+				fragmentLayout
 			);
 			
 			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
 			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
 			
-			_material.ResourceSet(0, WindowClass._renderer.ProjectionBuffer, WindowClass._renderer.ViewBuffer);
-			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer,pointSampler, atlas);
+			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
+			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer, pointSampler, atlas);
 
 
 

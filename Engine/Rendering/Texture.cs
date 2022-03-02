@@ -1,8 +1,8 @@
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
 using Pfim;
+using SixLabors.ImageSharp.Processing;
 using Veldrid;
 using IS = SixLabors.ImageSharp;
 
@@ -15,7 +15,7 @@ namespace Engine.Rendering
         public Veldrid.Texture _texture;
         
 
-        public unsafe Texture(GraphicsDevice device, string path)
+        public unsafe Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false)
         {
             IS.Image<Rgba32> img;
 
@@ -53,8 +53,15 @@ namespace Engine.Rendering
                 
                 img = IS.Image.LoadPixelData<Rgba32>(newData, width, height);
             }
-            
-            //img.Mutate(x => x.Flip(FlipMode.Horizontal));
+
+            if (flipX)
+            {
+                img.Mutate(x => x.Flip(FlipMode.Horizontal));
+            }
+            if (flipY)
+            {
+                img.Mutate(x => x.Flip(FlipMode.Vertical));
+            }
             if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
                 Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);

@@ -4,14 +4,15 @@ using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
-using System.Security.Cryptography;
 using Engine.Input;
 using ImGuiNET;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Veldrid;
-using Vortice.D3DCompiler;
+using Pipeline = Veldrid.Pipeline;
+using Shader = Veldrid.Shader;
+using Texture = Veldrid.Texture;
 
 namespace Engine.Renderable
 {
@@ -55,6 +56,7 @@ namespace Engine.Renderable
         private readonly List<IDisposable> _ownedResources = new List<IDisposable>();
         private int _lastAssignedID = 100;
         private bool _frameBegun;
+        Key[] keys = Enum.GetValues<Key>();
         
         
         
@@ -83,6 +85,9 @@ namespace Engine.Renderable
         /// <param name="colorSpaceHandling">Identifies how the renderer should treat vertex colors.</param>
         public ImGuiRenderer(GraphicsDevice gd, OutputDescription outputDescription, IView view, IInputContext input ,ColorSpaceHandling colorSpaceHandling)
         {
+            
+            
+            
             view.FramebufferResize += WindowResized;
             _input = input;
 
@@ -105,6 +110,9 @@ namespace Engine.Renderable
 
             ImGui.NewFrame();
             _frameBegun = true;
+
+            InputHandler.Context.Keyboards[0].KeyChar += PressChar;
+
         }
 
         public void WindowResized(Vector2D<int> size)
@@ -432,7 +440,7 @@ namespace Engine.Renderable
             io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
         }
 
-        private unsafe void UpdateImGuiInput()
+        private void UpdateImGuiInput()
         {
             var io = ImGuiNET.ImGui.GetIO();
 
@@ -442,21 +450,15 @@ namespace Engine.Renderable
             io.MouseDown[0] = mouseState.IsButtonPressed(MouseButton.Left);
             io.MouseDown[1] = mouseState.IsButtonPressed(MouseButton.Right);
             io.MouseDown[2] = mouseState.IsButtonPressed(MouseButton.Middle);
-            if (mouseState.Cursor.CursorMode == CursorMode.Normal)
-            {
-                io.MousePos = new Vector2((int) mouseState.Position.X, (int) mouseState.Position.Y);   
-            }
-            else
-            {
-                io.MousePos = -Vector2.One;
-            }
+
+            var point = new Point((int) mouseState.Position.X, (int) mouseState.Position.Y);
+            io.MousePos = new Vector2(point.X, point.Y);
 
             var wheel = mouseState.ScrollWheels[0];
-            
             io.MouseWheel = wheel.Y;
             io.MouseWheelH = wheel.X;
 
-            foreach (Key key in Enum.GetValues(typeof(Key)))
+            foreach (Key key in keys)
             {
                 if (key == Key.Unknown)
                 {
@@ -477,6 +479,14 @@ namespace Engine.Renderable
             io.KeyShift = keyboardState.IsKeyPressed(Key.ShiftLeft) || keyboardState.IsKeyPressed(Key.ShiftRight);
             io.KeySuper = keyboardState.IsKeyPressed(Key.SuperLeft) || keyboardState.IsKeyPressed(Key.SuperRight);
         }
+        
+        
+        
+        internal void PressChar(IKeyboard keyboard, char c)
+        {
+            _pressedChars.Add(c);
+        }
+
 
         private static unsafe void SetOpenTKKeyMappings()
         {
@@ -500,13 +510,6 @@ namespace Engine.Renderable
             io.KeyMap[(int) ImGuiKey.X] = (int) Key.X;
             io.KeyMap[(int) ImGuiKey.Y] = (int) Key.Y;
             io.KeyMap[(int) ImGuiKey.Z] = (int) Key.Z;
-            
-            
-            InputHandler.Context.Keyboards[0].KeyChar += (_, character ) =>
-                {
-                    io.AddInputCharacter(character);
-                };
-
         }
 
         private unsafe void RenderImDrawData(ImDrawDataPtr draw_data, GraphicsDevice gd, CommandList cl)

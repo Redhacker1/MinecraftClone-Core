@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
 using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Culling;
@@ -15,12 +13,6 @@ using Plane = Engine.Rendering.Culling.Plane;
 
 namespace Engine.Rendering
 {
-    internal struct ViewProj
-    {
-        public Matrix4x4 view;
-        public Matrix4x4 Projection;
-
-    }
 
     /// <summary>
     /// Rendering Logic goes here, potentially could be the base for other rendering backends.
@@ -28,22 +20,23 @@ namespace Engine.Rendering
     public class Renderer
     {
         object thing = new object();
-        
-        public UniformBuffer<Matrix4x4> ProjectionBuffer;
-        public UniformBuffer<Matrix4x4> ViewBuffer;
+        public UniformBuffer<Matrix4x4> ViewProjBuffer;
         public UniformBuffer<Matrix4x4> WorldBuffer;
         
         ImGuiRenderer _imGuiHandler;
-        ViewProj _worldDataBuffer;
+
+        Renderpass testPass;
+        
         internal unsafe Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
-            ProjectionBuffer = new UniformBuffer<Matrix4x4>(Device, 1);
-            ViewBuffer = new UniformBuffer<Matrix4x4>(Device, 1);
+            ViewProjBuffer = new UniformBuffer<Matrix4x4>(Device, 2);
             WorldBuffer = new UniformBuffer<Matrix4x4>(Device, 1);
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport,
                 InputHandler.Context);
+
+            testPass = new BasicMaterialRenderPass(Camera.MainCamera, this);
 
             //Device.SyncToVerticalBlank = true;
         }
@@ -52,22 +45,23 @@ namespace Engine.Rendering
         readonly CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
         public uint FPS = 0;
-        Frustrum? frustum;
+        Frustrum frustum;
         Plane[] sides = new Plane[6];
         internal void OnRender(double time)
         {
-            Span<Matrix4x4> UpdateMatrix = stackalloc Matrix4x4[1];
+            if (Camera.MainCamera == null)
+                return;
+            
+            
+            Span<Matrix4x4> UpdateMatrix = stackalloc Matrix4x4[2];
             
             _stopwatch.Restart();
-            //_stopwatch.Start();
-            if (Camera.MainCamera != null)
-            {
-                UpdateMatrix[0] = Camera.MainCamera.GetProjectionMatrix();
-                ProjectionBuffer.ModifyBuffer(UpdateMatrix, Device);
-                UpdateMatrix[0] = Camera.MainCamera.GetViewMatrix();
-                ViewBuffer.ModifyBuffer(UpdateMatrix, Device);
-            }
-            frustum =  Camera.MainCamera?.GetViewFrustum(sides);
+            
+            
+            UpdateMatrix[0] = Camera.MainCamera.GetProjectionMatrix();
+            UpdateMatrix[1] = Camera.MainCamera.GetViewMatrix();
+            ViewProjBuffer.ModifyBuffer(UpdateMatrix, Device);
+            frustum =  Camera.MainCamera.GetViewFrustum(sides);
             
             _list.Begin();
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
@@ -77,15 +71,9 @@ namespace Engine.Rendering
             
             
             
-            foreach (var materials in Material._materials)
-            {
-                foreach (var instance in materials._instances)
-                {
-                    
-                }
-            }
+            testPass.RunPass(_list);
 
-            Mesh[] sceneMeshes = Mesh.Meshes.ToArray();
+            /*Mesh[] sceneMeshes = Mesh.Meshes.ToArray();
             List<Mesh> meshes = new List<Mesh>(Mesh.Meshes.Count);
             
             
@@ -122,7 +110,7 @@ namespace Engine.Rendering
                 }
 
             }
-
+            */
             //Console.WriteLine($"Drawing {ImGUIPanel.panels.Count} UI Elements!");
             _imGuiHandler.Update((float) time);
             foreach (ImGUIPanel uiPanel in ImGUIPanel.panels)

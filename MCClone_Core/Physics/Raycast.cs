@@ -2,7 +2,7 @@
 using Engine.MathLib;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
-namespace Engine.Physics
+namespace MCClone_Core.Physics
 {
     public static class Raycast
     {

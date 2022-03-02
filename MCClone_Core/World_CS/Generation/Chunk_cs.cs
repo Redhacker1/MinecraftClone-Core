@@ -16,12 +16,13 @@ namespace MCClone_Core.World_CS.Generation
 	public class ChunkCs : GameObject
 	{
 		List<BlockStruct> palette = new List<BlockStruct>();
+		
 		//bool NeedsSaved;
 
 		public Vector2 ChunkCoordinate;
 
 		public readonly Dictionary<Vector2, ChunkCs> NeighbourChunks = new Dictionary<Vector2, ChunkCs>();
-		
+
 
 		static readonly Vector2 TextureAtlasSize = new Vector2(8, 4);
 			
@@ -70,6 +71,7 @@ namespace MCClone_Core.World_CS.Generation
 			BlockData = new byte[MaxX * MaxY * MaxZ];
 			_visibilityMask = new bool[MaxX, MaxY, MaxZ];
 			ChunkMesh = new Mesh(this, ProcWorld.Instance._material);
+			ProcWorld.Instance._material.AddReference(ChunkMesh);
 		}
 
 
@@ -82,43 +84,40 @@ namespace MCClone_Core.World_CS.Generation
 			Generator.Generate(this, cx, cz, seed);
 		}
 
-		HeapPool pool = new HeapPool(int.MaxValue);
+		static HeapPool pool = new HeapPool(NativeMemoryHeap.Instance, uint.MaxValue);
+        
 
 		public void Update()
 		{
-			Stopwatch watch = Stopwatch.StartNew();
-			ByteStore<Vector3> BlockVerts = new ByteStore<Vector3>(pool);
-			ByteStore<Vector3> blocksNormals = new ByteStore<Vector3>(pool);
-			ByteStore<uint> chunkIndices = new ByteStore<uint>(pool);
-			ByteStore<Vector3> BlockUVs = new ByteStore<Vector3>(pool);
-			uint index = 0;
-
-			//Making use of multidimensional arrays allocated on creation
+            ByteStore<Vector3> BlockVerts = ByteStore<Vector3>.Create(pool, 1);
+            ByteStore<Vector3> blocksNormals = ByteStore<Vector3>.Create(pool, 1);
+            ByteStore<uint> chunkIndices = ByteStore<uint>.Create(pool, 1);
+            ByteStore<Vector3> BlockUVs = ByteStore<Vector3>.Create(pool, 1);
 			Span<bool> transparent = stackalloc bool[6];
+			uint index = 0;
+			
+			//Making use of multidimensional arrays allocated on creation
 			for (int x = 0; x < MaxX; x++)
 			for (int y = 0; y < MaxY; y++)
 			for (int z = 0; z < MaxZ; z++)
 			{
 				byte block = BlockData[GetFlattenedMax(x, y, z)];
-				if (block != 0)
+				if (block == 0) continue;
+				check_transparent_neighbours(x, y, z, ref transparent, false);
+				//TODO: AO Code goes here!
+				if (transparent.Contains(true))
 				{
-					check_transparent_neighbours(x, y, z, ref transparent, false);
-					//TODO: AO Code goes here!
-					if (transparent.Contains(true))
-					{
-						_create_block(transparent, x, y, z, block, BlockVerts, blocksNormals, BlockUVs, chunkIndices,
-							ref index);
-					}
+					_create_block(transparent, x, y, z, block, BlockVerts, blocksNormals, BlockUVs, chunkIndices,
+						ref index);
 				}
 			}
 
 			ChunkMesh.GenerateMesh(BlockVerts.Span, BlockUVs.Span, chunkIndices.Span);
-			Console.WriteLine(watch.Elapsed.TotalMilliseconds);
-
-			BlockVerts.Dispose();
-			blocksNormals.Dispose();
-			chunkIndices.Dispose();
-			BlockUVs.Dispose();
+            BlockVerts.Dispose();
+            BlockUVs.Dispose();
+            blocksNormals.Dispose();
+            chunkIndices.Dispose();
+            BlockUVs.Dispose();
 		}
 
 
@@ -205,7 +204,9 @@ namespace MCClone_Core.World_CS.Generation
 
 		void create_face(IReadOnlyList<int> I, ref Vector3 offset, Vector2 textureAtlasOffset, ByteStore<Vector3> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector3> uVs, ByteStore<uint> indices, ref uint currentindex)
 		{
-
+			blocks.PrepareCapacityFor(4);
+			indices.PrepareCapacityFor(6);
+			uVs.PrepareCapacityFor(4);
 
 
 			Vector3 uvOffset = new Vector3(
@@ -221,10 +222,7 @@ namespace MCClone_Core.World_CS.Generation
 			Span<uint> Indices = stackalloc uint[6] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3};
 			Span<Vector3> Verts = stackalloc Vector3[4]
 				{V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset, V[I[3]] + offset};
-			blocks.PrepareCapacityFor(4);
-			indices.PrepareCapacityFor(6);
-			uVs.PrepareCapacityFor(4);
-				
+
 			blocks.AppendRange(Verts);
 			Verts[0] = uvOffset;
 			Verts[1] = uvB;
@@ -260,8 +258,8 @@ namespace MCClone_Core.World_CS.Generation
 			if (x < 0 || x >= MaxX || z < 0 || z >= MaxZ)
 			{
 				
-				int cx = (int) MathF.Floor(x / MaxX);
-				int cz = (int) MathF.Floor(z / MaxX);
+				int cx = (int) x / MaxX;
+				int cz = (int) z / MaxX;
 
 				int bx = (int) (MathHelper.Modulo(MathF.Floor(x), MaxX));
 				int bz = (int) (MathHelper.Modulo(MathF.Floor(z), MaxZ));
@@ -299,7 +297,8 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			base.OnFree();
 			ChunkMesh.Dispose();
-			//pool.
+			ProcWorld.Instance._material.RemoveReference(ChunkMesh);
+            //pool.
 		}
 		
 

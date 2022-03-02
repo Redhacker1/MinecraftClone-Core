@@ -89,7 +89,13 @@ namespace Engine.Windowing
             for (int  index = 0;  index < GameObject.Objects.Count; index++)
             {
                 WeakReference<GameObject> objectReference = GameObject.Objects[index];
-                bool successful = objectReference.TryGetTarget(out GameObject gameObject);
+                GameObject gameObject = null;
+                bool successful = false;
+                if (objectReference != null)
+                {
+                    successful = objectReference.TryGetTarget(out gameObject);
+                }
+
                 
                 if (successful)
                 {

@@ -2,6 +2,7 @@
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Renderable;
+using Veldrid.Utilities;
 
 namespace Engine.Rendering.Culling
 {
@@ -52,7 +53,7 @@ namespace Engine.Rendering.Culling
         internal Plane[] Planes;
         internal MathLib.DoublePrecision_Numerics.Vector3 camerapos;
 
-        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos, Plane[] planes)
+        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos, Span<Plane> planes)
         {
             camerapos = Pos;
             Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
@@ -94,7 +95,7 @@ namespace Engine.Rendering.Culling
             planes[4] = new(nearTopLeft, nearTopRight, farTopLeft);
             //Bottom
             planes[5] = new(nearBottomLeft, farBottomLeft, farBottomRight);
-            Planes =  planes;
+            Planes =  planes.ToArray();
         }
     }
 
@@ -115,29 +116,32 @@ namespace Engine.Rendering.Culling
             return SphereToPlane(ref plane, ref sphere);
         }
 
-        public static bool MeshInFrustrum(Mesh mesh, Frustrum? frustum)
+        public static bool MeshInFrustrum(Mesh mesh, Frustrum frustum)
         {
-            if (frustum.HasValue && mesh != null)
+            if (mesh != null)
             {
+                BoundingBox boundingBox = new BoundingBox();
+                
                 Span<Vector3> outValues = stackalloc Vector3[2];
-                mesh.GetMinMaxRotated(outValues, frustum.Value.camerapos.CastToNumerics());
+                mesh?.GetMinMaxScaled(outValues, frustum.camerapos.CastToNumerics());
                 AABB aabb = new(outValues[0], outValues[1]);
-                return aabb_to_frustum(ref aabb, frustum.Value);   
+                return aabb_to_frustum(ref aabb, frustum);   
             }
             else
             {
-                return false;
+                return true;
             }
         }
         
 
         private static bool aabb_to_frustum(ref AABB aabb, Frustrum frustum)
         {
+
             for (int index = 0; index < frustum.Planes.Length; ++index)
             {
                 if (AABBToPlane(ref frustum.Planes[index], ref aabb) == 1)
                     return false;
-            }
+            } 
             return true;
         }
     }

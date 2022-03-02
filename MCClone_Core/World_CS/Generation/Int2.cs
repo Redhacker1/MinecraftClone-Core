@@ -1,5 +1,4 @@
 ﻿using System;
-using Steamworks.Data;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -33,5 +32,5 @@ namespace MCClone_Core.World_CS.Generation
             return new Int2(thing.X - other.X, thing.Y - other.Y);
         }
         
-    };
+    }
 }

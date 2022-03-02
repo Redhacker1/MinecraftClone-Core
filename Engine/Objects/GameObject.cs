@@ -13,7 +13,7 @@ namespace Engine.Objects
         public bool PhysicsTick = false;
         public bool Ticks = false;
         internal bool cleanup;
-        bool Freed = false;
+        bool Freed;
         
         WeakReference<GameObject> ownWeakRef;
 

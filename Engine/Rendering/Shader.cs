@@ -46,12 +46,8 @@ namespace Engine.Rendering
                 LoadShader(File.ReadAllBytes(path), stage, device);
                 return;
             }
-            else
-            {
-                LoadShaderGLSL(stage, device, path);
-                return;
-            }
-            
+
+            LoadShaderGLSL(stage, device, path);
         }
 
         public void Dispose()
@@ -69,7 +65,7 @@ namespace Engine.Rendering
                    && bytes[3] == 0x07;
         }
 
-        unsafe void LoadShader(byte[] bytecode, ShaderStages type, GraphicsDevice device, string Entrypoint = "main" )
+        void LoadShader(byte[] bytecode, ShaderStages type, GraphicsDevice device, string Entrypoint = "main" )
         {
             _spirvSrcCode = bytecode; ;
 

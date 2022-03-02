@@ -42,13 +42,10 @@ namespace Engine.Rendering
         {
             if (data.Length > Length)
             {
-                unsafe
-                {
-                    bufferObject.Dispose();
+                bufferObject.Dispose();
                 
-                    BufferDescription bufferDescription = new BufferDescription((uint)(data.Length * sizeof(TDataType)), BufferUsage.UniformBuffer | BufferUsage.Dynamic);
-                    bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
-                }
+                BufferDescription bufferDescription = new BufferDescription((uint)(data.Length * sizeof(TDataType)), BufferUsage.UniformBuffer | BufferUsage.Dynamic);
+                bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
             }
             device.UpdateBuffer(bufferObject, 0, data);
         }

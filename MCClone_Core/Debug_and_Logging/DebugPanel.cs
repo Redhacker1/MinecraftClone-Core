@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
-using Engine.MathLib;
 using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Rendering.Culling;
@@ -18,7 +17,7 @@ namespace MCClone_Core.Debug_and_Logging
         bool PressedBefore;
         internal bool Movable = false;
         Plane[] sides = new Plane[6];
-        bool ThreadPooled = false;
+        bool ThreadPooled;
         public DebugPanel()
         {
             
@@ -30,7 +29,7 @@ namespace MCClone_Core.Debug_and_Logging
         }
 
         object thing = new object();
-        public override unsafe void CreateUI()
+        public override void CreateUI()
         {
             
 
@@ -42,7 +41,7 @@ namespace MCClone_Core.Debug_and_Logging
 
             List<Mesh> meshes = new List<Mesh>(currentsnapshot.Length);
             
-            Parallel.ForEach(currentsnapshot, (mesh) =>
+            Parallel.ForEach(currentsnapshot, mesh =>
             {
                 if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
                 {
@@ -66,13 +65,13 @@ namespace MCClone_Core.Debug_and_Logging
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
 
-            Vector3 camerapos = Camera.MainCamera.Pos.CastToNumerics();
+            Vector3 camerapos = Camera.MainCamera.Pos;
             ImGui.InputFloat3("Player Location: ", ref camerapos, null);
             
             Distance = ProcWorld.Instance._loadRadius;
             var updated = ImGui.SliderInt("Render distance", ref Distance, 4, 40);
 
-            if (updated == true)
+            if (updated)
             {
                 ProcWorld.Instance.UpdateRenderDistance(Distance);
             }

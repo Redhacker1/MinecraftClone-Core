@@ -27,7 +27,7 @@ namespace Engine.Rendering
 
         Renderpass testPass;
         
-        internal unsafe Renderer(IView viewport)
+        internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
@@ -44,7 +44,7 @@ namespace Engine.Rendering
         public GraphicsDevice Device;
         readonly CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
-        public uint FPS = 0;
+        public uint FPS;
         Frustrum frustum;
         Plane[] sides = new Plane[6];
         internal void OnRender(double time)

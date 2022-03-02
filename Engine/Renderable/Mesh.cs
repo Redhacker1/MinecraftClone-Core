@@ -16,7 +16,7 @@ namespace Engine.Renderable
         internal static object scenelock = new object();
         internal bool UseIndexedDrawing;
         internal bool UpdatingMesh = true;
-        public uint VertexElements = 0;
+        public uint VertexElements;
 
         public static List<Mesh> Meshes = new();
 
@@ -25,7 +25,7 @@ namespace Engine.Renderable
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
 
-        public MathLib.DoublePrecision_Numerics.Vector3 Position => GetObjectReference().Pos;
+        public Vector3 Position => GetObjectReference().Pos;
 
         readonly WeakReference<MinimalObject> _objectReference;
 
@@ -41,7 +41,7 @@ namespace Engine.Renderable
             Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(GetObjectReference().Rotation.X), 
                 MathHelper.DegreesToRadians(GetObjectReference().Rotation.Y), 
                 MathHelper.DegreesToRadians(GetObjectReference().Rotation.Z))) * Matrix4x4.CreateScale(Scale)
-                                                                               * Matrix4x4.CreateTranslation(GetObjectReference().Pos.CastToNumerics() -Camera.MainCamera.Pos.CastToNumerics());
+                                                                               * Matrix4x4.CreateTranslation(GetObjectReference().Pos -Camera.MainCamera.Pos);
         
         
         public Mesh(MinimalObject bindingobject, Material material)
@@ -89,8 +89,8 @@ namespace Engine.Renderable
 
             if (_objectReference != null)
             {
-                outValues[0] = Minpoint * Scale + (Position.CastToNumerics() - Offset);
-                outValues[1] = Maxpoint * Scale + (Position.CastToNumerics() - Offset);   
+                outValues[0] = Minpoint * Scale + (Position - Offset);
+                outValues[1] = Maxpoint * Scale + (Position - Offset);   
             }
             else
             {

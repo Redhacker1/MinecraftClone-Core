@@ -67,7 +67,7 @@ namespace Engine.Input.Default_Devices
             {
                 bool keyPressed = _inputDevice.IsButtonPressed(mouseButtons);
                 
-                if (_mouseKeysJustReleased[mouseButtons] == false && keyPressed == true)
+                if (_mouseKeysJustReleased[mouseButtons] == false && keyPressed)
                 {
                     _mouseKeysJustReleased[mouseButtons] = true;   
                 }

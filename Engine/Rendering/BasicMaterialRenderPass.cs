@@ -2,6 +2,7 @@
 using System.Numerics;
 using Engine.Rendering.Culling;
 using Veldrid;
+using Plane = Engine.Rendering.Culling.Plane;
 
 namespace Engine.Rendering
 {
@@ -48,7 +49,7 @@ namespace Engine.Rendering
         protected override void PrePass(CommandList list)
         {
             Span<Matrix4x4> UpdateMatrix = stackalloc Matrix4x4[2];
-            Span<Culling.Plane> sides = stackalloc Culling.Plane[6];
+            Span<Plane> sides = stackalloc Plane[6];
 
             if (_camera != null)
             {

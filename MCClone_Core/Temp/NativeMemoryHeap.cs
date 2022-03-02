@@ -34,7 +34,7 @@ public sealed unsafe class NativeMemoryHeap : MemoryHeap
         GC.RemoveMemoryPressure((long)byteCapacity);
     }
 
-    public override unsafe void* Realloc(
+    public override void* Realloc(
         void* buffer,
         nuint previousByteCapacity,
         nuint requestedByteCapacity,

@@ -3,11 +3,11 @@
 using Godot;
 #endif
 
+using System.Numerics;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Rendering;
 using Silk.NET.Input;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
 
 namespace VeldridCubeTest
 {
@@ -24,7 +24,7 @@ namespace VeldridCubeTest
 
 		public override void _Ready()
 		{
-			_fpCam = new Camera(Pos.CastToNumerics(), -System.Numerics.Vector3.UnitZ, System.Numerics.Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(Pos, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
 		}
@@ -59,7 +59,7 @@ namespace VeldridCubeTest
 				cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 				cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
 				cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-				Camera.MainCamera.Front = Vector3.Normalize(cameraDirection).CastToNumerics();
+				Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
 			}
 		}
 	}

@@ -1,19 +1,15 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Numerics;
 using Engine;
 using Engine.Debug;
 using Engine.Initialization;
-using Engine.Objects;
 using Engine.Renderable;
 using Engine.Windowing;
-using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.World_CS.Generation;
 using Steamworks;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core
 {
@@ -35,6 +31,7 @@ namespace MCClone_Core
         ImGUIPanel _panel;
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
+        Player player;
         
         public override void Gamestart()
         {
@@ -55,7 +52,7 @@ namespace MCClone_Core
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
             
-            Player player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
+            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
             player.Noclip = false;
             script = new WorldScript(world);
             script._player = player;

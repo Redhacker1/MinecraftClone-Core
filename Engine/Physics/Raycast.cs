@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Numerics;
 using Engine.MathLib;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace Engine.Physics
 {
@@ -12,7 +12,7 @@ namespace Engine.Physics
             Vector3 delta = endLocation - startDir;
             Vector3 deltaNormal = Vector3.Normalize(delta);
 
-            int lineLength = (int) Math.Floor(delta.Length());
+            int lineLength = (int) MathF.Floor(delta.Length());
 
             return CastInDirection(startDir, deltaNormal, debugtime, lineLength);
         }
@@ -36,7 +36,7 @@ namespace Engine.Physics
             {
                 Vector3 tvec = ((position + sign).Floor() - position) / direction;
                 
-                double t = Math.Min(tvec.X, Math.Min(tvec.Y, tvec.Z));
+                float t = Math.Min(tvec.X, Math.Min(tvec.Y, tvec.Z));
 
                 position += direction * (t + 0.001f); // +0.001 is an epsilon value so that you dont get precision issues
                 //position.Floor();

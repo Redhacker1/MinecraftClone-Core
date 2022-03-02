@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Veldrid;
-using Vortice.Direct3D11;
 
 namespace Engine.Rendering
 {

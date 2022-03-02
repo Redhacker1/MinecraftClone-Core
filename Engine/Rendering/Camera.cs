@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Engine.MathLib;
-using Engine.Objects;
-using Engine.Rendering.Culling;
 using Engine.Rendering.Culling;
 using Plane = Engine.Rendering.Culling.Plane;
 
@@ -28,11 +26,11 @@ namespace Engine.Rendering
 
         public Vector3 Forward => GetLookDir();
         public Vector3 Rotation { get; set; }
-        public MathLib.DoublePrecision_Numerics.Vector3 Pos { get; set; }
+        public Vector3 Pos { get; set; }
 
         public Camera(Vector3 pos, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
         {
-            Pos = pos.CastToDouble();
+            Pos = pos;
             AspectRatio = aspectRatio;
             Front = front;
             Up = up;

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
-using Engine.MathLib;
 using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Rendering.Culling;
@@ -37,7 +36,7 @@ namespace Engine
 
             List<Mesh> meshes = new List<Mesh>();
             
-            Parallel.ForEach(currentsnapshot, (mesh) =>
+            Parallel.ForEach(currentsnapshot, mesh =>
             {
                 if (IntersectionHandler.MeshInFrustrum(mesh,frustum ))
                 {
@@ -60,7 +59,7 @@ namespace Engine
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
 
-            Vector3 camerapos = Camera.MainCamera.Pos.CastToNumerics();
+            Vector3 camerapos = Camera.MainCamera.Pos;
             ImGui.InputFloat3("Player Location: ", ref camerapos, null, ImGuiInputTextFlags.ReadOnly);
             
 

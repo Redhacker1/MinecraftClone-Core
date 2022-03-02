@@ -1,7 +1,5 @@
 #nullable enable
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using Engine;
 using Engine.AssetLoading;
@@ -10,7 +8,6 @@ using Engine.Input;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 using Engine.Windowing;
 using Silk.NET.Input;
 using Veldrid;
@@ -113,7 +110,7 @@ namespace ObjDemo
 
             foreach (var mesh in _meshes)
             {
-	            Rotation = new Engine.MathLib.DoublePrecision_Numerics.Vector3(0, 200, 0);
+	            Rotation = new System.Numerics.Vector3(0, 200, 0);
                 mesh.Scale = .1f;
                 //mesh.GenerateMesh();  
             }

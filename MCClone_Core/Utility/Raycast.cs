@@ -1,7 +1,6 @@
 ﻿using System;
+using System.Numerics;
 using Engine.MathLib;
-using Engine.MathLib.DoublePrecision_Numerics;
-using MCClone_Core.World_CS.Generation;
 
 namespace Engine.Physics
 {

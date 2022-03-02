@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
-using Engine.MathLib;
 using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Rendering.Culling;
 using Engine.Windowing;
 using ImGuiNET;
-using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Generation;
 using Plane = Engine.Rendering.Culling.Plane;
 
@@ -20,7 +17,7 @@ namespace Engine
         bool PressedBefore;
         internal bool Movable = false;
         Plane[] sides = new Plane[6];
-        bool ThreadPooled = false;
+        bool ThreadPooled;
         public DebugPanel()
         {
             
@@ -32,7 +29,7 @@ namespace Engine
         }
 
         object thing = new object();
-        public override unsafe void CreateUI()
+        public override void CreateUI()
         {
             
 
@@ -44,7 +41,7 @@ namespace Engine
 
             List<Mesh> meshes = new List<Mesh>(currentsnapshot.Length);
             
-            Parallel.ForEach(currentsnapshot, (mesh) =>
+            Parallel.ForEach(currentsnapshot, mesh =>
             {
                 if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
                 {
@@ -67,13 +64,13 @@ namespace Engine
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
 
-            Vector3 camerapos = Camera.MainCamera.Pos.CastToNumerics();
+            Vector3 camerapos = Camera.MainCamera.Pos;
             ImGui.InputFloat3("Player Location: ", ref camerapos, null, ImGuiInputTextFlags.ReadOnly);
             
             Distance = ProcWorld.Instance._loadRadius;
             var updated = ImGui.SliderInt("Render distance", ref Distance, 4, 40);
 
-            if (updated == true)
+            if (updated)
             {
                 ProcWorld.Instance.UpdateRenderDistance(Distance);
             }

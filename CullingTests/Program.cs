@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Numerics;
 using Engine;
 using Engine.Initialization;
-using System.Numerics;
 using Engine.Objects;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 
 namespace CullingTests
 {

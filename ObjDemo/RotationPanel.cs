@@ -17,11 +17,11 @@ namespace ObjDemo
 
         public override void CreateUI()
         {
-            Vector3 Rotation = ObjectReference.Rotation.CastToNumerics();
+            Vector3 Rotation = ObjectReference.Rotation;
 
             if (ImGui.InputFloat3("Rotation", ref Rotation))
             {
-                ObjectReference.Rotation = Rotation.CastToDouble();
+                ObjectReference.Rotation = Rotation;
             }
             
             

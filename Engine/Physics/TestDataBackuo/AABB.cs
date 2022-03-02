@@ -1,7 +1,6 @@
 ﻿
 
 using System.Numerics;
-using Engine.MathLib;
 
 namespace Engine.Physics.TestDataBackuo
 {
@@ -22,19 +21,19 @@ namespace Engine.Physics.TestDataBackuo
   public class Aabb
   {
     const double epsilon = 0.01;
-    public MathLib.DoublePrecision_Numerics.Vector3 MinLoc;
-    public MathLib.DoublePrecision_Numerics.Vector3 MaxLoc;
+    public Vector3 MinLoc;
+    public Vector3 MaxLoc;
 
-    public Aabb(MathLib.DoublePrecision_Numerics.Vector3 minLoc, MathLib.DoublePrecision_Numerics.Vector3 maxLoc)
+    public Aabb(Vector3 minLoc, Vector3 maxLoc)
     {
       MinLoc = minLoc;
       MaxLoc = maxLoc;
     }
 
-    public Aabb Expand(MathLib.DoublePrecision_Numerics.Vector3 size)
+    public Aabb Expand(Vector3 size)
     {
-      MathLib.DoublePrecision_Numerics.Vector3 minLoc = MinLoc;
-      MathLib.DoublePrecision_Numerics.Vector3 maxLoc = MaxLoc;
+      Vector3 minLoc = MinLoc;
+      Vector3 maxLoc = MaxLoc;
       if (size.X < 0.01)
         minLoc.X += size.X;
       if (size.X > 0.01)
@@ -50,12 +49,12 @@ namespace Engine.Physics.TestDataBackuo
       return new Aabb(minLoc, maxLoc);
     }
 
-    public Aabb Grow(MathLib.DoublePrecision_Numerics.Vector3 size) => new Aabb(MinLoc - size, MaxLoc + size);
+    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, MaxLoc + size);
 
     public double ClipXCollide(Aabb c, double xa)
     {
-      MathLib.DoublePrecision_Numerics.Vector3 SubtractAmount;
-      if (MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, c.MinLoc) > MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, MinLoc))
+      Vector3 SubtractAmount;
+      if (Vector3.Distance(Vector3.Zero, c.MinLoc) > Vector3.Distance(Vector3.Zero, MinLoc))
       {
         SubtractAmount = MinLoc;
       }
@@ -64,8 +63,8 @@ namespace Engine.Physics.TestDataBackuo
         SubtractAmount = c.MinLoc;
       }
       
-      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
-      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
+      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
       
       if (cInternal.MaxLoc.Y < Internal.MinLoc.Y || cInternal.MinLoc.Y >= Internal.MaxLoc.Y || cInternal.MaxLoc.Z < Internal.MinLoc.Z ||
           cInternal.MinLoc.Z >= Internal.MaxLoc.Z || cInternal.MaxLoc.Y - Internal.MinLoc.Y <= 0.01f ||
@@ -82,8 +81,8 @@ namespace Engine.Physics.TestDataBackuo
 
     public double ClipYCollide(Aabb c, double ya)
     {
-      MathLib.DoublePrecision_Numerics.Vector3 SubtractAmount;
-      if (MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, c.MinLoc) > MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, MinLoc))
+      Vector3 SubtractAmount;
+      if (Vector3.Distance(Vector3.Zero, c.MinLoc) > Vector3.Distance(Vector3.Zero, MinLoc))
       {
         SubtractAmount = MinLoc;
       }
@@ -92,8 +91,8 @@ namespace Engine.Physics.TestDataBackuo
         SubtractAmount = c.MinLoc;
       }
       
-      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
-      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
+      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
       
       if (c.MaxLoc.X - MinLoc.X <= 0.01f || c.MinLoc.X - MaxLoc.X >= 0.01f ||
           c.MaxLoc.Z - MinLoc.Z <= 0.01f || c.MinLoc.Z - MaxLoc.Z >= 0.01f)
@@ -108,8 +107,8 @@ namespace Engine.Physics.TestDataBackuo
 
     public double ClipZCollide(Aabb c, double za)
     {
-      MathLib.DoublePrecision_Numerics.Vector3 SubtractAmount;
-      if (MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, c.MinLoc) > MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, MinLoc))
+      Vector3 SubtractAmount;
+      if (Vector3.Distance(Vector3.Zero, c.MinLoc) > Vector3.Distance(Vector3.Zero, MinLoc))
       {
         SubtractAmount = MinLoc;
       }
@@ -118,8 +117,8 @@ namespace Engine.Physics.TestDataBackuo
         SubtractAmount = c.MinLoc;
       }
       
-      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
-      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
+      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
       
       if (cInternal.MaxLoc.X - Internal.MinLoc.X <= 0.01f || cInternal.MinLoc.X - Internal.MaxLoc.X >= 0.01f ||
           cInternal.MaxLoc.Y - Internal.MinLoc.Y <= 0.01f || cInternal.MinLoc.Y - Internal.MaxLoc.Y >= 0.01f)
@@ -135,8 +134,8 @@ namespace Engine.Physics.TestDataBackuo
     
     public bool Intersects(Aabb c)
     {
-      MathLib.DoublePrecision_Numerics.Vector3 SubtractAmount;
-      if (MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, c.MinLoc) > MathLib.DoublePrecision_Numerics.Vector3.Distance(MathLib.DoublePrecision_Numerics.Vector3.Zero, MinLoc))
+      Vector3 SubtractAmount;
+      if (Vector3.Distance(Vector3.Zero, c.MinLoc) > Vector3.Distance(Vector3.Zero, MinLoc))
       {
         SubtractAmount = MinLoc;
       }
@@ -144,15 +143,15 @@ namespace Engine.Physics.TestDataBackuo
       {
         SubtractAmount = c.MinLoc;
       }
-      internalAABB cInternal = new internalAABB(c.MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), c.MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
-      internalAABB Internal = new internalAABB(MinLoc.CastToNumerics() - SubtractAmount.CastToNumerics(), MaxLoc.CastToNumerics() - SubtractAmount.CastToNumerics());
+      internalAABB cInternal = new internalAABB(c.MinLoc - SubtractAmount, c.MaxLoc - SubtractAmount);
+      internalAABB Internal = new internalAABB(MinLoc - SubtractAmount, MaxLoc - SubtractAmount);
       
       return Internal.MaxLoc.X > cInternal.MinLoc.X && Internal.MaxLoc.Y > cInternal.MinLoc.Y &&
              Internal.MaxLoc.Z > cInternal.MinLoc.Z && Internal.MinLoc.X < cInternal.MaxLoc.X &&
              Internal.MinLoc.Y < cInternal.MaxLoc.Y && Internal.MinLoc.Z < cInternal.MaxLoc.Z;
     }
 
-    public void Move(MathLib.DoublePrecision_Numerics.Vector3 a)
+    public void Move(Vector3 a)
     {
       MinLoc += a;
       MaxLoc += a;

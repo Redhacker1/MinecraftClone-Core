@@ -1,17 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Numerics;
 using System.Reflection;
-using System.Security.Cryptography;
 using Engine.Input;
 using ImGuiNET;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Veldrid;
-using Vortice.D3DCompiler;
 
 namespace Engine.Renderable
 {
@@ -138,8 +135,7 @@ namespace Engine.Renderable
             _vertexShader = factory.CreateShader(new ShaderDescription(ShaderStages.Vertex, vertexShaderBytes, _gd.BackendType == GraphicsBackend.Vulkan ? "main" : "VS"));
             _fragmentShader = factory.CreateShader(new ShaderDescription(ShaderStages.Fragment, fragmentShaderBytes, _gd.BackendType == GraphicsBackend.Vulkan ? "main" : "FS"));
 
-            VertexLayoutDescription[] vertexLayouts = new VertexLayoutDescription[]
-            {
+            VertexLayoutDescription[] vertexLayouts = {
                 new VertexLayoutDescription(
                     new VertexElementDescription("in_position", VertexElementSemantic.Position, VertexElementFormat.Float2),
                     new VertexElementDescription("in_texCoord", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2),
@@ -165,7 +161,7 @@ namespace Engine.Renderable
                         new SpecializationConstant(0, gd.IsClipSpaceYInverted),
                         new SpecializationConstant(1, _colorSpaceHandling == ColorSpaceHandling.Legacy),
                     }),
-                new ResourceLayout[] { _layout, _textureLayout },
+                new[] { _layout, _textureLayout },
                 outputDescription,
                 ResourceBindingModel.Default);
             _pipeline = factory.CreateGraphicsPipeline(ref pd);
@@ -247,7 +243,7 @@ namespace Engine.Renderable
         {
             if (!_viewsById.TryGetValue(imGuiBinding, out ResourceSetInfo rsi))
             {
-                throw new InvalidOperationException("No registered ImGui binding with id " + imGuiBinding.ToString());
+                throw new InvalidOperationException("No registered ImGui binding with id " + imGuiBinding);
             }
 
             return rsi.ResourceSet;
@@ -329,7 +325,7 @@ namespace Engine.Renderable
         /// <summary>
         /// Recreates the device texture used to render text.
         /// </summary>
-        public unsafe void RecreateFontDeviceTexture() => RecreateFontDeviceTexture(_gd);
+        public void RecreateFontDeviceTexture() => RecreateFontDeviceTexture(_gd);
 
         /// <summary>
         /// Recreates the device texture used to render text.
@@ -374,7 +370,7 @@ namespace Engine.Renderable
         /// <summary>
         /// Renders the ImGui draw list data.
         /// </summary>
-        public unsafe void Render(GraphicsDevice gd, CommandList cl)
+        public void Render(GraphicsDevice gd, CommandList cl)
         {
             if (_frameBegun)
             {
@@ -422,7 +418,7 @@ namespace Engine.Renderable
         /// Sets per-frame data based on the associated window.
         /// This is called by Update(float).
         /// </summary>
-        private unsafe void SetPerFrameImGuiData(float deltaSeconds)
+        private void SetPerFrameImGuiData(float deltaSeconds)
         {
             ImGuiIOPtr io = ImGui.GetIO();
             io.DisplaySize = new Vector2(
@@ -432,9 +428,9 @@ namespace Engine.Renderable
             io.DeltaTime = deltaSeconds; // DeltaTime is in seconds.
         }
 
-        private unsafe void UpdateImGuiInput()
+        private void UpdateImGuiInput()
         {
-            var io = ImGuiNET.ImGui.GetIO();
+            var io = ImGui.GetIO();
 
             var mouseState = _input.Mice[0];
             var keyboardState = _input.Keyboards[0];
@@ -478,9 +474,9 @@ namespace Engine.Renderable
             io.KeySuper = keyboardState.IsKeyPressed(Key.SuperLeft) || keyboardState.IsKeyPressed(Key.SuperRight);
         }
 
-        private static unsafe void SetOpenTKKeyMappings()
+        private static void SetOpenTKKeyMappings()
         {
-            var io = ImGuiNET.ImGui.GetIO();
+            var io = ImGui.GetIO();
             io.KeyMap[(int) ImGuiKey.Tab] = (int) Key.Tab;
             io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Key.Left;
             io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Key.Right;
@@ -588,29 +584,27 @@ namespace Engine.Renderable
                     {
                         throw new NotImplementedException();
                     }
-                    else
+
+                    if (pcmd.TextureId != IntPtr.Zero)
                     {
-                        if (pcmd.TextureId != IntPtr.Zero)
+                        if (pcmd.TextureId == _fontAtlasID)
                         {
-                            if (pcmd.TextureId == _fontAtlasID)
-                            {
-                                cl.SetGraphicsResourceSet(1, _fontTextureResourceSet);
-                            }
-                            else
-                            {
-                                cl.SetGraphicsResourceSet(1, GetImageResourceSet(pcmd.TextureId));
-                            }
+                            cl.SetGraphicsResourceSet(1, _fontTextureResourceSet);
                         }
-
-                        cl.SetScissorRect(
-                            0,
-                            (uint)pcmd.ClipRect.X,
-                            (uint)pcmd.ClipRect.Y,
-                            (uint)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
-                            (uint)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
-
-                        cl.DrawIndexed(pcmd.ElemCount, 1, (uint)idx_offset, vtx_offset, 0);
+                        else
+                        {
+                            cl.SetGraphicsResourceSet(1, GetImageResourceSet(pcmd.TextureId));
+                        }
                     }
+
+                    cl.SetScissorRect(
+                        0,
+                        (uint)pcmd.ClipRect.X,
+                        (uint)pcmd.ClipRect.Y,
+                        (uint)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
+                        (uint)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
+
+                    cl.DrawIndexed(pcmd.ElemCount, 1, (uint)idx_offset, vtx_offset, 0);
 
                     idx_offset += (int)pcmd.ElemCount;
                 }

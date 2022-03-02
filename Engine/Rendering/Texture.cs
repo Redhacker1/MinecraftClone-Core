@@ -1,8 +1,7 @@
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.IO;
 using Pfim;
+using SixLabors.ImageSharp.PixelFormats;
 using Veldrid;
 using IS = SixLabors.ImageSharp;
 
@@ -15,7 +14,7 @@ namespace Engine.Rendering
         public Veldrid.Texture _texture;
         
 
-        public unsafe Texture(GraphicsDevice device, string path)
+        public Texture(GraphicsDevice device, string path)
         {
             IS.Image<Rgba32> img;
 

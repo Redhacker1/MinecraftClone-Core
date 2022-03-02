@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Engine.Physics;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace Engine.Objects
 {
@@ -11,8 +10,8 @@ namespace Engine.Objects
     /// </summary>
     public class Entity : GameObject
     {
-        public double AabbWidth = 0;
-        public double AabbHeight = 0;
+        public float AabbWidth = 0;
+        public float AabbHeight = 0;
         
         public Vector3 PosDelta;
         public Aabb Aabb;
@@ -22,13 +21,13 @@ namespace Engine.Objects
         {
             Pos = pos;
             
-            double w = AabbWidth / 2.0f;
-            double h = AabbHeight / 2.0f;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
 
             Aabb = new Aabb(new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w)), new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w)));
             
-            Rotation.X = (Rotation.X - rotation.X * 0.15);
-            Rotation.Y = ((Rotation.Y + rotation.Y * 0.15) % 360.0);
+            Rotation.X = (Rotation.X - rotation.X * 0.15f);
+            Rotation.Y = ((Rotation.Y + rotation.Y * 0.15f) % 360.0f);
         }
 
         protected Entity()

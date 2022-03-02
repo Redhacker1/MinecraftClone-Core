@@ -1,20 +1,18 @@
 /* TODO: This is starting to become a SuperClass with catch-all functionality, might be best to separate it out.
 	Might be best to move some of the more chunk oriented methods into the chunkCS class that do not use the chunk class statically.
  */
+
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using System.Threading;
 using Engine.Debug;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Physics;
-using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Windowing;
-using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
@@ -32,7 +30,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		public static bool Threaded = true;
 
-		bool ForceRenderDistanceCheck = false;
+		bool ForceRenderDistanceCheck;
 
 		public static ProcWorld Instance;
 
@@ -59,7 +57,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		Thread _terrainThread;
 		public Material _material;
-		static Texture atlas = null;
+		static Texture atlas;
 
 		public ProcWorld(long seed)
 		{
@@ -297,7 +295,7 @@ namespace MCClone_Core.World_CS.Generation
 		public override List<Aabb> GetAabbs(int collisionlayer, Aabb aabb)
 		{
 			List<Aabb> aabbs = new List<Aabb>();
-			Vector3 a = new Vector3((float) (aabb.MinLoc.X - 1), (float) (aabb.MinLoc.Y - 1), (float) (aabb.MinLoc.Z - 1));
+			Vector3 a = new Vector3(aabb.MinLoc.X - 1, aabb.MinLoc.Y - 1, aabb.MinLoc.Z - 1);
 			Vector3 b = aabb.MaxLoc;
 
 			for (int z = (int) a.Z; z < b.Z; z++)
@@ -308,7 +306,7 @@ namespace MCClone_Core.World_CS.Generation
 					{
 						byte block = GetBlockIdFromWorldPos(x, y, z);
 						if (BlockHelper.BlockTypes[block].NoCollision || block == 0) continue;
-						Aabb c = new Aabb(new Engine.MathLib.DoublePrecision_Numerics.Vector3(x, y, z), new Engine.MathLib.DoublePrecision_Numerics.Vector3(x + 1, y + 1, z + 1));
+						Aabb c = new Aabb(new System.Numerics.Vector3(x, y, z), new System.Numerics.Vector3(x + 1, y + 1, z + 1));
 						aabbs.Add(c);
 					}
 				}
@@ -373,13 +371,13 @@ namespace MCClone_Core.World_CS.Generation
 		
 		
 
-		public void change_block(int cx, int cz, int bx, int @by, int bz, byte T)
+		public void change_block(int cx, int cz, int bx, int by, int bz, byte T)
 		{
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
-			if (c.BlockData[ChunkCs.GetFlattenedMax(bx, @by, bz)] == T) return;
-			ConsoleLibrary.DebugPrint($"Changed block at {bx} {@by} {bz} in chunk {cx}, {cz}");
-			c?._set_block_data(bx,@by,bz,T);
+			if (c.BlockData[ChunkCs.GetFlattenedMax(bx, by, bz)] == T) return;
+			ConsoleLibrary.DebugPrint($"Changed block at {bx} {by} {bz} in chunk {cx}, {cz}");
+			c?._set_block_data(bx,by,bz,T);
 			_update_chunk(cx, cz);
 		}
 

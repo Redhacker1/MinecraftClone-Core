@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering;
@@ -20,7 +19,7 @@ namespace Engine.Renderable
         internal bool UseIndexedDrawing;
         internal bool UpdatingMesh = true;
         internal Material MeshMaterial;
-        public uint VertexElements = 0;
+        public uint VertexElements;
         public static List<Mesh> Meshes = new();
 
 
@@ -28,7 +27,7 @@ namespace Engine.Renderable
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
 
-        public MathLib.DoublePrecision_Numerics.Vector3 Position => _objectReference.Pos;
+        public Vector3 Position => _objectReference.Pos;
 
         readonly MinimalObject _objectReference;
 
@@ -44,7 +43,7 @@ namespace Engine.Renderable
             Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(_objectReference.Rotation.X), 
                 MathHelper.DegreesToRadians(_objectReference.Rotation.Y), 
                 MathHelper.DegreesToRadians(_objectReference.Rotation.Z))) * Matrix4x4.CreateScale(Scale)
-                                                                           * Matrix4x4.CreateTranslation(_objectReference.Pos.CastToNumerics() -Camera.MainCamera.Pos.CastToNumerics());
+                                                                           * Matrix4x4.CreateTranslation(_objectReference.Pos -Camera.MainCamera.Pos);
         
         
         public Mesh(MinimalObject bindingobject, Material material)
@@ -90,7 +89,7 @@ namespace Engine.Renderable
             Matrix4x4 rotation = 
                 Matrix4x4.CreateFromQuaternion(Rotation) * 
                 Matrix4x4.CreateScale(Scale) * 
-                Matrix4x4.CreateTranslation(_objectReference.Pos.CastToNumerics() - Offset);
+                Matrix4x4.CreateTranslation(_objectReference.Pos - Offset);
 
             outValues[0] = Vector3.Transform(Minpoint, rotation);
             outValues[1] = Vector3.Transform(Maxpoint, rotation);

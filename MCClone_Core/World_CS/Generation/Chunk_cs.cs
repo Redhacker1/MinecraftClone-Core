@@ -8,7 +8,6 @@ using Engine.Renderable;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
-using Texture = Engine.Rendering.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -76,7 +75,7 @@ namespace MCClone_Core.World_CS.Generation
 		public void InstantiateChunk(ProcWorld w, int cx, int cz, long seed)
 		{
 			
-			Pos = new Engine.MathLib.DoublePrecision_Numerics.Vector3(cx * (MaxX), 0, cz * MaxZ);
+			Pos = new System.Numerics.Vector3(cx * (MaxX), 0, cz * MaxZ);
 			ChunkCoordinate = new Vector2(cx, cz);
 			
 			Generator.Generate(this, cx, cz, seed);
@@ -102,7 +101,7 @@ namespace MCClone_Core.World_CS.Generation
 				byte block = BlockData[GetFlattenedMax(x, y, z)];
 				if (block != 0)
 				{
-					check_transparent_neighbours(x, y, z, ref transparent, false);
+					check_transparent_neighbours(x, y, z, ref transparent);
 					//TODO: AO Code goes here!
 					if (transparent.Contains(true))
 					{
@@ -148,7 +147,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				//GD.Print("External Chunk Write");
 
-				Engine.MathLib.DoublePrecision_Numerics.Vector3 worldCoordinates = new Engine.MathLib.DoublePrecision_Numerics.Vector3(x + Pos.X, y, z + Pos.Z);
+				System.Numerics.Vector3 worldCoordinates = new System.Numerics.Vector3(x + Pos.X, y, z + Pos.Z);
 				int localX = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.X), MaxX) + 0.5);
 				int localY = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.Y), MaxY) + 0.5);
 				int localZ = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.Z), MaxZ) + 0.5);

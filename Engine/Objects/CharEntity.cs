@@ -3,21 +3,16 @@ using System.Collections.Generic;
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Physics;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace Engine.Objects
 {
-    using Vector3 = Vector3;
-
-
-
     /// <summary>
     /// Used for entities that move around. This is based off of Entity
     /// </summary>
     public abstract class CharacterEntity : Entity
     {
         public bool OnGround;
-        public double EyeOffset = 1.6f;
+        public float EyeOffset = 1.6f;
         public bool Noclip = true;
 
         public Level Level;
@@ -76,8 +71,8 @@ namespace Engine.Objects
             PhysicsTick = true;
             Ticks = true;
             Pos = position;
-            double w = AabbWidth / 2.0;
-            double h = AabbHeight / 2.0;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
             
             Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
@@ -89,43 +84,43 @@ namespace Engine.Objects
             PhysicsTick = true;
             Ticks = true;
             
-            double w = AabbWidth / 2.0;
-            double h = AabbHeight / 2.0;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
             
             Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
         }
 
-        public virtual void MoveRelative(double dx, double dz, double speed)
+        public virtual void MoveRelative(float dx, float dz, float speed)
         {
-            double dist = dx * dx + dz * dz;
+            float dist = dx * dx + dz * dz;
             if (dist < 0.01f) return;
 
-            dist = speed / Math.Sqrt(dist);
-            double sin = Math.Sin(MathHelper.DegreesToRadians(Rotation.Y));
-            double cos = Math.Cos(MathHelper.DegreesToRadians(Rotation.Y));
+            dist = speed / MathF.Sqrt(dist);
+            float sin = MathF.Sin(MathHelper.DegreesToRadians(Rotation.Y));
+            float cos = MathF.Cos(MathHelper.DegreesToRadians(Rotation.Y));
 
-            PosDelta.X += (float)((dx *= dist) * cos - (dz *= dist) * sin);
-            PosDelta.Z += (float)(dz * cos + dx * sin);
+            PosDelta.X += (dx *= dist) * cos - (dz *= dist) * sin;
+            PosDelta.Z += dz * cos + dx * sin;
         }
 
         public virtual void SetPos(Vector3 pos)
         {
             Pos = pos;
-            double w = AabbWidth / 2.0;
-            double h = AabbHeight / 2.0;
+            float w = AabbWidth / 2.0f;
+            float h = AabbHeight / 2.0f;
             
             Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
-            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w)).CastToNumerics();
+            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
         }
 
-        public virtual void Rotate(double rotX, double rotY)
+        public virtual void Rotate(float rotX, float rotY)
         {
-            Rotation.X = (Rotation.Y - rotX * 0.15);
-            Rotation.Y = ((Rotation.Y + rotY * 0.15) % 360.0);
+            Rotation.X = (Rotation.Y - rotX * 0.15f);
+            Rotation.Y = ((Rotation.Y + rotY * 0.15f) % 360.0f);
             
-            if (Rotation.X < -90.0) Rotation.X = -90.0;
-            if (Rotation.X > 90.0) Rotation.X = 90.0;
+            if (Rotation.X < -90.0) Rotation.X = -90.0f;
+            if (Rotation.X > 90.0) Rotation.X = 90.0f;
         }
     }
 }

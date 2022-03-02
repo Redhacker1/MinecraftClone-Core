@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Numerics;
 using Engine;
 using Engine.Debug;
@@ -7,13 +6,12 @@ using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Windowing;
-using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.World_CS.Generation;
 using Steamworks;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
+using Vector3 = System.Numerics.Vector3;
 
 namespace MCClone_Core
 {

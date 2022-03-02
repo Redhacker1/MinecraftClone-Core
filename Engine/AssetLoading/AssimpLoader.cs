@@ -2,18 +2,15 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Windowing;
 using Silk.NET.Assimp;
+using assimp = Silk.NET.Assimp.Assimp;
 using File = System.IO.File;
+using Material = Engine.Rendering.Material;
 using Mesh = Engine.Renderable.Mesh;
 using Texture = Engine.Rendering.Texture;
-using assimp = Silk.NET.Assimp.Assimp;
-using Material = Engine.Rendering.Material;
-using PostProcessPreset = Silk.NET.Assimp.PostProcessPreset;
-using TextureType = Silk.NET.Assimp.TextureType;
 
 namespace Engine.AssetLoading
 {
@@ -165,7 +162,7 @@ namespace Engine.AssetLoading
                 }
                 
                 meshes[meshcount] = new Mesh(BindingObject, material);
-                MeshData data = new MeshData()
+                MeshData data = new MeshData
                 {
                     _indices = indicies.ToArray(),
                     _vertices = meshVertsArr,

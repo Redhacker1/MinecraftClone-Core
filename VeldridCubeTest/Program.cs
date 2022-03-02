@@ -1,11 +1,13 @@
 ﻿using System.Numerics;
 using Engine;
+using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Windowing;
 using ObjDemo;
 using Veldrid;
+using Shader = Engine.Rendering.Shader;
 using Texture = Engine.Rendering.Texture;
 
 namespace VeldridCubeTest
@@ -15,7 +17,7 @@ namespace VeldridCubeTest
         static void Main()
         {
 	        Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX , 1.333333F, true );
-            Engine.Initialization.Init.InitEngine(0,0, 1024, 768, "Demo Cube", new CubeDemo());
+            Init.InitEngine(0,0, 1024, 768, "Demo Cube", new CubeDemo());
         }
     }
 
@@ -37,15 +39,15 @@ namespace VeldridCubeTest
 				WriteDepthBuffer = true,
 				FaceDir = FrontFace.CounterClockwise,
 				FillMode = PolygonFillMode.Solid,
-				Shaders = new Dictionary<ShaderStages, Engine.Rendering.Shader>
+				Shaders = new Dictionary<ShaderStages, Shader>
 				{
 					{
 						ShaderStages.Fragment,
-						new Engine.Rendering.Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
-						new Engine.Rendering.Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
+						new Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
 					}
 
 
@@ -80,7 +82,7 @@ namespace VeldridCubeTest
 
 
 
-			MeshData data = new MeshData()
+			MeshData data = new MeshData
 			{
 				_vertices = new[]
 				{
@@ -118,7 +120,7 @@ namespace VeldridCubeTest
 					20,21,22, 20,22,23,
 				}
 			};
-			var Object = new Entity(Engine.MathLib.DoublePrecision_Numerics.Vector3.One, Vector2.Zero);
+			var Object = new Entity(System.Numerics.Vector3.One, Vector2.Zero);
 			Mesh mesh = new Mesh(Object, material);
 			mesh.GenerateMesh(data);
 

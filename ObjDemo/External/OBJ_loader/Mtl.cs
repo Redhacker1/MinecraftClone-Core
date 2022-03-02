@@ -89,7 +89,7 @@ namespace ObjParser
         /// </summary>		
         void ProcessLine(string line)
         {
-            string[] parts = line.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
             if (parts.Length > 0)
             {

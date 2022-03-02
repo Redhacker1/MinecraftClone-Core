@@ -1,6 +1,4 @@
-﻿using System;
-using System.Text;
-using Engine.Renderable;
+﻿using System.Text;
 using ImGuiNET;
 
 namespace ObjDemo

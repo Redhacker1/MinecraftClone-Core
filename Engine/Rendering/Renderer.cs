@@ -35,7 +35,7 @@ namespace Engine.Rendering
         
         ImGuiRenderer _imGuiHandler;
         ViewProj _worldDataBuffer;
-        internal unsafe Renderer(IView viewport)
+        internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R16_UNorm,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
@@ -51,7 +51,7 @@ namespace Engine.Rendering
         public GraphicsDevice Device;
         readonly CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
-        public uint FPS = 0;
+        public uint FPS;
         Frustrum? frustum;
         Plane[] sides = new Plane[6];
         internal void OnRender(double time)
@@ -90,7 +90,7 @@ namespace Engine.Rendering
             
             
             
-            Parallel.ForEach(sceneMeshes, (mesh) =>
+            Parallel.ForEach(sceneMeshes, mesh =>
             {
                 if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
                 {

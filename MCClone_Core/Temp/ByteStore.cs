@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace MCClone_Core.Temp
 {
@@ -20,8 +19,8 @@ namespace MCClone_Core.Temp
         public uint Count => ByteCount / (uint)Unsafe.SizeOf<T>();
         public uint Capacity => ByteCapacity / (uint)Unsafe.SizeOf<T>();
 
-        public unsafe Span<T> Span => new(Buffer, (int)Count);
-        public unsafe Span<T> FullSpan => new(Buffer, (int)Capacity);
+        public Span<T> Span => new(Buffer, (int)Count);
+        public Span<T> FullSpan => new(Buffer, (int)Capacity);
 
         public ByteStore(HeapPool pool, T* buffer, uint byteCapacity)
         {
@@ -79,7 +78,7 @@ namespace MCClone_Core.Temp
             return new ByteStore<T>(pool, (T*)buffer, actualByteCapacity);
         }
 
-        private unsafe void Resize(uint newCapacity)
+        private void Resize(uint newCapacity)
         {
             uint byteCount = ByteCount;
             IntPtr newBuffer = Pool.Rent(newCapacity * (uint)Unsafe.SizeOf<T>(), out uint newByteCapacity);

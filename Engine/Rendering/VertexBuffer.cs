@@ -3,12 +3,14 @@ using Veldrid;
 
 namespace Engine.Rendering
 {
-    public abstract class BaseVertexBuffer
+    public abstract class BaseVertexBuffer : IDisposable
     {
         internal abstract void Bind(CommandList list, uint slot = 0);
+
+        public abstract void Dispose();
     }
     
-    public class VertexBuffer<TDataType> : BaseVertexBuffer,  IDisposable
+    public class VertexBuffer<TDataType> : BaseVertexBuffer
         where TDataType : unmanaged
     {
         
@@ -38,7 +40,7 @@ namespace Engine.Rendering
         }
         
         
-        public void Dispose()
+        public override void Dispose()
         {
             bufferObject.Dispose();
         }

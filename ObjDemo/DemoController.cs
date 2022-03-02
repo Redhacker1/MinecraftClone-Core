@@ -1,17 +1,15 @@
 ﻿using Engine.Input;
 using Engine.MathLib;
 using Engine.MathLib.DoublePrecision_Numerics;
-using Engine.Objects;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 using Silk.NET.Input;
 
-namespace CullingTests
+namespace ObjDemo
 {
     public class DemoController
     {
         readonly CharacterEntity _pawn;
-        Vector3 _velocity = new Vector3();
+        Vector3 _velocity;
         float _speed = 25.498592f;
 
         public DemoController(CharacterEntity character)

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Numerics;
-using Engine.Initialization;
-using Engine.Input;
+﻿using Engine.Initialization;
 using Engine.Objects;
-using Silk.NET.Input;
-using Veldrid;
 
 namespace Engine
 {

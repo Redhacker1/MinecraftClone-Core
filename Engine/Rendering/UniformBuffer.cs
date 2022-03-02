@@ -11,20 +11,22 @@ namespace Engine.Rendering
     public unsafe class UniformBuffer<TDataType> : BaseUnifomrBuffer, IGraphicsResource, IDisposable where TDataType : unmanaged
     {
         internal DeviceBuffer bufferObject;
+        GraphicsDevice _device;
         public UniformBuffer(GraphicsDevice gDevice, Span<TDataType> data)
         {
             bufferObject =
                 gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  data.Length),
                     BufferUsage.UniformBuffer));
             ModifyBuffer(data, gDevice);
-            
+            _device = gDevice;
         }
         
         public UniformBuffer(GraphicsDevice gDevice, uint Length)
         {
             bufferObject =
                 gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  Length),
-                    BufferUsage.UniformBuffer));
+                    BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+            _device = gDevice;
         }
 
         
@@ -44,7 +46,7 @@ namespace Engine.Rendering
                 {
                     bufferObject.Dispose();
                 
-                    BufferDescription bufferDescription = new BufferDescription((uint)(data.Length * sizeof(TDataType)), BufferUsage.UniformBuffer);
+                    BufferDescription bufferDescription = new BufferDescription((uint)(data.Length * sizeof(TDataType)), BufferUsage.UniformBuffer | BufferUsage.Dynamic);
                     bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
                 }
             }
@@ -62,6 +64,17 @@ namespace Engine.Rendering
             }
             list.UpdateBuffer(bufferObject, 0, data);
         }
+        
+        public void ModifyBuffer(Span<TDataType> data, CommandList list)
+        {
+            ModifyBuffer(data, list, _device);
+        }
+        
+        public void ModifyBuffer(Span<TDataType> updateMatrix)
+        {
+            ModifyBuffer(updateMatrix, _device);
+        }
+        
 
         internal override DeviceBuffer GetBuffer()
         {

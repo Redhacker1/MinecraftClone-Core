@@ -16,21 +16,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="BepuPhysics" Version="2.3.0" />
-      <PackageReference Include="ImGui.NET" Version="1.86.0" />
+      <PackageReference Include="BepuPhysics" Version="2.4.0" />
+      <PackageReference Include="ImGui.NET" Version="1.87.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
       <PackageReference Include="Pfim" Version="0.10.3" />
-      <PackageReference Include="Silk.NET.Assimp" Version="2.12.0" />
-      <PackageReference Include="Silk.NET.Input" Version="2.12.0" />
-      <PackageReference Include="Silk.NET.OpenAL" Version="2.12.0" />
-      <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.12.0" />
+      <PackageReference Include="Silk.NET.Assimp" Version="2.13.0" />
+      <PackageReference Include="Silk.NET.Input" Version="2.13.0" />
+      <PackageReference Include="Silk.NET.OpenAL" Version="2.13.0" />
+      <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.13.0" />
       <PackageReference Include="SixLabors.ImageSharp" Version="1.0.4" />
+      <PackageReference Include="SkiaSharp" Version="2.88.0-preview.209" />
       <PackageReference Include="Veldrid" Version="4.9.0-beta1" />
       <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+      <PackageReference Include="Veldrid.Utilities" Version="4.9.0-beta1" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="AssetLoading" />
       <Folder Include="Rendering\" />
       <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>

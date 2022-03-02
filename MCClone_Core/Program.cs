@@ -32,9 +32,10 @@ namespace MCClone_Core
     internal class MinecraftCloneCore: Game
     {
         WorldScript script;
-        ImGUIPanel _panel = new ImGUIPanel();
+        ImGUIPanel _panel;
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
+        
         public override void Gamestart()
         {
             ConsoleLibrary.InitConsole(consoleBox.SetConsoleScrollback);
@@ -50,8 +51,6 @@ namespace MCClone_Core
             }
 
             base.Gamestart();
-
-            FPSEntity ent = new FPSEntity();
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
@@ -73,16 +72,5 @@ namespace MCClone_Core
         
         
         
-    }
-
-
-    internal class FPSEntity : Entity
-    {
-        uint frames;
-        uint PreviousFPS = 0;
-
-        public override void _Process(double delta)
-        {
-        }
     }
 }

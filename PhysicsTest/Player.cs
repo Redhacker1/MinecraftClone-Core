@@ -9,7 +9,7 @@ using Engine.Rendering;
 using Silk.NET.Input;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3; 
 
-namespace VeldridCubeTest
+namespace BulletTest
 {
 	//[Tool]
 	public class Player: CharacterEntity

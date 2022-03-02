@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Veldrid;
-using Vortice.Direct3D11;
 
 namespace Engine.Rendering
 {
@@ -72,7 +71,7 @@ namespace Engine.Rendering
         public bool Equals(Pipeline other)
         {
             // TODO: Ensure that the shaders and (eventually) resources are the same before saying it is true
-            if (PipelineMask == other.PipelineMask && _shaders.Count == other._shaders.Count)
+            if (PipelineMask == other.PipelineMask && _shaders?.Count == other._shaders?.Count)
             {
                 return true;
             }

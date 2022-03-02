@@ -21,6 +21,13 @@ namespace Engine.Rendering
                 ModifyBuffer(data, gDevice);
             }
         }
+        public IndexBuffer(GraphicsDevice gDevice, int length)
+        {
+            unsafe
+            {
+                bufferObject = gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  length), BufferUsage.IndexBuffer));
+            }
+        }
 
         DeviceBuffer bufferObject;
         public uint Length

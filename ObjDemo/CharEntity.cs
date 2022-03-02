@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Engine.MathLib;
-using Engine.Physics;
+using Engine.Objects;
 using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
-namespace Engine.Objects
+namespace ObjDemo
 {
     using Vector3 = Vector3;
 
@@ -19,8 +19,7 @@ namespace Engine.Objects
         public bool OnGround;
         public double EyeOffset = 1.6f;
         public bool Noclip = true;
-
-        public Level Level;
+        
 
         public virtual void Move(Vector3 accel)
         {
@@ -30,29 +29,8 @@ namespace Engine.Objects
             Vector3 o = acceleration;
             
             
-            List<Aabb> aabbs = Level?.GetAabbs(0, Aabb.Expand(acceleration));
-            if (Noclip)
-            {
-                aabbs = new List<Aabb>();
-            }
-            
+            Aabb.Move(acceleration);
 
-            foreach (Aabb aabb in aabbs)
-            {
-                acceleration.Y = aabb.ClipYCollide(Aabb, acceleration.Y);
-            }
-            Aabb.Move(new Vector3(0, acceleration.Y, 0));
-            foreach (Aabb aabb in aabbs)
-            {
-                acceleration.X = aabb.ClipXCollide(Aabb, acceleration.X);
-            }
-            Aabb.Move(new Vector3(acceleration.X, 0, 0));
-            foreach (Aabb aabb in aabbs)
-            {
-                acceleration.Z = aabb.ClipZCollide(Aabb, acceleration.Z);
-            }
-            Aabb.Move(new Vector3(0, 0, acceleration.Z));
-            
 
             OnGround = Math.Abs(o.Y - acceleration.Y) > double.Epsilon && o.Y < 0;
 
@@ -65,13 +43,10 @@ namespace Engine.Objects
             Pos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
             
         }
-
-        public void SetLevel(Level desiredLevel)
-        {
-            Level = desiredLevel;
-        }
-
-        public CharacterEntity(Vector3 position, Vector2 rotation, Level level)
+        
+        
+        public Aabb Aabb;
+        public CharacterEntity(Vector3 position, Vector2 rotation)
         {
             PhysicsTick = true;
             Ticks = true;
@@ -81,7 +56,6 @@ namespace Engine.Objects
             
             Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
             
-            Level = level;
         }
         
         public CharacterEntity()

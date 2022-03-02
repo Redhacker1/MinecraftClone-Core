@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Engine.Input
+﻿namespace Engine.Input
 {
     public class InputEventManager
     {

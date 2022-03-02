@@ -1,9 +1,9 @@
 ﻿using System;
 using Engine.MathLib;
 using Engine.MathLib.DoublePrecision_Numerics;
-using MCClone_Core.World_CS.Generation;
+using MCClone_Core.Physics;
 
-namespace Engine.Physics
+namespace MCClone_Core.Utility
 {
     public static class Raycast
     {

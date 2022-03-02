@@ -4,7 +4,7 @@ using Engine.MathLib.DoublePrecision_Numerics;
 using Engine.Rendering;
 using Silk.NET.Input;
 
-namespace VeldridCubeTest
+namespace BulletTest
 {
     public class DemoController
     {

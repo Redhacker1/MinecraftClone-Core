@@ -1,9 +1,6 @@
-﻿using Engine.Input;
-using Engine.MathLib;
-using Engine.MathLib.DoublePrecision_Numerics;
-using Engine.Objects;
+﻿using System.Numerics;
+using Engine.Input;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 using Silk.NET.Input;
 
 namespace CullingTests
@@ -21,8 +18,8 @@ namespace CullingTests
         public void Move(double deltatime)
         {
             Vector3 direction = new Vector3();
-            Vector3 CameraForward = Camera.MainCamera.Front.CastToDouble();
-            Vector3 CameraLeft = -Camera.MainCamera.Right.CastToDouble();
+            Vector3 CameraForward = Camera.MainCamera.Front;
+            Vector3 CameraLeft = -Camera.MainCamera.Right;
 
             if (InputHandler.KeyboardKeyDown(0,Key.W))
             {
@@ -44,11 +41,11 @@ namespace CullingTests
             }
             
             
-            _velocity.X = (direction.X * speed * deltatime);
-            _velocity.Z = (direction.Z * speed * deltatime);
+            _velocity.X = (direction.X * speed * (float)deltatime);
+            _velocity.Z = (direction.Z * speed * (float)deltatime);
             if (pawn.Noclip)
             {
-                _velocity.Y = (direction.Y * speed * deltatime);
+                _velocity.Y = (direction.Y * speed * (float)deltatime);
             }
             
             pawn.MoveRelative(_velocity.X, _velocity.Z, speed);

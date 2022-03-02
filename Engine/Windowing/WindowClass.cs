@@ -1,13 +1,11 @@
-﻿using Engine.Input;
+﻿using System;
+using System.Diagnostics;
+using Engine.Input;
 using Engine.Objects;
 using Engine.Rendering;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
-using System;
-using System.Diagnostics;
-using Shader = Engine.Rendering.Shader;
-using Texture = Engine.Rendering.Texture;
 
 namespace Engine.Windowing
 {

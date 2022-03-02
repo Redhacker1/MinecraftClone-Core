@@ -4,6 +4,6 @@ namespace Engine.Rendering
 {
     public interface IGraphicsResource
     {
-        internal abstract (ResourceKind, BindableResource) GetUnderlyingResources();
+        internal (ResourceKind, BindableResource) GetUnderlyingResources();
     }
 }

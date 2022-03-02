@@ -6,7 +6,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Numerics;
 using MCClone_Core.World_CS.Generation;
-using Vector3 = Engine.MathLib.DoublePrecision_Numerics.Vector3;
 
 namespace MCClone_Core.Utility.IO
 {
@@ -86,7 +85,7 @@ namespace MCClone_Core.Utility.IO
             
             fs.Close();
 
-            ChunkCs referencedChunk = new ChunkCs()
+            ChunkCs referencedChunk = new ChunkCs
             {
                 BlockData = saveData.ChunkBlocks,
                 ChunkCoordinate = saveData.Location,

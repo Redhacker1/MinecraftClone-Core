@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Numerics;
 
 namespace MCClone_Core.Temp
 {
@@ -54,7 +52,7 @@ namespace MCClone_Core.Temp
         {
             //int poolIndex = BitOperations.Log2(byteCapacity - 1 | MinMask) - (MinRangeBits - 1);
             nuint poolIndex = (byteCapacity - 1) / StepSize;
-            return (nuint)poolIndex;
+            return poolIndex;
         }
 
         private static nuint GetBlockSizeAt(nuint index)

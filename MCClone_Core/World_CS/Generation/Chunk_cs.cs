@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
@@ -8,7 +7,6 @@ using Engine.Renderable;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
-using Texture = Engine.Rendering.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -78,7 +76,7 @@ namespace MCClone_Core.World_CS.Generation
 		public void InstantiateChunk(ProcWorld w, int cx, int cz, long seed)
 		{
 			
-			Pos = new Engine.MathLib.DoublePrecision_Numerics.Vector3(cx * (MaxX), 0, cz * MaxZ);
+			Pos = new Vector3(cx * (MaxX), 0, cz * MaxZ);
 			ChunkCoordinate = new Vector2(cx, cz);
 			
 			Generator.Generate(this, cx, cz, seed);
@@ -103,7 +101,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				byte block = BlockData[GetFlattenedMax(x, y, z)];
 				if (block == 0) continue;
-				check_transparent_neighbours(x, y, z, ref transparent, false);
+				check_transparent_neighbours(x, y, z, ref transparent);
 				//TODO: AO Code goes here!
 				if (transparent.Contains(true))
 				{
@@ -147,7 +145,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				//GD.Print("External Chunk Write");
 
-				Engine.MathLib.DoublePrecision_Numerics.Vector3 worldCoordinates = new Engine.MathLib.DoublePrecision_Numerics.Vector3(x + Pos.X, y, z + Pos.Z);
+				Vector3 worldCoordinates = new Vector3(x + Pos.X, y, z + Pos.Z);
 				int localX = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.X), MaxX) + 0.5);
 				int localY = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.Y), MaxY) + 0.5);
 				int localZ = (int) (MathHelper.Modulo(Math.Floor(worldCoordinates.Z), MaxZ) + 0.5);
@@ -258,8 +256,8 @@ namespace MCClone_Core.World_CS.Generation
 			if (x < 0 || x >= MaxX || z < 0 || z >= MaxZ)
 			{
 				
-				int cx = (int) x / MaxX;
-				int cz = (int) z / MaxX;
+				int cx = x / MaxX;
+				int cz = z / MaxX;
 
 				int bx = (int) (MathHelper.Modulo(MathF.Floor(x), MaxX));
 				int bz = (int) (MathHelper.Modulo(MathF.Floor(z), MaxZ));

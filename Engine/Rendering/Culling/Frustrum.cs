@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using Engine.MathLib;
 using Engine.Renderable;
 using Veldrid.Utilities;
 
@@ -12,7 +11,7 @@ namespace Engine.Rendering.Culling
         Vector3 extents;
         // Orthonormal basis
         Quaternion Rotation;
-};
+}
 
     public struct AABB // Alternative: aabb_t { float3 min; float3 max; };
     {
@@ -51,9 +50,9 @@ namespace Engine.Rendering.Culling
     {
         static Mesh[] FrustrumMeshes;
         internal Plane[] Planes;
-        internal MathLib.DoublePrecision_Numerics.Vector3 camerapos;
+        internal Vector3 camerapos;
 
-        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, MathLib.DoublePrecision_Numerics.Vector3 Pos, Span<Plane> planes)
+        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, Span<Plane> planes)
         {
             camerapos = Pos;
             Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
@@ -123,14 +122,12 @@ namespace Engine.Rendering.Culling
                 BoundingBox boundingBox = new BoundingBox();
                 
                 Span<Vector3> outValues = stackalloc Vector3[2];
-                mesh?.GetMinMaxScaled(outValues, frustum.camerapos.CastToNumerics());
+                mesh?.GetMinMaxScaled(outValues, frustum.camerapos);
                 AABB aabb = new(outValues[0], outValues[1]);
                 return aabb_to_frustum(ref aabb, frustum);   
             }
-            else
-            {
-                return true;
-            }
+
+            return true;
         }
         
 

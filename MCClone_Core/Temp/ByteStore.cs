@@ -22,8 +22,8 @@ namespace MCClone_Core.Temp
         public nuint Count => ByteCount / (nuint)Unsafe.SizeOf<T>();
         public nuint Capacity => ByteCapacity / (nuint)Unsafe.SizeOf<T>();
 
-        public unsafe Span<T> Span => new(Buffer, (int)Count);
-        public unsafe Span<T> FullSpan => new(Buffer, (int)Capacity);
+        public Span<T> Span => new(Buffer, (int)Count);
+        public Span<T> FullSpan => new(Buffer, (int)Capacity);
 
         public ByteStore(MemoryHeap heap, T* buffer, nuint byteCapacity)
         {
@@ -95,7 +95,7 @@ namespace MCClone_Core.Temp
             return new ByteStore<T>(heap, (T*)buffer, actualByteCapacity);
         }
 
-        private unsafe void Resize(nuint newCapacity)
+        private void Resize(nuint newCapacity)
         {
             nuint byteCount = ByteCount;
             void* newBuffer = Heap.Realloc(

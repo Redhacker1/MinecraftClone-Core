@@ -1,4 +1,6 @@
-﻿using Engine.MathLib.DoublePrecision_Numerics;
+﻿
+
+using System.Numerics;
 
 namespace MCClone_Core.Physics
 {

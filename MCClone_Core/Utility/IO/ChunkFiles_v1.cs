@@ -31,13 +31,14 @@ namespace MCClone_Core.Utility.IO
                 compressed = true;
             }
             
-            FileStream fs = File.OpenRead(filePath);
+            var FileData = File.ReadAllBytes(filePath);
+            MemoryStream data = new MemoryStream(FileData);
 
             DeflateStream compressor = null;
-            BinaryReader fileReader = new BinaryReader(fs);
+            BinaryReader fileReader = new BinaryReader(data);
             if (compressed)
             {
-                compressor = new DeflateStream(fs, CompressionMode.Decompress);
+                compressor = new DeflateStream(data, CompressionMode.Decompress);
                 fileReader = new BinaryReader(compressor);
             }
 
@@ -83,7 +84,7 @@ namespace MCClone_Core.Utility.IO
                 compressor.Close();    
             }
             
-            fs.Close();
+            data.Close();
 
             ChunkCs referencedChunk = new ChunkCs
             {

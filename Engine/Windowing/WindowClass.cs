@@ -17,7 +17,7 @@ namespace Engine.Windowing
         public static Renderer _renderer;
         
         Game gameinstance;
-        internal static IWindow Handle;
+        public static IWindow Handle;
 
         public WindowClass(int width, int height, int posx, int posy, string WindowName, Game GameClass)
         {

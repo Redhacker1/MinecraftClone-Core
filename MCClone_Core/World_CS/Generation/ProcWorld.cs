@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
 using Engine.Debug;
@@ -255,6 +256,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		Vector2 _load_chunk(int cx, int cz)
 		{
+			Stopwatch stopwatch =Stopwatch.StartNew();
 			Vector2 cpos = new Vector2(cx, cz);
 			bool loadChunk;
 			loadChunk = !LoadedChunks.ContainsKey(cpos);
@@ -275,6 +277,11 @@ namespace MCClone_Core.World_CS.Generation
 				LoadedChunks[cpos] = c;
 				c.UpdateVisMask();
 				_update_chunk(cx, cz);
+			}
+
+			if (stopwatch.ElapsedMilliseconds >= 1)
+			{
+				Console.WriteLine(stopwatch.Elapsed.TotalMilliseconds);	
 			}
 			return cpos;
 		}

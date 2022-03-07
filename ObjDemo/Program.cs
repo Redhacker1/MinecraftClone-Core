@@ -1,4 +1,5 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Engine;
@@ -135,7 +136,7 @@ namespace ObjDemo
 		        AssimpMaterialStruct ASSIMPmaterial = assimpMaterialStructs[materialIndex];
 		        var Diffuse = ASSIMPmaterial._textures[TextureType.TextureTypeDiffuse];
 
-		        //Console.WriteLine(Diffuse[0].path);
+		        Console.WriteLine(Diffuse[0].path);
 
 		        Materials[materialIndex].ResourceSet(1, WindowClass._renderer.WorldBuffer, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), Diffuse[0]._texture); 
 	        }

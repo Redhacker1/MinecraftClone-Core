@@ -42,7 +42,7 @@ namespace Engine.Rendering
         }
 
         public GraphicsDevice Device;
-        readonly CommandList _list; 
+        CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
         public uint FPS;
         Frustrum frustum;
@@ -62,6 +62,11 @@ namespace Engine.Rendering
             UpdateMatrix[1] = Camera.MainCamera.GetViewMatrix();
             ViewProjBuffer.ModifyBuffer(UpdateMatrix, Device);
             frustum =  Camera.MainCamera.GetViewFrustum(sides);
+
+            if (_list == null)
+            {
+                _list = Device.ResourceFactory.CreateCommandList();
+            }
             
             _list.Begin();
             _list.SetFramebuffer(Device.SwapchainFramebuffer);

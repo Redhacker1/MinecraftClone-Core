@@ -63,8 +63,9 @@ namespace Engine.Rendering
             Span<Matrix4x4> worldmatrix = stackalloc Matrix4x4[1];
             Bind(list);
             _references.EnterReadLock();
-            foreach (Mesh mesh in _references)
+            foreach (var renderable in _references)
             {
+                var mesh =renderable;
                 if (mesh.ShouldRender(frustum))
                 {
                     worldmatrix[0] = mesh.ViewMatrix;
@@ -136,9 +137,9 @@ namespace Engine.Rendering
             Sets[slot] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(Set);
         }
 
-        public void AddReference(Mesh mesh)
+        public void AddReference(Mesh renderable)
         {
-            _references.Add(mesh);
+            _references.Add(renderable);
         }
 
         public void RemoveReference(Mesh mesh)

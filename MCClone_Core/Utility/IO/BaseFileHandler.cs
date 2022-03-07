@@ -64,12 +64,6 @@ namespace MCClone_Core.Utility.IO
                 }
             }
 
-            //IEnumerable<byte> blockTypes = distinctBlocks as byte[] ?? distinctBlocks.ToArray();
-            if (optimizeStorage && Blocks.Count < 16)
-            {
-                chunkSaveData.VersionNumber = 0; // Tells the save file writer to compress the blocks into two per byte (or later as small as it can get it)
-            }
-
 
             Dictionary<byte, byte> blockDict = new Dictionary<byte, byte>();    
             byte serializedId = 0;

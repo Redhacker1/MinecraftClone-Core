@@ -1,40 +1,56 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
+using BulletSharp.Math;
+using Engine.MathLib;
 using Engine.Objects;
+using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Rendering.Culling;
 using Engine.Windowing;
 using Veldrid;
+using Quaternion = System.Numerics.Quaternion;
+using Vector3 = System.Numerics.Vector3;
 
-namespace Engine.Renderable
+namespace Physics;
+
+public class BulletMesh: Renderable, IDisposable
 {
-    public class Mesh : Renderable, IDisposable
-    {
 
-        internal static object scenelock = new object();
-        internal bool UpdatingMesh = true;
-
-        public static List<Mesh> Meshes = new();
+    internal static object scenelock = new object();
+    internal bool UpdatingMesh = true;
+    List<BulletMesh> Meshes = new List<BulletMesh>();
 
 
+    internal Vector3 Minpoint;
+    internal Vector3 Maxpoint;
 
-        internal Vector3 Minpoint;
-        internal Vector3 Maxpoint;
+    public Vector3 Position => GetObjectReference().Pos;
+    
+    public Matrix BulletMatrix = default;
 
-        public Vector3 Position => GetObjectReference().Pos;
+    public Quaternion Rotation =>
+            Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(GetObjectReference().Rotation.X),
+                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Y),
+                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Z));
 
 
-        public Mesh(MinimalObject bindingobject, Material material)
+    public BulletMesh(MinimalObject bindingobject, Material material)
         {
-            _objectReference = bindingobject;
+            _objectReference = new WeakReference<MinimalObject>(bindingobject);
             Meshes.Add(this);
 
+        }
+
+        MinimalObject GetObjectReference()
+        {
+            MinimalObject objectReference;
+            _objectReference.TryGetTarget(out objectReference);
+            return objectReference;
         }
 
 
         void CreateVertexArray(Span<Vector3> _vertices, Span<Vector3> _uvs, ref Span<float> vertexArray)
         {
+            Matrix4x4 rotation = Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateScale(Scale);
             Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
             for (int i = 0; i <_vertices.Length; i++)
@@ -48,21 +64,22 @@ namespace Engine.Renderable
                 vertexArray[i * 6 + 5] =(_uvs[i].Z);
                 //values[i + 6] = 0;
 
-                tempmin = Vector3.Min(_vertices[i] * Scale, tempmin);
-                tempmax = Vector3.Max(_vertices[i] * Scale, tempmax);
+                tempmin = Vector3.Min(_vertices[i], tempmin);
+                tempmax = Vector3.Max(_vertices[i], tempmax);
             }
+            
+            
             Maxpoint = tempmax;
             Minpoint = tempmin;
         }
 
-        public void GetMinMaxScaled(Span<Vector3> outValues, Vector3 Offset)
+        internal void GetMinMaxScaled(Span<Vector3> outValues, Vector3 Offset)
         {
+
             if (_objectReference != null)
             {
-                var CurrentRotation = Rotation;
-                var CurrentPosition = Position;
-                outValues[0] = Vector3.Transform(Minpoint, CurrentRotation) + (CurrentPosition - Offset);
-                outValues[1] = Vector3.Transform(Maxpoint, CurrentRotation) + (CurrentPosition - Offset);
+                outValues[0] = Minpoint * Scale + (Position - Offset);
+                outValues[1] = Maxpoint * Scale + (Position - Offset);   
             }
             else
             {
@@ -118,18 +135,25 @@ namespace Engine.Renderable
 
             return 0;
         }
-        
-        
-
-        internal override void BindResources(CommandList list)
-        {
-            vbo.Bind(list);
-            ebo?.Bind(list);
-        }
 
         public override bool ShouldRender(Frustrum frustum)
         {
-            return !UpdatingMesh && IntersectionHandler.MeshInFrustrum(this, frustum) && vbo != null;
+            return !UpdatingMesh && MeshInFrustrum(this, frustum) && vbo != null;
         }
-    }
+        
+        public static bool MeshInFrustrum(BulletMesh mesh, Frustrum frustum)
+        {
+            if (mesh != null)
+            {
+                AABB boundingBox = new AABB();
+                
+                Span<Vector3> outValues = stackalloc Vector3[2];
+                mesh?.GetMinMaxScaled(outValues, frustum.camerapos);
+                AABB aabb = new(outValues[0], outValues[1]);
+                return IntersectionHandler.aabb_to_frustum(ref aabb, frustum);   
+            }
+
+            return true;
+        }
+    
 }

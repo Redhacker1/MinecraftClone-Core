@@ -1,4 +1,4 @@
-#version 450
+#version 330
 
 layout(set = 0, binding = 0) uniform ProjectionBuffer
 {
@@ -17,9 +17,6 @@ layout(location = 0) out vec2 fsin_texCoords;
 
 void main()
 {
-    vec4 worldPosition = World * vec4(Position, 1);
-    vec4 viewPosition = View * worldPosition;
-    vec4 clipPosition = Projection * viewPosition;
-    gl_Position = clipPosition;
+    gl_Position = Projection * View * World * vec4(vPos, 1);
     fsin_texCoords = TexCoords;
 }

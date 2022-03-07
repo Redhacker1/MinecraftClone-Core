@@ -50,7 +50,7 @@ namespace Engine.Rendering.Culling
     {
         static Mesh[] FrustrumMeshes;
         internal Plane[] Planes;
-        internal Vector3 camerapos;
+        public Vector3 camerapos;
 
         public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, Span<Plane> planes)
         {
@@ -129,9 +129,9 @@ namespace Engine.Rendering.Culling
 
             return true;
         }
-        
 
-        private static bool aabb_to_frustum(ref AABB aabb, Frustrum frustum)
+
+        public static bool aabb_to_frustum(ref AABB aabb, Frustrum frustum)
         {
 
             for (int index = 0; index < frustum.Planes.Length; ++index)

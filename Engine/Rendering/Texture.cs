@@ -78,12 +78,22 @@ namespace Engine.Rendering
             
         }
 
+        public static Texture CreateFromBytes(GraphicsDevice device, uint width, uint height, Span<byte> data)
+        {
+            Texture tex = new Texture();
+            TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
+                PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
+            tex._texture = device.ResourceFactory.CreateTexture(textureDescription);
+            device.UpdateTexture(tex._texture, data,0, 0,0, width, height, 1, 0, 0);
+            return tex;
+        }
+
 
 
         public Texture(GraphicsDevice device, byte[] data)
         {
-            var img = IS.Image.Load(data);
-            var tex = new Texture();
+            IS.Image<Rgba32> img = IS.Image.Load(data);
+            Texture tex = new Texture();
             if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
                 tex.Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
@@ -95,6 +105,22 @@ namespace Engine.Rendering
             img.Dispose();
         }
 
+
+        public void UpdateTextureBytes(GraphicsDevice device, Span<byte> bytes, uint width, uint height)
+        {
+
+            if (width == _texture.Width && height == _texture.Height)
+            {
+                device.UpdateTexture(_texture, bytes,0, 0,0, width, height, 1, 0, 0);
+                return;
+            }
+            _texture.Dispose();
+            TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
+                PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
+            _texture = device.ResourceFactory.CreateTexture(textureDescription);
+            device.UpdateTexture(_texture,bytes,0,0,0, width, height, 1, 0, 0);
+            
+        }
 
         void Load(GraphicsDevice graphicsDevice, Rgba32[] data, uint width, uint height)
         {

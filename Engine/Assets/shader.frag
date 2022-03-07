@@ -8,11 +8,5 @@ layout(set = 1, binding = 2) uniform sampler SurfaceSampler;
 
 void main()
 {
-    
-    
-    if(texture(sampler2D(SurfaceTexture, SurfaceSampler), fsin_texCoords).a  < .1)
-    {
-        discard;
-    }
     fsout_color =  texture(sampler2D(SurfaceTexture, SurfaceSampler), fsin_texCoords);
 }

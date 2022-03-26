@@ -99,7 +99,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
         
         internal static bool IsBlockAir(ChunkCs Chunk, int X, int Y, int Z)
         {
-            return BlockHelper.BlockTypes[Chunk.BlockData[ChunkCs.GetFlattenedMax(X, Y - 1, Z)]].Air;
+            return BlockHelper.BlockTypes[Chunk.BlockData[ChunkCs.GetFlattenedIndex(X, Y - 1, Z)]].Air;
         }
 
 

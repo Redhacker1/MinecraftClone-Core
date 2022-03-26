@@ -1,6 +1,7 @@
 #if !Core
 using Godot;
 #endif
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -13,16 +14,16 @@ namespace MCClone_Core.Utility.IO
     {
 
         
-        public override ChunkCs GetChunkData(WorldData world, Vector2 location, out bool chunkExists)
+        public override ChunkCs GetChunkData(WorldData world, Int2 location, out bool chunkExists)
         {
             bool compressed = false;
             // TODO Come up with newer and shorter filename structure that will work when I batch chunks together
-            string filename = GetFilename(location,world,false);
+            string filename = GetFilename(new Int2((int)MathF.Floor(location.X), (int)MathF.Floor(location.Y)),world,false);
             string filePath = Path.Combine(world.Directory, filename);
             
             if (!File.Exists(filePath))
             {
-                filePath = Path.Combine(world.Directory,GetFilename(location,world,true));
+                filePath = Path.Combine(world.Directory,GetFilename(new Int2((int)MathF.Floor(location.X), (int)MathF.Floor(location.Y)),world,true));
                 if (!File.Exists(filePath))
                 {
                     chunkExists = false;
@@ -45,7 +46,6 @@ namespace MCClone_Core.Utility.IO
 
             SaveInfo saveData = new SaveInfo();
             
-            // TODO: Version number can be shared in grouped chunks
             saveData.VersionNumber = fileReader.ReadByte();
             
             saveData.BlockSize = fileReader.ReadByte();
@@ -68,11 +68,11 @@ namespace MCClone_Core.Utility.IO
             int x = fileReader.ReadInt32();
             int y = fileReader.ReadInt32();
 
-            saveData.Location = new Vector2(x, y);
+            saveData.Location = new Int2(x, y);
             
             // TODO: Add chunk Maxs to file format and have it calculate this value automatically
-            byte[] serializedBlockData = fileReader.ReadBytes(98304);
-            saveData.ChunkBlocks = new byte[98304];
+            byte[] serializedBlockData = fileReader.ReadBytes(ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ);
+            saveData.ChunkBlocks = new byte[ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ];
 
             for (int i = 0; i <  serializedBlockData.Length; i++)
             {
@@ -89,7 +89,7 @@ namespace MCClone_Core.Utility.IO
             ChunkCs referencedChunk = new ChunkCs
             {
                 BlockData = saveData.ChunkBlocks,
-                ChunkCoordinate = saveData.Location,
+                ChunkCoordinate = new Int2(saveData.Location.X, saveData.Location.Y),
                 Pos = new Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxX * saveData.Location.Y)
 
             };
@@ -100,7 +100,7 @@ namespace MCClone_Core.Utility.IO
             return referencedChunk;
         }
 
-        public override void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+        public override void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
             bool optimizeSave = true)
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
@@ -113,30 +113,32 @@ namespace MCClone_Core.Utility.IO
             fileWriter.Write(saveData.BlockSize);
             fileWriter.Write(saveData.BiomeId);
 
-            fileWriter.Write((short)saveData.BlockIdWriter.Count);
-            foreach (KeyValuePair<byte, byte> blockIdPair in saveData.BlockIdWriter)
+            fileWriter.Write((short)saveData.BlockPalette.Count);
+            foreach (KeyValuePair<byte, byte> blockIdPair in saveData.BlockPalette)
             {
                 fileWriter.Write(blockIdPair.Key);
                 fileWriter.Write(blockIdPair.Value);
             }
             
             
-            fileWriter.Write((int)saveData.Location.X);
-            fileWriter.Write((int)saveData.Location.Y);
+            fileWriter.Write(saveData.Location.X);
+            fileWriter.Write(saveData.Location.Y);
+            Span<byte> encodedBytes = stackalloc byte[saveData.ChunkBlocks.Length];
 
-            foreach (byte block in saveData.ChunkBlocks)
+            for (int blockIndex = 0; blockIndex < encodedBytes.Length; blockIndex++)
             {
-                fileWriter.Write(saveData.BlockIdWriter[block]);
+                encodedBytes[blockIndex] = saveData.BlockPalette[saveData.ChunkBlocks[blockIndex]];
             }
-            
+            fileWriter.Write(encodedBytes);
+
             if(world.Directory == null) return;
-            FileStream fs = new FileStream(Path.Combine(world.Directory, GetFilename(chunkCoords, world, optimizeSave)), FileMode.Create);
+            FileStream fs = new FileStream(Path.Combine(world.Directory, GetFilename(new Int2((int)MathF.Floor(chunkCoords.X), (int)MathF.Floor(chunkCoords.Y)), world, optimizeSave)), FileMode.Create);
 
             
             if (optimizeSave)
             {
 
-                string uncompressedPath = Path.Combine(world.Directory, $"{world.Name}_x_{(int)saveData.Location.X}-y_{(int)saveData.Location.Y}.cdat");
+                string uncompressedPath = Path.Combine(world.Directory, $"{world.Name}_x_{saveData.Location.X}-y_{saveData.Location.Y}.cdat");
                 if (File.Exists(uncompressedPath))
                 {
                     File.Delete(uncompressedPath);
@@ -159,6 +161,7 @@ namespace MCClone_Core.Utility.IO
 
         public static byte[] Compress(byte[] data)
         {
+
             byte[] compressArray = null;
             using (MemoryStream memoryStream = new MemoryStream())
             {

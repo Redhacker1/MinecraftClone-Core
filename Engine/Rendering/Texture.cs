@@ -64,7 +64,7 @@ namespace Engine.Rendering
             }
             if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
             {
-                Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
+                Load(device, pixelSpan, (uint) img.Width, (uint) img.Height);
             }
             else
             {
@@ -122,7 +122,7 @@ namespace Engine.Rendering
             
         }
 
-        void Load(GraphicsDevice graphicsDevice, Rgba32[] data, uint width, uint height)
+        void Load(GraphicsDevice graphicsDevice, ReadOnlySpan<Rgba32> data, uint width, uint height)
         {
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
                 PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);

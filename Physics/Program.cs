@@ -1,6 +1,7 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using BulletSharp;
 using BulletSharp.Math;
 using Engine;
@@ -29,8 +30,9 @@ namespace BulletTest
     {
 	    PhysicsManager _physicsManager;
         Cube _cube;
+        Floor _floor;
         Material _material;
-        Camera cam = new Camera(new Vector3(10, 1, 1), Vector3.UnitZ, Vector3.UnitY,1024/768, true );
+        Camera cam = new Camera(new Vector3(10, 1, 1), Vector3.UnitZ, Vector3.UnitY,1920/1080, true );
         Player _player = new Player();
         public override void Gamestart()
         {
@@ -79,13 +81,14 @@ namespace BulletTest
 			);
 			
 			
-			var atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
+			var atlas = new Texture(WindowClass._renderer.Device, @"Assets\silk.png");
 			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
 			
 			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
 			_material.ResourceSet(1,WindowClass._renderer.WorldBuffer, pointSampler, atlas);
             
-            _cube = new Cube(_material, _physicsManager);
+            //_cube = new Cube(_material, _physicsManager);
+            _floor = new Floor(_material, _physicsManager);
         }
     }
 
@@ -95,26 +98,30 @@ namespace BulletTest
     {
 
 	    AlignedCollisionObjectArray mCollisionShapes;
-	    BroadphaseInterface mBroadphase = new DbvtBroadphase();
-	    ConstraintSolver mSolver = new SequentialImpulseConstraintSolver();
+	    BroadphaseInterface mBroadphase;
+	    ConstraintSolver mSolver;
 	    DynamicsWorld mDynamicsWorld;
-	    DefaultCollisionConfiguration CollisionConfiguration = new DefaultCollisionConfiguration();
+	    DefaultCollisionConfiguration CollisionConfiguration;
 	    CollisionDispatcher Dispatcher;
 	    List<RigidBody> Bodies = new List<RigidBody>();
 	    public PhysicsManager()
 	    {
+		    CollisionConfiguration = new DefaultCollisionConfiguration();
 		    Dispatcher = new CollisionDispatcher(CollisionConfiguration);
-	        mDynamicsWorld = new DiscreteDynamicsWorld(Dispatcher, mBroadphase, mSolver, CollisionConfiguration);
+		    mBroadphase = new DbvtBroadphase();
+		    mSolver = new SequentialImpulseConstraintSolver();
+		    mDynamicsWorld = new DiscreteDynamicsWorld(Dispatcher, mBroadphase, mSolver, CollisionConfiguration);
 	        mDynamicsWorld.Gravity = new BulletSharp.Math.Vector3(0, -10, 0);
 	        PhysicsTick = true;
         }
         public override void _PhysicsProcess(double delta)
         {
+	        mDynamicsWorld.StepSimulation((float) delta);
         }
 
         public void AddPhysicsBody(RigidBody body)
         {
-	        
+	        mDynamicsWorld.AddRigidBody(body);
         }
     }
 
@@ -126,19 +133,120 @@ namespace BulletTest
         }
     }
 
+    /// <summary>
+    /// Hit the floor
+    /// </summary>
+    class Floor : GameObject
+    {
+	    RigidBody body;
+	    Mesh floor;
+	    static MeshData data = new MeshData()
+	    {
+		    _vertices = new[]
+		    {
+                    new Vector3(-50f, +10, -50f), new Vector3(+50f, +10f, -50f),
+                    new Vector3(+50f, +10f, +50f), new Vector3(-50f, +10f, +50f),
+                    new Vector3(-50f, -10f, +50f), new Vector3(+50f, -10f, +50f),
+                    new Vector3(+50f, -10f, -50f), new Vector3(-50f, -10f, -50f),
+                    new Vector3(-50f, +10f, -50f), new Vector3(-50f, +10f, +50f),
+                    new Vector3(-50f, -10f, +50f), new Vector3(-50f, -10f, -50f),
+                    new Vector3(+50f, +10f, +50f), new Vector3(+50f, +10f, -50f),
+                    new Vector3(+50f, -10f, -50f), new Vector3(+50f, -10f, +50f),
+                    new Vector3(+50f, +10f, -50f), new Vector3(-50f, +10f, -50f),
+                    new Vector3(-50f, -10f, -50f), new Vector3(+50f, -10f, -50f),
+                    new Vector3(-50f, +10f, +50f), new Vector3(+50f, +10f, +50f),
+                    new Vector3(+50f, -10f, +50f), new Vector3(-50f, -10f, +50f)
+		    }, 
+		    _uvs = new [] 
+		    {
+                    new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0),
+                    new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0),
+                    new Vector3(1, 1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
+                    new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0),
+                    new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0),
+                    new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0),
+                    new Vector3(1, 1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
+                    new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0)
+                    
+		    },
+		    _indices = new uint[] 
+		    {
+                    0,1,2, 0,2,3, 
+                    4,5,6, 4,6,7, 
+                    8,9,10, 8,10,11, 
+                    12,13,14, 12,14,15, 
+                    16,17,18, 16,18,19, 
+                    20,21,22, 20,22,23,
+                    
+		    }
+	    };
+	    
+	    Matrix matrix = Matrix.Identity;
+	    public Floor(Material material, PhysicsManager physics)
+	    {
+		    Pos.Y = -100;
+		    floor = new Mesh(this, material);
+		    floor.GenerateMesh(data);
+		    material.AddReference(floor);
+		    
+		    matrix = Matrix.Identity;
+		    matrix += Matrix.Transformation(
+			    BulletSharp.Math.Vector3.Zero,
+			    Quaternion.Identity, 
+			    BulletSharp.Math.Vector3.One, 
+			    BulletSharp.Math.Vector3.Zero, 
+			    Quaternion.RotationYawPitchRoll(Rotation.X, Rotation.Y, Rotation.Z),
+			    new BulletSharp.Math.Vector3(Pos.X, Pos.Y, Pos.Z)
+			    );
+
+		    BoxShape boxShape = new BoxShape(new BulletSharp.Math.Vector3(100, 10, 100));
+		    BulletSharp.Math.Vector3 localInertia = boxShape.CalculateLocalInertia(1);
+		    body = new RigidBody(new RigidBodyConstructionInfo(1, new DefaultMotionState(matrix), new BoxShape(.5f)));
+		    physics.AddPhysicsBody(body);
+		    body.UserObject = "Ground";
+
+	    }
+	    
+	    public override unsafe void _PhysicsProcess(double delta)
+	    {
+	        
+		    Matrix transform = body.MotionState.WorldTransform;
+
+		    BulletSharp.Math.Vector3 bulletPos;
+		    BulletSharp.Math.Vector3 scale;
+		    Quaternion Rotation;
+		    transform.Decompose(out scale, out Rotation, out bulletPos);
+		    //Pos = new Vector3(bulletPos.X,bulletPos.Y, bulletPos.Z );
+	        
+		    //Console.WriteLine(*((Vector3*)(&bulletPos)));
+		    Pos = *((Vector3*)(&bulletPos));
+		    var rot = Rotation.Axis;
+
+		    ((MinimalObject) this).Rotation = *((Vector3*) (&rot));
+	    }
+    }
+    
+
+    /// <summary>
+    /// Let the bodies-
+    /// </summary>
     class Cube : GameObject
     {
-        BulletMesh cube;
-        RigidBody body;
+       Mesh cube;
+       RigidBody body;
         public Cube(Material material, PhysicsManager physics)
         {
 	        var identity = Quaternion.Identity;
 	        Matrix matrix = Matrix.Transformation(BulletSharp.Math.Vector3.Zero,identity, BulletSharp.Math.Vector3.One, BulletSharp.Math.Vector3.Zero, Quaternion.RotationYawPitchRoll(Rotation.X, Rotation.Y, Rotation.Z), new BulletSharp.Math.Vector3(Pos.X, Pos.Y, Pos.Z)  );
 	        body = new RigidBody(new RigidBodyConstructionInfo(1, new DefaultMotionState(matrix), new BoxShape(.5f)));
+	        body.CollisionShape.CalculateLocalInertia(1);
 	        
+	        PhysicsTick = true;
+
 	        physics.AddPhysicsBody(body);
 	        
-	        cube = new BulletMesh(this, material);
+	        
+	        cube = new Mesh(this, material);
             MeshData data = new MeshData()
             {
                 _vertices = new[]
@@ -182,11 +290,20 @@ namespace BulletTest
             
         }
 
-        public override void _PhysicsProcess(double delta)
+        public override unsafe void _PhysicsProcess(double delta)
         {
 	        
 	        Matrix transform = body.MotionState.WorldTransform;
-	        cube.BulletMatrix = transform;
+
+	        BulletSharp.Math.Vector3 bulletPos;
+	        BulletSharp.Math.Vector3 scale;
+	        Quaternion Rotation;
+	        transform.Decompose(out scale, out Rotation, out bulletPos);
+
+	        Pos = *((Vector3*)(&bulletPos));
+	        BulletSharp.Math.Vector3 rot = Rotation.Axis;
+
+	        this.Rotation = *((Vector3*) (&rot));
         }
     }
 

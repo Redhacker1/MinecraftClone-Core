@@ -16,13 +16,9 @@ namespace Engine.Renderable
         internal bool UpdatingMesh = true;
 
         public static List<Mesh> Meshes = new();
-
-
-
+        
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
-
-        public Vector3 Position => GetObjectReference().Pos;
 
 
         public Mesh(MinimalObject bindingobject, Material material)
@@ -59,10 +55,29 @@ namespace Engine.Renderable
         {
             if (_objectReference != null)
             {
+                var cullingmatrix = ViewMatrix;
+                
+
                 var CurrentRotation = Rotation;
                 var CurrentPosition = Position;
-                outValues[0] = Vector3.Transform(Minpoint, CurrentRotation) + (CurrentPosition - Offset);
-                outValues[1] = Vector3.Transform(Maxpoint, CurrentRotation) + (CurrentPosition - Offset);
+
+                cullingmatrix.Translation = Position - Offset;
+                
+                var TempMin = Vector3.Transform(Minpoint, cullingmatrix);
+                var TempMax = Vector3.Transform(Maxpoint, cullingmatrix);
+
+                if (TempMin.X > TempMax.X && TempMin.Y > TempMax.Y && TempMin.Z > TempMax.Z)
+                {
+                    outValues[0] = TempMax;
+                    outValues[1] = TempMin;
+                }
+                else
+                {
+                    outValues[0] = TempMin;
+                    outValues[1] = TempMax;
+                }
+                
+                
             }
             else
             {
@@ -126,7 +141,6 @@ namespace Engine.Renderable
             vbo.Bind(list);
             ebo?.Bind(list);
         }
-
         public override bool ShouldRender(Frustrum frustum)
         {
             return !UpdatingMesh && IntersectionHandler.MeshInFrustrum(this, frustum) && vbo != null;

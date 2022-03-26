@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Engine.Renderable;
@@ -18,9 +20,10 @@ namespace MCClone_Core.Debug_and_Logging
         internal bool Movable = false;
         Plane[] sides = new Plane[6];
         bool ThreadPooled;
+        Process CurrentProcess;
         public DebugPanel()
         {
-            
+            CurrentProcess = Process.GetCurrentProcess();
             //AddFlag(ImGuiWindowFlags.NoMove);
             AddFlag(ImGuiWindowFlags.AlwaysAutoResize);
             AddFlag(ImGuiWindowFlags.NoCollapse);
@@ -58,8 +61,12 @@ namespace MCClone_Core.Debug_and_Logging
                     VertexCount += mesh.GetMeshSize();   
                 }
             }
-            
-            
+            CurrentProcess?.Dispose();
+            CurrentProcess = Process.GetCurrentProcess();
+            float MemUsage = CurrentProcess.WorkingSet64;
+            MemUsage /= 1048576;
+
+            ImGui.Text($"Memory: {MemUsage}MB");
             ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}, Mesh count: {currentsnapshot.Length}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");

@@ -94,7 +94,7 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/light_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
@@ -112,7 +112,8 @@ namespace MCClone_Core.World_CS.Generation
 				new ResourceLayoutElementDescription("ModelBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("AtlasBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
+				new ResourceLayoutElementDescription("Lighting", ResourceKind.UniformBuffer, ShaderStages.Fragment));
 			
 			_material = new Material(materialDescription, 
 				new VertexLayoutDescription(
@@ -136,9 +137,14 @@ namespace MCClone_Core.World_CS.Generation
 			Span<AtlasInfo> info_1 = stackalloc AtlasInfo[1];
 			info_1[0] = info;
 
+			Span<Vector4> Light = stackalloc Vector4[1];
+			Light[0] = new Vector4(1,1,1,0);
+
+			
+			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light);
 			UniformBuffer<AtlasInfo> buffer = new UniformBuffer<AtlasInfo>(WindowClass._renderer.Device, info_1);
 			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer, buffer, pointSampler, atlas);
+			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer, buffer, pointSampler, atlas, AmbientLight);
 
 
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Engine.Renderable;
-using Veldrid.Utilities;
 
 namespace Engine.Rendering.Culling
 {
@@ -119,8 +118,7 @@ namespace Engine.Rendering.Culling
         {
             if (mesh != null)
             {
-                BoundingBox boundingBox = new BoundingBox();
-                
+
                 Span<Vector3> outValues = stackalloc Vector3[2];
                 mesh?.GetMinMaxScaled(outValues, frustum.camerapos);
                 AABB aabb = new(outValues[0], outValues[1]);

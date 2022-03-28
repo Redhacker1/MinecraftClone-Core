@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using Pfim;
 using SixLabors.ImageSharp.PixelFormats;
@@ -17,11 +18,13 @@ namespace Engine.Rendering
 
         public Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false)
         {
+            var cfg = IS.Configuration.Default;
+            cfg.PreferContiguousImageBuffers = true;
             IS.Image<Rgba32> img;
 
             if (Path.GetExtension(path) != ".dds")
             {
-                img = (IS.Image<Rgba32>) IS.Image.Load(path);
+                img = (IS.Image<Rgba32>) IS.Image.Load(cfg,path);
             }
             else
             {
@@ -51,7 +54,7 @@ namespace Engine.Rendering
                     image.Dispose();
                 }
                 
-                img = IS.Image.LoadPixelData<Rgba32>(newData, width, height);
+                img = IS.Image.LoadPixelData<Rgba32>(cfg, newData, width, height);
             }
 
             if (flipX)
@@ -62,9 +65,11 @@ namespace Engine.Rendering
             {
                 img.Mutate(x => x.Flip(FlipMode.Vertical));
             }
-            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
+            var Memory = new Memory<Rgba32>();
+            if (img.DangerousTryGetSinglePixelMemory(out Memory))
             {
-                Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
+                
+                Load(device, Memory.Span, (uint) img.Width, (uint) img.Height);
             }
             else
             {
@@ -90,13 +95,18 @@ namespace Engine.Rendering
 
 
 
-        public Texture(GraphicsDevice device, byte[] data)
+        public Texture(GraphicsDevice device, Span<byte> data)
         {
-            IS.Image<Rgba32> img = IS.Image.Load(data);
+            
+            var cfg = IS.Configuration.Default;
+            cfg.PreferContiguousImageBuffers = true;
+            IS.Image<Rgba32> img = IS.Image.Load<Rgba32>(cfg, data);
             Texture tex = new Texture();
-            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
+            var Memory = new Memory<Rgba32>();
+            
+            if (img.DangerousTryGetSinglePixelMemory(out Memory))
             {
-                tex.Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
+                tex.Load(device, Memory.Span, (uint) img.Width, (uint) img.Height);
             }
             else
             {
@@ -122,7 +132,7 @@ namespace Engine.Rendering
             
         }
 
-        void Load(GraphicsDevice graphicsDevice, Rgba32[] data, uint width, uint height)
+        void Load(GraphicsDevice graphicsDevice, ReadOnlySpan<Rgba32> data, uint width, uint height)
         {
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
                 PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);

@@ -59,15 +59,15 @@ namespace Engine.Renderable
         {
             if (_objectReference != null)
             {
-                var CurrentRotation = Rotation;
-                var CurrentPosition = Position;
-                outValues[0] = Vector3.Transform(Minpoint, CurrentRotation) + (CurrentPosition - Offset);
-                outValues[1] = Vector3.Transform(Maxpoint, CurrentRotation) + (CurrentPosition - Offset);
-            }
-            else
-            {
-                outValues[0] = Vector3.Zero;
-                outValues[1] = Vector3.Zero;
+                var cullingmatrix = ViewMatrix;
+                cullingmatrix.Translation = Position - Offset;
+                
+                var TempMin = Vector3.Transform(Minpoint, cullingmatrix);
+                var TempMax = Vector3.Transform(Maxpoint, cullingmatrix);
+                
+                outValues[0] = Vector3.Min(TempMax, TempMin);
+                outValues[1] = Vector3.Max(TempMax, TempMin);
+
             }
 
         }

@@ -2,8 +2,6 @@
 
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using BulletSharp;
-using BulletSharp.Math;
 using Engine;
 using Engine.Initialization;
 using Engine.Objects;
@@ -87,7 +85,7 @@ namespace BulletTest
 			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
 			_material.ResourceSet(1,WindowClass._renderer.WorldBuffer, pointSampler, atlas);
             
-            //_cube = new Cube(_material, _physicsManager);
+            _cube = new Cube(_material, _physicsManager);
             _floor = new Floor(_material, _physicsManager);
         }
     }
@@ -96,32 +94,19 @@ namespace BulletTest
 
     class PhysicsManager : GameObject
     {
-
-	    AlignedCollisionObjectArray mCollisionShapes;
-	    BroadphaseInterface mBroadphase;
-	    ConstraintSolver mSolver;
-	    DynamicsWorld mDynamicsWorld;
-	    DefaultCollisionConfiguration CollisionConfiguration;
-	    CollisionDispatcher Dispatcher;
-	    List<RigidBody> Bodies = new List<RigidBody>();
+	    
 	    public PhysicsManager()
 	    {
-		    CollisionConfiguration = new DefaultCollisionConfiguration();
-		    Dispatcher = new CollisionDispatcher(CollisionConfiguration);
-		    mBroadphase = new DbvtBroadphase();
-		    mSolver = new SequentialImpulseConstraintSolver();
-		    mDynamicsWorld = new DiscreteDynamicsWorld(Dispatcher, mBroadphase, mSolver, CollisionConfiguration);
-	        mDynamicsWorld.Gravity = new BulletSharp.Math.Vector3(0, -10, 0);
+
 	        PhysicsTick = true;
         }
+
         public override void _PhysicsProcess(double delta)
         {
-	        mDynamicsWorld.StepSimulation((float) delta);
         }
 
-        public void AddPhysicsBody(RigidBody body)
+        public void AddPhysicsBody()
         {
-	        mDynamicsWorld.AddRigidBody(body);
         }
     }
 
@@ -138,7 +123,6 @@ namespace BulletTest
     /// </summary>
     class Floor : GameObject
     {
-	    RigidBody body;
 	    Mesh floor;
 	    static MeshData data = new MeshData()
 	    {
@@ -181,7 +165,6 @@ namespace BulletTest
 		    }
 	    };
 	    
-	    Matrix matrix = Matrix.Identity;
 	    public Floor(Material material, PhysicsManager physics)
 	    {
 		    Pos.Y = -100;
@@ -189,40 +172,13 @@ namespace BulletTest
 		    floor.GenerateMesh(data);
 		    material.AddReference(floor);
 		    
-		    matrix = Matrix.Identity;
-		    matrix += Matrix.Transformation(
-			    BulletSharp.Math.Vector3.Zero,
-			    Quaternion.Identity, 
-			    BulletSharp.Math.Vector3.One, 
-			    BulletSharp.Math.Vector3.Zero, 
-			    Quaternion.RotationYawPitchRoll(Rotation.X, Rotation.Y, Rotation.Z),
-			    new BulletSharp.Math.Vector3(Pos.X, Pos.Y, Pos.Z)
-			    );
-
-		    BoxShape boxShape = new BoxShape(new BulletSharp.Math.Vector3(100, 10, 100));
-		    BulletSharp.Math.Vector3 localInertia = boxShape.CalculateLocalInertia(1);
-		    body = new RigidBody(new RigidBodyConstructionInfo(1, new DefaultMotionState(matrix), new BoxShape(.5f)));
-		    physics.AddPhysicsBody(body);
-		    body.UserObject = "Ground";
 
 	    }
 	    
 	    public override unsafe void _PhysicsProcess(double delta)
 	    {
-	        
-		    Matrix transform = body.MotionState.WorldTransform;
-
-		    BulletSharp.Math.Vector3 bulletPos;
-		    BulletSharp.Math.Vector3 scale;
-		    Quaternion Rotation;
-		    transform.Decompose(out scale, out Rotation, out bulletPos);
-		    //Pos = new Vector3(bulletPos.X,bulletPos.Y, bulletPos.Z );
-	        
-		    //Console.WriteLine(*((Vector3*)(&bulletPos)));
-		    Pos = *((Vector3*)(&bulletPos));
-		    var rot = Rotation.Axis;
-
-		    ((MinimalObject) this).Rotation = *((Vector3*) (&rot));
+		    
+		    
 	    }
     }
     
@@ -233,17 +189,11 @@ namespace BulletTest
     class Cube : GameObject
     {
        Mesh cube;
-       RigidBody body;
-        public Cube(Material material, PhysicsManager physics)
+       public Cube(Material material, PhysicsManager physics)
         {
-	        var identity = Quaternion.Identity;
-	        Matrix matrix = Matrix.Transformation(BulletSharp.Math.Vector3.Zero,identity, BulletSharp.Math.Vector3.One, BulletSharp.Math.Vector3.Zero, Quaternion.RotationYawPitchRoll(Rotation.X, Rotation.Y, Rotation.Z), new BulletSharp.Math.Vector3(Pos.X, Pos.Y, Pos.Z)  );
-	        body = new RigidBody(new RigidBodyConstructionInfo(1, new DefaultMotionState(matrix), new BoxShape(.5f)));
-	        body.CollisionShape.CalculateLocalInertia(1);
-	        
-	        PhysicsTick = true;
 
-	        physics.AddPhysicsBody(body);
+	        PhysicsTick = true;
+	        
 	        
 	        
 	        cube = new Mesh(this, material);
@@ -293,17 +243,7 @@ namespace BulletTest
         public override unsafe void _PhysicsProcess(double delta)
         {
 	        
-	        Matrix transform = body.MotionState.WorldTransform;
-
-	        BulletSharp.Math.Vector3 bulletPos;
-	        BulletSharp.Math.Vector3 scale;
-	        Quaternion Rotation;
-	        transform.Decompose(out scale, out Rotation, out bulletPos);
-
-	        Pos = *((Vector3*)(&bulletPos));
-	        BulletSharp.Math.Vector3 rot = Rotation.Axis;
-
-	        this.Rotation = *((Vector3*) (&rot));
+	        
         }
     }
 

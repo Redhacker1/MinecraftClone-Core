@@ -18,6 +18,8 @@ namespace Engine.Rendering
         readonly PrimitiveTopology _topology;
         readonly IReadOnlyDictionary<ShaderStages ,Shader> _shaders;
 
+
+        ushort HashValue;
         internal Veldrid.Pipeline _pipeline;
 
         public Pipeline(bool depthTest, bool writeDepthBuffer, ComparisonKind compare, FaceCullMode cullmode, FrontFace dir, PrimitiveTopology topology, PolygonFillMode filltype, IReadOnlyDictionary<ShaderStages ,Shader> shaders, GraphicsDevice device, VertexLayoutDescription vertexLayout,  params ResourceLayout[] layouts)
@@ -43,15 +45,17 @@ namespace Engine.Rendering
             shaderSet.Shaders = Shader.ToArray();
             shaderSet.VertexLayouts = new[] {vertexLayout};
             
-            
-            ushort pipeline = (ushort)(BoolToNum(WriteDepthBuffer) << 15); // boolean, 1 bit
-            pipeline |= (ushort)(BoolToNum(DepthTest) << 14); // boolean, 1 bit
+            ushort pipeline = (ushort)(BoolToNum(writeDepthBuffer) << 15); // boolean, 1 bit
+            pipeline |= (ushort)(BoolToNum(depthTest) << 14); // boolean, 1 bit
             pipeline |= (ushort)((ushort)compare << 13); // enum range 0-7, three bits 
             pipeline |= (ushort)((ushort)cullmode << 10); // enum range 0-2, two bits 
-            pipeline |= (ushort)((ushort)dir << 9); // enum range 0-1, one bit
+            pipeline |= (ushort)((ushort)dir << 8); // enum range 0-1, one bit
+            pipeline |= (ushort)((ushort)topology << 5); // enum range 0-4, three bits
+            pipeline |= (ushort)((ushort)filltype << 4); // enum range 0-1, one bit
+            HashValue = pipeline;
+            
             
             PipelineMask = pipeline;
-
             GraphicsPipelineDescription description =
                 new GraphicsPipelineDescription
                 (
@@ -62,7 +66,7 @@ namespace Engine.Rendering
                     shaderSet, 
                     layouts, 
                     device.MainSwapchain.Framebuffer.OutputDescription
-                    );
+                );
 
             _pipeline = device.ResourceFactory.CreateGraphicsPipeline(description);
             Console.WriteLine("Pipeline completed!");
@@ -85,12 +89,7 @@ namespace Engine.Rendering
 
         public override int GetHashCode()
         {
-            int pipeline = BoolToNum(WriteDepthBuffer) << 31; // boolean, 1 bit
-            pipeline |= BoolToNum(DepthTest) << 30; // boolean, 1 bit
-            pipeline |= (int)ComparisonKind << 29; // enum range 0-7, three bits 
-            pipeline |= (int)_cullMode << 25; // enum range 0-2, two bits 
-            pipeline |= (int)faceDir << 24; // enum range 0-1, one bit
-            return pipeline;
+            return HashValue;
         }
 
         public static bool operator ==(Pipeline left, Pipeline right)
@@ -106,7 +105,7 @@ namespace Engine.Rendering
         [MethodImplAttribute(MethodImplOptions.AggressiveInlining)] 
         static ushort BoolToNum(bool booleanValue)
         {
-            return (ushort)(booleanValue ? 1 : 0);
+            return (booleanValue ? (ushort) 1u : (ushort) 0u);
         }
     }
 

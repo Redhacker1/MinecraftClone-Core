@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,10 +7,8 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Renderable;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
-using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -84,10 +83,11 @@ namespace MCClone_Core.World_CS.Generation
 		static readonly int[] Cross3 = {6, 4, 1, 3};
 		static readonly int[] Cross4 = {2, 0, 5, 7};
 		
-		static readonly BaseGenerator Generator = new ForestGenerator();
-
+		static ArrayPool<byte> ByteAllocationPool = ArrayPool<byte>.Shared;
+		static ArrayPool<bool> BoolAllocationPool = ArrayPool<bool>.Shared;
+		
 		public byte[] BlockData;
-		readonly bool[,,] _visibilityMask;
+		readonly bool[] _visibilityMask;
 		public bool ChunkDirty;
 
 		public ChunkCs()
@@ -96,8 +96,20 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				LoadedChunks = ProcWorld.Instance.LoadedChunks;
 			}
-			BlockData = new byte[MaxX * MaxY * MaxZ];
-			_visibilityMask = new bool[MaxX, MaxY, MaxZ];
+
+			BlockData = ByteAllocationPool.Rent(MaxX * MaxY * MaxZ);
+			for (int i = 0; i < BlockData.Length; i++)
+			{
+				BlockData[i] = 0;
+			}
+
+			_visibilityMask = BoolAllocationPool.Rent(MaxX * MaxY * MaxZ);
+			for (int i = 0; i < _visibilityMask.Length; i++)
+			{
+				_visibilityMask[i] = false;
+			}
+
+			
 			ChunkMesh = new ChunkMesh(this, ProcWorld.Instance._material);
 			ProcWorld.Instance._material.AddReference(ChunkMesh);
 		}
@@ -109,11 +121,11 @@ namespace MCClone_Core.World_CS.Generation
 			Pos = new Vector3(cx * (MaxX), 0, cz * MaxZ);
 			ChunkCoordinate = new Int2(cx, cz);
 			
-			Generator.Generate(this, cx, cz, seed);
+			ProcWorld.Generator.Generate(this, cx, cz, seed);
 		}
 
 		static readonly HeapPool pool = new HeapPool(NativeMemoryHeap.Instance, uint.MaxValue);
-		ByteStore<Int2> BlockVerts = ByteStore<Int2>.Create(pool, 1);
+		ByteStore<int> BlockVerts = ByteStore<int>.Create(pool, 1);
 		ByteStore<Vector3> blocksNormals = ByteStore<Vector3>.Create(pool, 1);
 		ByteStore<uint> chunkIndices = ByteStore<uint>.Create(pool, 1);
 		ByteStore<Vector2> BlockUVs = ByteStore<Vector2>.Create(pool, 1);
@@ -166,11 +178,13 @@ namespace MCClone_Core.World_CS.Generation
 
 		public void UpdateVisMask()
 		{
-			for (int z = 0; z < MaxZ; z++)
 			for (int y = 0; y < MaxY; y++)
+			for (int z = 0; z < MaxZ; z++)
 			for (int x = 0; x < MaxX; x++)
 			{
-				_visibilityMask[x,y,z] = BlockHelper.BlockTypes[BlockData[GetFlattenedIndex(x,y,z)]].Transparent;
+				var blockdata = BlockData[GetFlattenedIndex(x, y, z)];
+				var transparent = BlockHelper.BlockTypes[blockdata].Transparent;
+				_visibilityMask[GetFlattenedIndex(x, y, z)] = transparent;
 			}
 		}
 	
@@ -182,7 +196,7 @@ namespace MCClone_Core.World_CS.Generation
 				if (!overwrite && BlockData[GetFlattenedIndex(x, y, z)] != 0) return;
 				BlockData[GetFlattenedIndex(x, y, z)] = b;
 
-				_visibilityMask[x, y, z] = BlockHelper.BlockTypes[b].Transparent;
+				_visibilityMask[GetFlattenedIndex(x, y, z)] = BlockHelper.BlockTypes[b].Transparent;
 				ChunkDirty = true;
 				//NeedsSaved = true;
 			}
@@ -224,7 +238,7 @@ namespace MCClone_Core.World_CS.Generation
 			output[5] = is_block_transparent(x, y, z + 1, DiscardOnlyAir);
 		}
 
-		void _create_block(Span<bool> check, int x, int y, int z, byte block, ByteStore<Int2> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint index)
+		void _create_block(Span<bool> check, int x, int y, int z, byte block, ByteStore<int> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint index)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			IntVec3 coord = new IntVec3(x, y, z);
@@ -247,7 +261,7 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-        void create_face(IReadOnlyList<int> I, ref IntVec3 offset, Vector2 textureAtlasOffset, ByteStore<Int2> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint currentindex)
+        void create_face(IReadOnlyList<int> I, ref IntVec3 offset, Vector2 textureAtlasOffset, ByteStore<int> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint currentindex)
         {
 	        blocks.PrepareCapacityFor(4);
 	        indices.PrepareCapacityFor(6);
@@ -269,12 +283,12 @@ namespace MCClone_Core.World_CS.Generation
 		        {V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset, V[I[3]] + offset};
 	        Span<Vector2> uvs = stackalloc Vector2[4] { uvOffset, uvB, uvC, uvD};
 
-	        Int2 CompressedPos = new Int2();
+	        int CompressedPos = 0;
 	        for (int i = 0; i < Verts.Length; i++)
 	        {
 		        
-		        CompressedPos.Y = Verts[i].Y;
-		        CompressedPos.X = (Verts[i].X << 5) | Verts[i].Z;
+		        CompressedPos = (Verts[i].X << 5) | Verts[i].Z;
+		        CompressedPos = CompressedPos << 9 | Verts[i].Y;
 		        
 		        blocks.Append(CompressedPos);
 	        }
@@ -335,7 +349,7 @@ namespace MCClone_Core.World_CS.Generation
 				return BlockHelper.BlockTypes[BlockData[GetFlattenedIndex(x, y, z)]].Air;
 			}
 
-			return _visibilityMask[x, y, z];
+			return _visibilityMask[GetFlattenedIndex(x, y, z)];
 		}
 		
 		protected override void OnFree()
@@ -349,6 +363,9 @@ namespace MCClone_Core.World_CS.Generation
 			chunkIndices.Dispose();
 			BlockUVs.Dispose();
 			ChunkMesh.Dispose();
+			
+			ByteAllocationPool.Return(BlockData);
+			BoolAllocationPool.Return(_visibilityMask);
 			ProcWorld.Instance._material.RemoveReference(ChunkMesh);
 		}
 		
@@ -360,6 +377,12 @@ namespace MCClone_Core.World_CS.Generation
 			}
 
 			return (byte)(3 - (side1 + side2 + corner));
+		}
+
+
+		~ChunkCs()
+		{
+			//Console.WriteLine("GCing Chunk");
 		}
 	}
 }

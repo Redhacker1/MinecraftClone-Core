@@ -7,13 +7,13 @@ namespace MCClone_Core.Utility.IO
 {
     public abstract class BaseFileHandler
     {
-        public byte VersionNumber = 1;
+        public const byte VersionNumber = 1;
 
-        public string FileExtension = ".cdat";
+        public string FileExtension = "cdat";
 
         public abstract ChunkCs GetChunkData(WorldData world, Int2 int2, out bool chunkExists);
         public abstract void WriteChunkData(byte[] blocks, Int2 int2, WorldData world,
-            bool optimizeSave = true);
+            bool optimizeSave = false);
 
         public virtual string GetFilename(Int2 chunkCoords, WorldData world, bool compressed)
         {

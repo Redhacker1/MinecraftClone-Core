@@ -16,6 +16,7 @@ using MCClone_Core.Physics;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
+using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
 using Veldrid;
 using Random = Engine.MathLib.Random.Random;
 using Shader = Engine.Rendering.Shader;
@@ -58,6 +59,7 @@ namespace MCClone_Core.World_CS.Generation
 		Thread _terrainThread;
 		public Material _material;
 		static Texture atlas;
+		internal static BaseGenerator Generator;
 
 		public ProcWorld(long seed)
 		{
@@ -65,6 +67,7 @@ namespace MCClone_Core.World_CS.Generation
 			PhysicsTick = true;
 			WorldSeed = seed;
 			WorldRandom = new Random(seed); 
+			Generator = new ForestGenerator(seed);
 		}
 
 		struct AtlasInfo
@@ -94,7 +97,7 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/light_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/unlit_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
@@ -106,19 +109,17 @@ namespace MCClone_Core.World_CS.Generation
 			};
 
 			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ModelBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
-				new ResourceLayoutElementDescription("AtlasBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
-				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("Lighting", ResourceKind.UniformBuffer, ShaderStages.Fragment));
+				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
+				new ResourceLayoutElementDescription("AmbientLighting", ResourceKind.UniformBuffer, ShaderStages.Fragment));
 			
 			_material = new Material(materialDescription, 
 				new VertexLayoutDescription(
 					new VertexElementDescription("PositionX", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
-					new VertexElementDescription("PositionY", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
 					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)),
 				WindowClass._renderer,
 				vertexLayout,
@@ -126,25 +127,16 @@ namespace MCClone_Core.World_CS.Generation
 			);
 			
 			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+			TextureSampler pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
 
-			AtlasInfo info = new AtlasInfo()
-			{
-				TextureSize = new Int2((int)atlas._texture.Width, (int)atlas._texture.Height),
-				length = 8,
-				width = 4,
-			};
-			Span<AtlasInfo> info_1 = stackalloc AtlasInfo[1];
-			info_1[0] = info;
-
-			Span<Vector4> Light = stackalloc Vector4[1];
-			Light[0] = new Vector4(1,1,1,0);
-
+			Vector4[] Light = new Vector4[1];
+			Light[0] = new Vector4(1,1,1, 1);
 			
-			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light);
-			UniformBuffer<AtlasInfo> buffer = new UniformBuffer<AtlasInfo>(WindowClass._renderer.Device, info_1);
-			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer, buffer, pointSampler, atlas, AmbientLight);
+
+			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light, "LightBuffer");
+			
+			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer, WindowClass._renderer.WorldBuffer);
+			_material.ResourceSet(1, atlas, pointSampler, AmbientLight);
 
 
 
@@ -287,7 +279,7 @@ namespace MCClone_Core.World_CS.Generation
 			if (loadChunk)
 			{
 				ChunkCs c;
-				if (SaveFileHandler.ChunkExists(World, cpos))
+				if (SaveFileHandler.ChunkExists(World, cpos) && false)
 				{
 					c = SaveFileHandler.GetChunkData(this ,World, cpos, out _);
 				}
@@ -455,7 +447,7 @@ namespace MCClone_Core.World_CS.Generation
 			Vector2 cpos = new Vector2(cx, cz);
 			if (LoadedChunks.ContainsKey(cpos))
 			{
-				SaveFileHandler.WriteChunkData(LoadedChunks[cpos].BlockData, LoadedChunks[cpos].ChunkCoordinate, World);
+				//SaveFileHandler.WriteChunkData(LoadedChunks[cpos].BlockData, LoadedChunks[cpos].ChunkCoordinate, World);
 				
 				LoadedChunks[cpos].Free();
 			

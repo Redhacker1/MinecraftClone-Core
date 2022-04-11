@@ -19,13 +19,6 @@ namespace Engine.Rendering
         internal ResourceLayout[] layouts;
         internal ResourceSet[] Sets;
         internal ThreadSafeList<Renderable.Renderable> _references = new ThreadSafeList<Renderable.Renderable>();
-        
-        static readonly ResourceLayoutDescription ViewProjModelLayout = new ResourceLayoutDescription(
-            new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer,
-                ShaderStages.Vertex),
-            new ResourceLayoutElementDescription("ModelBuffer", ResourceKind.UniformBuffer,
-                ShaderStages.Vertex)
-            );
 
 
 
@@ -65,20 +58,19 @@ namespace Engine.Rendering
             _references.EnterReadLock();
             foreach (var renderable in _references)
             {
-                var mesh =renderable;
-                if (mesh.ShouldRender(frustum))
+                if (renderable.ShouldRender(frustum))
                 {
-                    worldmatrix[0] = mesh.ViewMatrix;
+                    worldmatrix[0] = renderable.ViewMatrix;
                     renderer.WorldBuffer.ModifyBuffer(worldmatrix, list);
 
-                    mesh.BindResources(list);
-                    if (mesh.UseIndexedDrawing)
+                    renderable.BindResources(list);
+                    if (renderable.UseIndexedDrawing)
                     {
-                        list.DrawIndexed(mesh.VertexElements);
+                        list.DrawIndexed(renderable.VertexElements);
                     }
                     else
                     {
-                        list.Draw(mesh.VertexElements);
+                        list.Draw(renderable.VertexElements);
                     }
                 }
             }
@@ -126,7 +118,7 @@ namespace Engine.Rendering
 
         public void ResourceSet(uint slot, params IGraphicsResource[] resources)
         {
-            var BindableResources = new BindableResource[resources.Length];
+            BindableResource[] BindableResources = new BindableResource[resources.Length];
 
             for (int resource = 0; resource < resources.Length; resource++)
             {
@@ -136,7 +128,7 @@ namespace Engine.Rendering
             ResourceSetDescription Set = new ResourceSetDescription(layouts[slot], BindableResources);
             Sets[slot] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(Set);
         }
-
+        
         public void AddReference(Renderable.Renderable renderable)
         {
             _references.Add(renderable);

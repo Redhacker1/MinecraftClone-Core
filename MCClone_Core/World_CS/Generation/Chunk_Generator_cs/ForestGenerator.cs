@@ -7,6 +7,15 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
 	internal class ForestGenerator : BaseGenerator
 	{
+		static NoiseUtil HeightNoise;
+
+		public ForestGenerator(long seed)
+		{
+			HeightNoise = new NoiseUtil();
+			HeightNoise.SetSeed(seed);
+			HeightNoise.SetFractalOctaves(100);
+		}
+		
 		public override void generate_surface(ChunkCs Chunk, int Height, int X, int Z)
 		{
 			for (int Y = 0; Y < Height; Y++)
@@ -17,11 +26,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 		}
 
 		public override void GenerateTopsoil(ChunkCs Chunk, int Height, int X, int Z, long seed)
-		{	NoiseUtil HeightNoise = new NoiseUtil();
-			HeightNoise.SetSeed(seed);
-			HeightNoise.SetFractalOctaves(100);
-
-
+		{
 			double noise = HeightNoise.GetSimplex(X + Chunk.ChunkCoordinate.X, seed, Z + Chunk.ChunkCoordinate.Y);
 			noise /= 2;
 

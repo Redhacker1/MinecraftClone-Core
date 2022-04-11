@@ -49,10 +49,10 @@ namespace Engine.Rendering.Culling
     public struct Frustrum
     {
         static Mesh[] FrustrumMeshes;
-        internal Plane[] Planes;
+        internal Memory<Plane> Planes;
         public Vector3 camerapos;
 
-        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, Span<Plane> planes)
+        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, Memory<Plane> planes)
         {
             camerapos = Pos;
             Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
@@ -83,18 +83,18 @@ namespace Engine.Rendering.Culling
             
 
             // Near
-            planes[0] = new(nearTopRight, nearTopLeft, nearBottomLeft);
+            planes.Span[0] = new(nearTopRight, nearTopLeft, nearBottomLeft);
             // Far
-            planes[1] = new(farTopLeft, farTopRight, farBottomRight);
+            planes.Span[1] = new(farTopLeft, farTopRight, farBottomRight);
             // Left
-            planes[2] = new(nearTopLeft, farTopLeft, nearBottomLeft);
+            planes.Span[2] = new(nearTopLeft, farTopLeft, nearBottomLeft);
             // Right
-            planes[3] = new(farTopRight, nearTopRight, farBottomRight);
+            planes.Span[3] = new(farTopRight, nearTopRight, farBottomRight);
             // Top
-            planes[4] = new(nearTopLeft, nearTopRight, farTopLeft);
+            planes.Span[4] = new(nearTopLeft, nearTopRight, farTopLeft);
             //Bottom
-            planes[5] = new(nearBottomLeft, farBottomLeft, farBottomRight);
-            Planes =  planes.ToArray();
+            planes.Span[5] = new(nearBottomLeft, farBottomLeft, farBottomRight);
+            Planes = planes;
         }
     }
 
@@ -136,7 +136,7 @@ namespace Engine.Rendering.Culling
 
             for (int index = 0; index < frustum.Planes.Length; ++index)
             {
-                if (AABBToPlane(ref frustum.Planes[index], ref aabb) == 1)
+                if (AABBToPlane(ref frustum.Planes.Span[index], ref aabb) == 1)
                     return false;
             } 
             return true;

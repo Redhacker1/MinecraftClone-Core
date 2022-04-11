@@ -101,7 +101,7 @@ namespace MCClone_Core.Utility.IO
         }
 
         public override void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
-            bool optimizeSave = true)
+            bool optimizeSave = false)
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
             
@@ -132,7 +132,7 @@ namespace MCClone_Core.Utility.IO
             fileWriter.Write(encodedBytes);
 
             if(world.Directory == null) return;
-            FileStream fs = new FileStream(Path.Combine(world.Directory, GetFilename(new Int2((int)MathF.Floor(chunkCoords.X), (int)MathF.Floor(chunkCoords.Y)), world, optimizeSave)), FileMode.Create);
+            FileStream fs = new FileStream(Path.Combine(world.Directory, GetFilename(chunkCoords, world, optimizeSave)), FileMode.Create);
 
             
             if (optimizeSave)
@@ -144,12 +144,12 @@ namespace MCClone_Core.Utility.IO
                     File.Delete(uncompressedPath);
                 }
 
-                byte[] cdat = Compress(chunkdat.GetBuffer());
-                fs.Write(cdat, 0, cdat.Length);
+                Memory<byte> cdat = Compress(chunkdat.GetBuffer());
+                fs.Write(cdat.Span);
             }
             else
             {
-                fs.Write(chunkdat.ToArray(), 0, (int)chunkdat.Length);
+                fs.Write(chunkdat.GetBuffer(), 0, (int)chunkdat.Length);
             }
             
             fileWriter.Close();
@@ -159,17 +159,17 @@ namespace MCClone_Core.Utility.IO
 
         }
 
-        public static byte[] Compress(byte[] data)
+        public static Memory<byte> Compress(byte[] data)
         {
 
-            byte[] compressArray = null;
+            Memory<byte> compressArray = null;
             using (MemoryStream memoryStream = new MemoryStream())
             {
-                using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress))
+                using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionLevel.Fastest, true))
                 {
                     deflateStream.Write(data, 0, data.Length);
                 }
-                compressArray = memoryStream.ToArray();
+                compressArray = memoryStream.GetBuffer().AsMemory(0, (int) memoryStream.Length);
             }
             return compressArray;
         }

@@ -40,7 +40,7 @@ namespace Engine.Rendering
         }
 
         /// <summary>
-        /// This is where you actually do your pass related logic, updating camera position, filtering out some objects, etc.
+        /// This is where you actually do your pass related logic, filtering out some objects for instance
         /// </summary>
         /// <param name="list"></param>
         protected abstract void Pass(CommandList list);

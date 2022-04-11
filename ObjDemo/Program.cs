@@ -85,10 +85,10 @@ namespace ObjDemo
 			};
 
 			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
 			
@@ -97,15 +97,14 @@ namespace ObjDemo
 					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
 				,WindowClass._renderer,
-				
 				vertexLayout,
 				fragmentLayout
-
-				);
+			);
+			
 			
 			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			baseMaterial.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			baseMaterial.ResourceSet(1, WindowClass._renderer.WorldBuffer, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), atlas);
+			baseMaterial.ResourceSet(0, WindowClass._renderer.ViewProjBuffer, WindowClass._renderer.WorldBuffer);
+			baseMaterial.ResourceSet(1, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), atlas);
         }
 
         public override void _Ready()
@@ -138,7 +137,7 @@ namespace ObjDemo
 
 		        Console.WriteLine(Diffuse[0].path);
 
-		        Materials[materialIndex].ResourceSet(1, WindowClass._renderer.WorldBuffer, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), Diffuse[0]._texture); 
+		        Materials[materialIndex].ResourceSet(1, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), Diffuse[0]._texture); 
 	        }
 	        
 

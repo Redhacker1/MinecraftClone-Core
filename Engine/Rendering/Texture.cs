@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using Pfim;
+using SixLabors.ImageSharp.Memory;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Veldrid;
@@ -17,6 +18,7 @@ namespace Engine.Rendering
 
         public Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false)
         {
+            IS.Configuration.Default.PreferContiguousImageBuffers = true;
             IS.Image<Rgba32> img;
 
             if (Path.GetExtension(path) != ".dds")
@@ -35,7 +37,7 @@ namespace Engine.Rendering
                     
                     // Since image sharp can't handle data with line padding in a stride
                     // we create an stripped down array if any padding is detected
-                    var tightStride = image.Width * image.BitsPerPixel / 8;
+                    int tightStride = image.Width * image.BitsPerPixel / 8;
                     if (image.Stride != tightStride)
                     {
                         newData = new byte[image.Height * tightStride];
@@ -62,9 +64,9 @@ namespace Engine.Rendering
             {
                 img.Mutate(x => x.Flip(FlipMode.Vertical));
             }
-            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
+            if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> pixelSpan))
             {
-                Load(device, pixelSpan, (uint) img.Width, (uint) img.Height);
+                Load(device, pixelSpan.Span, (uint) img.Width, (uint) img.Height);
             }
             else
             {
@@ -92,11 +94,12 @@ namespace Engine.Rendering
 
         public Texture(GraphicsDevice device, byte[] data)
         {
-            IS.Image<Rgba32> img = IS.Image.Load(data);
+            IS.Configuration.Default.PreferContiguousImageBuffers = true;
+            IS.Image<Rgba32> img = IS.Image.Load<Rgba32>(data);
             Texture tex = new Texture();
-            if (img.TryGetSinglePixelSpan(out Span<Rgba32> pixelSpan))
+            if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> pixelSpan))
             {
-                tex.Load(device, pixelSpan.ToArray(), (uint) img.Width, (uint) img.Height);
+                tex.Load(device, pixelSpan.Span, (uint) img.Width, (uint) img.Height);
             }
             else
             {

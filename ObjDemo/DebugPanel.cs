@@ -30,34 +30,18 @@ namespace ObjDemo
 
         }
 
+        Frustrum frustum;
+        List<Mesh> meshes = new List<Mesh>();
+        ulong VertexCount;
         object thing = new object();
         public override void CreateUI()
         {
-            var frustum = Camera.MainCamera.GetViewFrustum(sides);
-            ulong VertexCount = 0;
-            Mesh[] currentsnapshot = Mesh.Meshes.ToArray();
+            meshes.Clear();
+            frustum = Camera.MainCamera.GetViewFrustum(sides);
 
-            List<Mesh> meshes = new List<Mesh>();
-            
-            Parallel.ForEach(currentsnapshot, mesh =>
-            {
-                if (IntersectionHandler.MeshInFrustrum(mesh, frustum ))
-                {
-                    lock (thing)
-                    {
-                        meshes.Add(mesh);
-                    }
-                }
-            });  
-            foreach (Mesh mesh in meshes)
-            {
-                if (mesh != null )
-                {
-                    VertexCount += mesh.GetMeshSize();   
-                }
-            }
 
-            ImGui.Text($"Memory is at: {CurrentProcess.WorkingSet64.ToString()} bytes!");
+
+            ImGui.Text($"Memory is at: {CurrentProcess.WorkingSet64} bytes!");
             ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");

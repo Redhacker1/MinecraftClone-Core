@@ -21,7 +21,8 @@ namespace Engine.Rendering
         
         static readonly ResourceLayoutDescription ViewProjLayout = new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer,
-                ShaderStages.Vertex)
+                ShaderStages.Vertex),
+            new ResourceLayoutElementDescription("ModelBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex)
         );
 
         public BasicMaterialRenderPass(Camera camera, Renderer _backingRenderer) : base(_backingRenderer)
@@ -35,17 +36,17 @@ namespace Engine.Rendering
             
             var layout = _backingRenderer.Device.ResourceFactory.CreateResourceLayout(ViewProjLayout);
             
-            ResourceSetDescription ResourceSetDesc = new ResourceSetDescription(layout, ViewProjBuffer.bufferObject);
+            ResourceSetDescription ResourceSetDesc = new ResourceSetDescription(layout, ViewProjBuffer.bufferObject, WorldBuffer.bufferObject);
             
             baseResourceSet =
                 _backingRenderer.Device.ResourceFactory.CreateResourceSet(ResourceSetDesc);
         }
 
-
+        Plane[] sides = new Plane[6];
+        
         protected override void PrePass(CommandList list)
         {
-            Span<Matrix4x4> UpdateMatrix = stackalloc Matrix4x4[2];
-            Span<Plane> sides = stackalloc Plane[6];
+            Span<Matrix4x4> UpdateMatrix = new Matrix4x4[2];
 
             if (_camera != null)
             {

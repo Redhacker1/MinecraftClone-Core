@@ -16,6 +16,7 @@ namespace MCClone_Core.Debug_and_Logging
     class DebugPanel : ImGUIPanel
     {
         int Distance;
+        long MemUsage;
         bool PressedBefore;
         internal bool Movable = false;
         Plane[] sides = new Plane[6];
@@ -32,41 +33,25 @@ namespace MCClone_Core.Debug_and_Logging
         }
 
         object thing = new object();
+        Frustrum frustum;
         public override void CreateUI()
         {
             
 
 
-            var frustum = Camera.MainCamera.GetViewFrustum(sides);
+            frustum = Camera.MainCamera.GetViewFrustum(sides);
             ulong VertexCount = 0;
             var currentsnapshot = Mesh.Meshes.ToArray();
             
 
             List<Mesh> meshes = new List<Mesh>(currentsnapshot.Length);
             
-            Parallel.ForEach(currentsnapshot, mesh =>
-            {
-                if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
-                {
-                    lock (thing)
-                    {
-                        meshes.Add(mesh);
-                    }
-                }
-            });  
-            foreach (Mesh mesh in meshes)
-            {
-                if (mesh != null )
-                {
-                    VertexCount += mesh.GetMeshSize();   
-                }
-            }
             CurrentProcess?.Dispose();
             CurrentProcess = Process.GetCurrentProcess();
-            float MemUsage = CurrentProcess.WorkingSet64;
+            MemUsage = CurrentProcess.WorkingSet64; 
             MemUsage /= 1048576;
 
-            ImGui.Text($"Memory: {MemUsage}MB");
+            ImGui.Text($"Memory: {MemUsage} MB");
             ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}, Mesh count: {currentsnapshot.Length}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");

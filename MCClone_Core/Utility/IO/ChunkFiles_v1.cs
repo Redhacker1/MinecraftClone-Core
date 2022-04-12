@@ -18,12 +18,12 @@ namespace MCClone_Core.Utility.IO
         {
             bool compressed = false;
             // TODO Come up with newer and shorter filename structure that will work when I batch chunks together
-            string filename = GetFilename(new Int2((int)MathF.Floor(location.X), (int)MathF.Floor(location.Y)),world,false);
+            string filename = GetFilename(location,world,false);
             string filePath = Path.Combine(world.Directory, filename);
             
             if (!File.Exists(filePath))
             {
-                filePath = Path.Combine(world.Directory,GetFilename(new Int2((int)MathF.Floor(location.X), (int)MathF.Floor(location.Y)),world,true));
+                filePath = Path.Combine(world.Directory,GetFilename(location,world,true));
                 if (!File.Exists(filePath))
                 {
                     chunkExists = false;
@@ -72,12 +72,12 @@ namespace MCClone_Core.Utility.IO
             
             // TODO: Add chunk Maxs to file format and have it calculate this value automatically
             byte[] serializedBlockData = fileReader.ReadBytes(ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ);
-            saveData.ChunkBlocks = new byte[ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ];
 
             for (int i = 0; i <  serializedBlockData.Length; i++)
             {
-                saveData.ChunkBlocks[i] = blockDict[serializedBlockData[i]];
+                serializedBlockData[i] = blockDict[serializedBlockData[i]];
             }
+            saveData.ChunkBlocks = serializedBlockData;
 
             if (compressed)
             {
@@ -89,7 +89,7 @@ namespace MCClone_Core.Utility.IO
             ChunkCs referencedChunk = new ChunkCs
             {
                 BlockData = saveData.ChunkBlocks,
-                ChunkCoordinate = new Int2(saveData.Location.X, saveData.Location.Y),
+                ChunkCoordinate = saveData.Location,
                 Pos = new Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxX * saveData.Location.Y)
 
             };

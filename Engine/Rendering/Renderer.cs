@@ -29,7 +29,7 @@ namespace Engine.Rendering
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Direct3D11);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
             ViewProjBuffer = new UniformBuffer<Matrix4x4>(Device, 2);
             WorldBuffer = new UniformBuffer<Matrix4x4>(Device, 1);

@@ -21,10 +21,7 @@ void main()
     int Y = PositionXZ & 511;
     int X = PositionXZ >> 14;
     int Z = (PositionXZ >> 9) & 31;
-
-
-    int textureLength = length / TextureSize.x;
-    int textureWidth = width / TextureSize.y;
+    
     
     vec4 worldPosition = World * vec4(X, Y, Z, 1);
     vec4 viewPosition = View * worldPosition;

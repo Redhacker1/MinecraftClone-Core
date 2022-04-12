@@ -97,7 +97,7 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/unlit_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/light_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
@@ -279,7 +279,7 @@ namespace MCClone_Core.World_CS.Generation
 			if (loadChunk)
 			{
 				ChunkCs c;
-				if (SaveFileHandler.ChunkExists(World, cpos) && false)
+				if (SaveFileHandler.ChunkExists(World, cpos))
 				{
 					c = SaveFileHandler.GetChunkData(this ,World, cpos, out _);
 				}
@@ -447,7 +447,7 @@ namespace MCClone_Core.World_CS.Generation
 			Vector2 cpos = new Vector2(cx, cz);
 			if (LoadedChunks.ContainsKey(cpos))
 			{
-				//SaveFileHandler.WriteChunkData(LoadedChunks[cpos].BlockData, LoadedChunks[cpos].ChunkCoordinate, World);
+				SaveFileHandler.WriteChunkData(LoadedChunks[cpos].BlockData, LoadedChunks[cpos].ChunkCoordinate, World);
 				
 				LoadedChunks[cpos].Free();
 			

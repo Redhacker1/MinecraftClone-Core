@@ -163,7 +163,7 @@ namespace Engine.Rendering
                 if (stage == ShaderStages.Vertex)
                 {
                     var data = SpirvCompilation.CompileVertexFragment(bytecode, bytecode, CrossCompileTarget.GLSL);
-                    return GetBytes(data.FragmentShader);
+                    return GetBytes(data.VertexShader);
                 }
 
                 if(stage == ShaderStages.Fragment)

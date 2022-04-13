@@ -12,7 +12,7 @@ namespace Engine.Rendering
     {
         internal DeviceBuffer bufferObject;
         GraphicsDevice _device;
-        public UniformBuffer(GraphicsDevice gDevice, Span<TDataType> data, string Name = "")
+        public UniformBuffer(GraphicsDevice gDevice, Span<TDataType> data, string Name = "UNDEFINED")
         {
             bufferObject =
                 gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  data.Length),
@@ -22,7 +22,7 @@ namespace Engine.Rendering
             bufferObject.Name = Name;
         }
         
-        public UniformBuffer(GraphicsDevice gDevice, uint Length, string Name = "")
+        public UniformBuffer(GraphicsDevice gDevice, uint Length, string Name = "UNDEFINED")
         {
             bufferObject =
                 gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  Length),

@@ -73,7 +73,7 @@ namespace ObjDemo
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/unlit_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
@@ -103,7 +103,7 @@ namespace ObjDemo
 			
 			
 			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			baseMaterial.ResourceSet(0, WindowClass._renderer.ViewProjBuffer, WindowClass._renderer.WorldBuffer);
+			baseMaterial.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
 			baseMaterial.ResourceSet(1, new TextureSampler(WindowClass._renderer.Device.Aniso4xSampler), atlas);
         }
 

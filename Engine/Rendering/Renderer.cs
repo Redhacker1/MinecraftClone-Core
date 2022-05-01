@@ -21,18 +21,16 @@ namespace Engine.Rendering
     {
         object thing = new object();
         public UniformBuffer<Matrix4x4> ViewProjBuffer;
-        public UniformBuffer<Matrix4x4> WorldBuffer;
-        
+
         ImGuiRenderer _imGuiHandler;
 
         Renderpass testPass;
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float,false, ResourceBindingModel.Default, true, true),GraphicsBackend.Vulkan);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float,false, ResourceBindingModel.Default, true, true),GraphicsBackend.OpenGL);
             _list = Device.ResourceFactory.CreateCommandList();
             ViewProjBuffer = new UniformBuffer<Matrix4x4>(Device, 2);
-            WorldBuffer = new UniformBuffer<Matrix4x4>(Device, 1);
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
             
             testPass = new BasicMaterialRenderPass(Camera.MainCamera, this);

@@ -26,7 +26,7 @@ namespace Engine.Rendering
 
         internal bool Bind(CommandList list)
         {
-            if (pipeline_object != default)
+            if (parent == null)
             {
                 list.SetPipeline(pipeline_object._pipeline);
             }
@@ -53,15 +53,12 @@ namespace Engine.Rendering
 
         internal void Render(CommandList list, Frustrum frustum, Renderer renderer)
         {
-            Span<Matrix4x4> worldmatrix = stackalloc Matrix4x4[1];
             Bind(list);
             _references.EnterReadLock();
             foreach (var renderable in _references)
             {
                 if (renderable.ShouldRender(frustum))
                 {
-                    worldmatrix[0] = renderable.ViewMatrix;
-                    renderer.WorldBuffer.ModifyBuffer(worldmatrix, list);
 
                     renderable.BindResources(list);
                     if (renderable.UseIndexedDrawing)
@@ -86,13 +83,21 @@ namespace Engine.Rendering
 
         public Material(MaterialDescription description, VertexLayoutDescription vertexLayoutDescription, Renderer renderer, params ResourceLayoutDescription[] resourceLayouts)
         {
+            ResourceLayoutDescription PerViewData = new ResourceLayoutDescription(
+                new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+            ResourceLayoutDescription PerMeshData = new ResourceLayoutDescription(
+                new ResourceLayoutElementDescription("ViewBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+            
             _materials.Add(this);
-            ResourceLayout[] materialLayouts = new ResourceLayout[resourceLayouts.Length];
+            ResourceLayout[] materialLayouts = new ResourceLayout[resourceLayouts.Length + 2];
+
+            materialLayouts[0] = renderer.Device.ResourceFactory.CreateResourceLayout(PerViewData);
+            materialLayouts[1] = renderer.Device.ResourceFactory.CreateResourceLayout(PerMeshData);
 
             for (int layoutIndex = 0; layoutIndex < resourceLayouts.Length; layoutIndex++)
             {
                 ResourceLayoutDescription layout = resourceLayouts[layoutIndex];
-                materialLayouts[layoutIndex] = renderer.Device.ResourceFactory.CreateResourceLayout(layout);
+                materialLayouts[layoutIndex + 2] = renderer.Device.ResourceFactory.CreateResourceLayout(layout);
             }
             layouts = materialLayouts;
             

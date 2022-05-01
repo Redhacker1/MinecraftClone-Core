@@ -138,7 +138,7 @@ namespace Engine.Renderable
             _indexBuffer = factory.CreateBuffer(new BufferDescription(2000, BufferUsage.IndexBuffer | BufferUsage.Dynamic));
             _indexBuffer.Name = "ImGui.NET Index Buffer";
 
-            _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(64, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+            _projMatrixBuffer = factory.CreateBuffer(new BufferDescription(128, BufferUsage.UniformBuffer | BufferUsage.Dynamic));
             _projMatrixBuffer.Name = "ImGui.NET Projection Buffer";
 
             byte[] vertexShaderBytes = LoadEmbeddedShaderCode(gd.ResourceFactory, "imgui-vertex", ShaderStages.Vertex, _colorSpaceHandling);
@@ -559,6 +559,7 @@ namespace Engine.Renderable
             // Setup orthographic projection matrix into our constant buffer
             {
                 var io = ImGui.GetIO();
+                Span<Matrix4x4> mvp1 = stackalloc Matrix4x4[2];
 
                 Matrix4x4 mvp = Matrix4x4.CreateOrthographicOffCenter(
                     0f,
@@ -568,7 +569,9 @@ namespace Engine.Renderable
                     -1.0f,
                     1.0f);
 
-                _gd.UpdateBuffer(_projMatrixBuffer, 0, ref mvp);
+                mvp1[0] = mvp;
+
+                _gd.UpdateBuffer(_projMatrixBuffer, 0, mvp1);
             }
 
             cl.SetVertexBuffer(0, _vertexBuffer);

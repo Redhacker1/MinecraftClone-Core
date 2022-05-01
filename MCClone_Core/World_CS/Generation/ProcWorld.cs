@@ -108,10 +108,6 @@ namespace MCClone_Core.World_CS.Generation
 				}
 			};
 
-			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
-				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
@@ -122,7 +118,6 @@ namespace MCClone_Core.World_CS.Generation
 					new VertexElementDescription("PositionX", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
 					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)),
 				WindowClass._renderer,
-				vertexLayout,
 				fragmentLayout
 			);
 			
@@ -135,8 +130,8 @@ namespace MCClone_Core.World_CS.Generation
 
 			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light, "LightBuffer");
 			
-			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer, WindowClass._renderer.WorldBuffer);
-			_material.ResourceSet(1, atlas, pointSampler, AmbientLight);
+			//_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
+			_material.ResourceSet(2, atlas, pointSampler, AmbientLight);
 
 
 

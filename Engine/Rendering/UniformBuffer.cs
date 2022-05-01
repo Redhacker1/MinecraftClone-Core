@@ -12,23 +12,23 @@ namespace Engine.Rendering
     {
         internal DeviceBuffer bufferObject;
         GraphicsDevice _device;
-        public UniformBuffer(GraphicsDevice gDevice, Span<TDataType> data, string Name = "UNDEFINED")
+        public UniformBuffer(GraphicsDevice gDevice, Span<TDataType> data, string? Name = null)
         {
             bufferObject =
                 gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  data.Length),
                     BufferUsage.UniformBuffer));
             ModifyBuffer(data, gDevice);
             _device = gDevice;
-            bufferObject.Name = Name;
+            if(Name is not null) bufferObject.Name = Name;
         }
         
-        public UniformBuffer(GraphicsDevice gDevice, uint Length, string Name = "UNDEFINED")
+        public UniformBuffer(GraphicsDevice gDevice, uint Length, string? Name = null)
         {
             bufferObject =
                 gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  Length),
                     BufferUsage.UniformBuffer | BufferUsage.Dynamic));
             _device = gDevice;
-            bufferObject.Name = Name;
+            if(Name is not null) bufferObject.Name = Name;
         }
 
         

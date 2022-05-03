@@ -94,7 +94,7 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/light_frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,

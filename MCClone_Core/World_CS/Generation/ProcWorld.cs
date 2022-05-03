@@ -25,7 +25,7 @@ namespace MCClone_Core.World_CS.Generation
 {
 	public class ProcWorld : Level
 	{
-		public bool UseThreadPool = false;
+		public bool UseThreadPool = true;
 		int _chunksPerFrame = 1;
 
 		public static bool Threaded = true;
@@ -37,7 +37,7 @@ namespace MCClone_Core.World_CS.Generation
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
 		
 		// Max chunks radius comes out to (_loadRadius*2)^2 
-		public int _loadRadius = 32;
+		public int _loadRadius = 40;
 
 		public static Random WorldRandom;
 		public static long WorldSeed;
@@ -67,6 +67,13 @@ namespace MCClone_Core.World_CS.Generation
 			WorldRandom = new Random(seed); 
 		}
 
+		struct AtlasInfo
+		{
+			public uint length;
+			public uint width;
+			public Int2 TextureSize;
+		}
+
 		public override void _Ready()
 		{
 			if (Instance != null)
@@ -91,7 +98,7 @@ namespace MCClone_Core.World_CS.Generation
 					},
 					{
 						ShaderStages.Vertex,
-						new Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
+						new Shader("./Assets/intvert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
 					}
 
 
@@ -103,23 +110,41 @@ namespace MCClone_Core.World_CS.Generation
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("ModelBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
+				new ResourceLayoutElementDescription("AtlasBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
+				new ResourceLayoutElementDescription("Lighting", ResourceKind.UniformBuffer, ShaderStages.Fragment));
 			
 			_material = new Material(materialDescription, 
 				new VertexLayoutDescription(
-					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
-					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
-				, WindowClass._renderer,
+					new VertexElementDescription("PositionX", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
+					new VertexElementDescription("PositionY", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
+					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)),
+				WindowClass._renderer,
 				vertexLayout,
 				fragmentLayout
 			);
 			
 			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
 			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+
+			AtlasInfo info = new AtlasInfo()
+			{
+				TextureSize = new Int2((int)atlas._texture.Width, (int)atlas._texture.Height),
+				length = 8,
+				width = 4,
+			};
+			Span<AtlasInfo> info_1 = stackalloc AtlasInfo[1];
+			info_1[0] = info;
+
+			Span<Vector4> Light = stackalloc Vector4[1];
+			Light[0] = new Vector4(1,1,1,0);
+
 			
+			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light);
+			UniformBuffer<AtlasInfo> buffer = new UniformBuffer<AtlasInfo>(WindowClass._renderer.Device, info_1);
 			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer, pointSampler, atlas);
+			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer, buffer, pointSampler, atlas, AmbientLight);
 
 
 
@@ -207,7 +232,7 @@ namespace MCClone_Core.World_CS.Generation
 						_lastChunk = _load_chunk((int)_lastChunk.X - 1, (int) _lastChunk.Y);
 					}
 					// Either moving in constant x or we just reached bottom right. Addendum by donovan: this looping on the X axis has happened to me actually
-					else if ((Math.Abs(-deltaPos.X - _currentLoadRadius) < 0.001f) || (Math.Abs(-deltaPos.X - deltaPos.Y) < 0.001f))
+					else if ((MathF.Abs(-deltaPos.X - _currentLoadRadius) < 0.001f) || (MathF.Abs(-deltaPos.X - deltaPos.Y) < 0.001f))
 					{
 						// Go up
 						_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y - 1);
@@ -230,7 +255,7 @@ namespace MCClone_Core.World_CS.Generation
 						//Go left
 						_lastChunk = _load_chunk((int) _lastChunk.X + 1, (int) _lastChunk.Y);	
 					}
-					else if ((Math.Abs(deltaPos.X - _currentLoadRadius) < 0.001f) || (Math.Abs(deltaPos.X - (-deltaPos.Y)) < 0.001f))
+					else if ((MathF.Abs(deltaPos.X - _currentLoadRadius) < 0.001f) || (MathF.Abs(deltaPos.X - (-deltaPos.Y)) < 0.001f))
 					{
 						// Go down
 						// Stop the last one where we'd go over the limit
@@ -253,13 +278,11 @@ namespace MCClone_Core.World_CS.Generation
 				GenerationProcess();
 			}
 		}
-
 		Vector2 _load_chunk(int cx, int cz)
 		{
-			Stopwatch stopwatch =Stopwatch.StartNew();
-			Vector2 cpos = new Vector2(cx, cz);
+			Int2 cpos = new Int2(cx, cz);
 			bool loadChunk;
-			loadChunk = !LoadedChunks.ContainsKey(cpos);
+			loadChunk = !LoadedChunks.ContainsKey(new Vector2(cpos.X, cpos.Y));
 
 			if (loadChunk)
 			{
@@ -274,16 +297,12 @@ namespace MCClone_Core.World_CS.Generation
 					c.InstantiateChunk(this, cx, cz, WorldSeed);	
 				}
 				
-				LoadedChunks[cpos] = c;
+				LoadedChunks[new Vector2(cpos.X, cpos.Y)] = c;
 				c.UpdateVisMask();
 				_update_chunk(cx, cz);
 			}
-
-			if (stopwatch.ElapsedMilliseconds >= 1)
-			{
-				Console.WriteLine(stopwatch.Elapsed.TotalMilliseconds);	
-			}
-			return cpos;
+			
+			return new Vector2(cpos.X, cpos.Y);
 		}
 
 		public string ReloadChunks(params string[] args)
@@ -344,7 +363,7 @@ namespace MCClone_Core.World_CS.Generation
 
 			if (LoadedChunks.ContainsKey(chunkpos) && ValidPlace(bx, y, bz))
 			{
-				return LoadedChunks[chunkpos].BlockData[ChunkCs.GetFlattenedMax(bx, y, bz)];
+				return LoadedChunks[chunkpos].BlockData[ChunkCs.GetFlattenedIndex(bx, y, bz)];
 			}
 
 			return 0;
@@ -380,7 +399,7 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
-			if (c.BlockData[ChunkCs.GetFlattenedMax(bx, by, bz)] == T) return;
+			if (c.BlockData[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;
 			ConsoleLibrary.DebugPrint($"Changed block at {bx} {by} {bz} in chunk {cx}, {cz}");
 			c?._set_block_data(bx,by,bz,T);
 			_update_chunk(cx, cz);
@@ -388,7 +407,6 @@ namespace MCClone_Core.World_CS.Generation
 
 		void _update_chunk(int cx, int cz)
 		{
-			Vector2 cpos = new Vector2(cx, cz);
 
 			if (Threaded && UseThreadPool)
 			{
@@ -398,6 +416,7 @@ namespace MCClone_Core.World_CS.Generation
 				}
 				_threads.AddRequest(() =>
 				{
+					Vector2 cpos = new Vector2(cx, cz);
 					if (LoadedChunks.ContainsKey(cpos))
 					{
 						LoadedChunks[cpos]?.Update();
@@ -412,7 +431,7 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					_threads.ShutDownHandler();
 				}
-				
+				Vector2 cpos = new Vector2(cx, cz);
 				if (LoadedChunks.ContainsKey(cpos))
 				{
 					LoadedChunks[cpos]?.Update();

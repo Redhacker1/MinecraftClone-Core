@@ -1,0 +1,1 @@
+"%VULKAN_SDK%/Bin/glslc.exe" "IntVertShader.vert" -o "intvert.spv"

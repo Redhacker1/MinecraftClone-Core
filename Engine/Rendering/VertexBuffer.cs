@@ -8,6 +8,8 @@ namespace Engine.Rendering
         internal abstract void Bind(CommandList list, uint slot = 0);
 
         public abstract void Dispose();
+
+        public abstract void ModifyBuffer<T>(ReadOnlySpan<T> readOnlySpan, GraphicsDevice device) where T : unmanaged;
     }
     
     public class VertexBuffer<TDataType> : BaseVertexBuffer
@@ -45,7 +47,7 @@ namespace Engine.Rendering
             bufferObject.Dispose();
         }
         
-        public void ModifyBuffer(ReadOnlySpan<TDataType> data, GraphicsDevice device)
+        public override void ModifyBuffer<T>(ReadOnlySpan<T> data, GraphicsDevice device)
         {
             if (data.Length > Length)
             {

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
 using Engine.Renderable;
@@ -17,8 +18,10 @@ namespace ObjDemo
         bool PressedBefore;
         internal bool Movable = false;
         Plane[] sides = new Plane[6];
+        Process CurrentProcess;
         public DebugPanel()
         {
+            CurrentProcess = Process.GetCurrentProcess();
             
             //AddFlag(ImGuiWindowFlags.NoMove);
             AddFlag(ImGuiWindowFlags.AlwaysAutoResize);
@@ -35,13 +38,6 @@ namespace ObjDemo
             Mesh[] currentsnapshot = Mesh.Meshes.ToArray();
 
             List<Mesh> meshes = new List<Mesh>();
-            
-            
-            
-            
-            
-            
-            
             
             Parallel.ForEach(currentsnapshot, mesh =>
             {
@@ -60,8 +56,8 @@ namespace ObjDemo
                     VertexCount += mesh.GetMeshSize();   
                 }
             }
-            
-            
+
+            ImGui.Text($"Memory is at: {CurrentProcess.WorkingSet64.ToString()} bytes!");
             ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
             ImGui.Text($"Potentially visible mesh count: {meshes.Count}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");

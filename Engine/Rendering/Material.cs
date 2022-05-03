@@ -18,7 +18,7 @@ namespace Engine.Rendering
         
         internal ResourceLayout[] layouts;
         internal ResourceSet[] Sets;
-        internal ThreadSafeList<Mesh> _references = new ThreadSafeList<Mesh>();
+        internal ThreadSafeList<Renderable.Renderable> _references = new ThreadSafeList<Renderable.Renderable>();
         
         static readonly ResourceLayoutDescription ViewProjModelLayout = new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer,
@@ -137,12 +137,12 @@ namespace Engine.Rendering
             Sets[slot] = WindowClass._renderer.Device.ResourceFactory.CreateResourceSet(Set);
         }
 
-        public void AddReference(Mesh renderable)
+        public void AddReference(Renderable.Renderable renderable)
         {
             _references.Add(renderable);
         }
 
-        public void RemoveReference(Mesh mesh)
+        public void RemoveReference(Renderable.Renderable mesh)
         {
             _references.Remove(mesh);
         }

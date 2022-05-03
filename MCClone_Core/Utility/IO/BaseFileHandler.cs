@@ -11,11 +11,11 @@ namespace MCClone_Core.Utility.IO
 
         public string FileExtension = ".cdat";
 
-        public abstract ChunkCs GetChunkData(WorldData world, Vector2 location, out bool chunkExists);
-        public abstract void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+        public abstract ChunkCs GetChunkData(WorldData world, Int2 int2, out bool chunkExists);
+        public abstract void WriteChunkData(byte[] blocks, Int2 int2, WorldData world,
             bool optimizeSave = true);
 
-        public virtual string GetFilename(Vector2 chunkCoords, WorldData world, bool compressed)
+        public virtual string GetFilename(Int2 chunkCoords, WorldData world, bool compressed)
         {
             if (compressed)
             {
@@ -26,7 +26,7 @@ namespace MCClone_Core.Utility.IO
         }
 
 
-        public virtual bool ChunkExists(WorldData world, Vector2 location)
+        public virtual bool ChunkExists(WorldData world, Int2 location)
         {
             string filename = GetFilename(location, world, false);
             if (world.Directory == null) return false;
@@ -43,7 +43,7 @@ namespace MCClone_Core.Utility.IO
         }
         
         
-        protected virtual SaveInfo SerializeChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world,
+        protected virtual SaveInfo SerializeChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
             bool optimizeStorage)
         {
             SaveInfo chunkSaveData = new SaveInfo();
@@ -51,7 +51,6 @@ namespace MCClone_Core.Utility.IO
             chunkSaveData.VersionNumber = 1; // Again Default Version number to one
             chunkSaveData.Location = chunkCoords; // Location of the chunk, will be saved somehow in chunk file
             chunkSaveData.BiomeId = 0; // Currently Unused Will come eventually
-            chunkSaveData.World = world.Directory + world.Name;
             chunkSaveData.ChunkBlocks = blocks;
             
 
@@ -73,7 +72,7 @@ namespace MCClone_Core.Utility.IO
                 serializedId+=1;
             }
 
-            chunkSaveData.BlockIdWriter = blockDict;
+            chunkSaveData.BlockPalette = blockDict;
             return chunkSaveData;
 
         }

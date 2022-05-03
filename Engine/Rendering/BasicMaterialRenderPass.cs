@@ -23,10 +23,6 @@ namespace Engine.Rendering
             new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer,
                 ShaderStages.Vertex)
         );
-        static readonly ResourceLayoutDescription ViewModelLayout = new ResourceLayoutDescription(
-            new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer,
-                ShaderStages.Vertex)
-        );
 
         public BasicMaterialRenderPass(Camera camera, Renderer _backingRenderer) : base(_backingRenderer)
         {

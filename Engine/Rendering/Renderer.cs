@@ -33,9 +33,8 @@ namespace Engine.Rendering
             _list = Device.ResourceFactory.CreateCommandList();
             ViewProjBuffer = new UniformBuffer<Matrix4x4>(Device, 2);
             WorldBuffer = new UniformBuffer<Matrix4x4>(Device, 1);
-            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport,
-                InputHandler.Context);
-
+            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
+            
             testPass = new BasicMaterialRenderPass(Camera.MainCamera, this);
 
             //Device.SyncToVerticalBlank = true;
@@ -45,7 +44,6 @@ namespace Engine.Rendering
         CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
         public uint FPS;
-        Frustrum frustum;
         Plane[] sides = new Plane[6];
         internal void OnRender(double time)
         {
@@ -61,7 +59,6 @@ namespace Engine.Rendering
             UpdateMatrix[0] = Camera.MainCamera.GetProjectionMatrix();
             UpdateMatrix[1] = Camera.MainCamera.GetViewMatrix();
             ViewProjBuffer.ModifyBuffer(UpdateMatrix, Device);
-            frustum =  Camera.MainCamera.GetViewFrustum(sides);
 
             if (_list == null)
             {
@@ -77,46 +74,7 @@ namespace Engine.Rendering
             
             
             testPass.RunPass(_list);
-
-            /*Mesh[] sceneMeshes = Mesh.Meshes.ToArray();
-            List<Mesh> meshes = new List<Mesh>(Mesh.Meshes.Count);
             
-            
-            
-            Parallel.ForEach(sceneMeshes, (mesh) =>
-            {
-                if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
-                {
-                    lock (thing)
-                    {
-                        meshes.Add(mesh);
-                    }
-                }
-            });
-            
-            Material prevmaterial = null;
-            foreach (Mesh mesh in meshes)
-            {
-                if(!mesh.UpdatingMesh && mesh.BindResources(_list, prevmaterial))
-                {
-                    UpdateMatrix[0] = mesh.ViewMatrix;
-                    WorldBuffer.ModifyBuffer(UpdateMatrix, _list, Device);
-
-                    if (mesh.UseIndexedDrawing)
-                    {
-                        _list.DrawIndexed(mesh.VertexElements);
-                    }
-                    else
-                    {
-                        _list.Draw(mesh.VertexElements);   
-                    }
-
-                    prevmaterial = mesh.MeshMaterial;
-                }
-
-            }
-            */
-            //Console.WriteLine($"Drawing {ImGUIPanel.panels.Count} UI Elements!");
             _imGuiHandler.Update((float) time);
             foreach (ImGUIPanel uiPanel in ImGUIPanel.panels)
             {

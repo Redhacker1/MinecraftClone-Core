@@ -18,6 +18,8 @@ namespace Engine.Renderable
         public bool UseIndexedDrawing;
         public uint VertexElements;
         public float Scale = 1;
+        
+        public Vector3 Position => GetObjectReference().Pos;
 
         protected MinimalObject GetObjectReference()
         {

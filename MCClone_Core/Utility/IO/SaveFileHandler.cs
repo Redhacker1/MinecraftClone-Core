@@ -15,7 +15,7 @@ namespace MCClone_Core.Utility.IO
         static readonly BaseFileHandler DefaultSaveFileFormat = new ChunkFilesV1();
         
         
-        public static void WriteChunkData(byte[] blocks, Vector2 chunkCoords, WorldData world, bool optimizeSave = true)
+        public static void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world, bool optimizeSave = true)
         {
             foreach (BaseFileHandler format in ValidFormats)
             {
@@ -28,7 +28,7 @@ namespace MCClone_Core.Utility.IO
             DefaultSaveFileFormat.WriteChunkData(blocks,chunkCoords,world,optimizeSave);
         }
 
-        public static bool ChunkExists(WorldData world, Vector2 location)
+        public static bool ChunkExists(WorldData world, Int2 location)
         {
             if (DefaultSaveFileFormat.ChunkExists(world, location) == false)
             {
@@ -37,7 +37,7 @@ namespace MCClone_Core.Utility.IO
             return true;
         }
 
-        public static ChunkCs GetChunkData(ProcWorld worldref ,WorldData world, Vector2 location, out bool chunkExists)
+        public static ChunkCs GetChunkData(ProcWorld worldref ,WorldData world, Int2 location, out bool chunkExists)
         {
             ChunkCs data = DefaultSaveFileFormat.GetChunkData(world, location, out chunkExists);
             if (data == null)

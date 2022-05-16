@@ -51,7 +51,7 @@ namespace Engine.Rendering.Culling
         internal Plane[] Planes;
         public Vector3 camerapos;
 
-        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, Span<Plane> planes)
+        public Frustrum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, ref Plane[] planes)
         {
             camerapos = Pos;
             Matrix4x4.Invert(ViewFrustum, out Matrix4x4 thingmat);
@@ -93,7 +93,7 @@ namespace Engine.Rendering.Culling
             planes[4] = new(nearTopLeft, nearTopRight, farTopLeft);
             //Bottom
             planes[5] = new(nearBottomLeft, farBottomLeft, farBottomRight);
-            Planes =  planes.ToArray();
+            Planes =  planes;
         }
     }
 

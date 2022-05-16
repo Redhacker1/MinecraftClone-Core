@@ -82,7 +82,7 @@ namespace MCClone_Core.Temp
             return segments[index];
         }
 
-        public override void* Alloc(nuint byteCapacity, out nuint actualByteCapacity)
+        public override IntPtr Alloc(nuint byteCapacity, out nuint actualByteCapacity)
         {
             Segment? segment = GetSegment(byteCapacity);
             if (segment == null)
@@ -92,7 +92,7 @@ namespace MCClone_Core.Temp
             return segment.Rent(Heap, out actualByteCapacity);
         }
 
-        public override void Free(nuint byteCapacity, void* buffer)
+        public override void Free(nuint byteCapacity, IntPtr buffer)
         {
             Segment? segment = GetSegment(byteCapacity);
             if (segment != null && segment.BlockSize == byteCapacity)
@@ -103,8 +103,8 @@ namespace MCClone_Core.Temp
             Heap.Free(byteCapacity, buffer);
         }
 
-        public override void* Realloc(
-            void* buffer,
+        public override IntPtr Realloc(
+            IntPtr buffer,
             nuint previousByteCapacity,
             nuint requestedByteCapacity,
             out nuint actualByteCapacity)

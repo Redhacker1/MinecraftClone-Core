@@ -14,10 +14,11 @@ namespace Engine.Renderable
         protected BaseVertexBuffer vbo;
 
         protected MinimalObject _objectReference;
-        
-        public bool UseIndexedDrawing;
+
+        protected internal bool UseIndexedDrawing;
         public uint VertexElements;
-        public float Scale = 1;
+        public Vector3 Scale = new Vector3(1);
+        public bool Render = true;
         
         public Vector3 Position => GetObjectReference().Pos;
 
@@ -25,16 +26,10 @@ namespace Engine.Renderable
         {
             return _objectReference;
         }
-        public Matrix4x4 ViewMatrix => Matrix4x4.CreateFromQuaternion(
-                Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(GetObjectReference().Rotation.X), 
-                    MathHelper.DegreesToRadians(GetObjectReference().Rotation.Y), 
-                    MathHelper.DegreesToRadians(GetObjectReference().Rotation.Z))) * Matrix4x4.CreateScale(Scale)
-            * Matrix4x4.CreateTranslation(GetObjectReference().Pos -Camera.MainCamera.Pos);
+        public Matrix4x4 ViewMatrix => Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateScale(Scale)
+            * Matrix4x4.CreateTranslation(GetObjectReference().Pos - Camera.MainCamera.Pos);
         
-        public Quaternion Rotation =>
-            Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(GetObjectReference().Rotation.X),
-                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Y),
-                MathHelper.DegreesToRadians(GetObjectReference().Rotation.Z));
+        public Quaternion Rotation => GetObjectReference().Rotation;
 
 
         /// <summary>

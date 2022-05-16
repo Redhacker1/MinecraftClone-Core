@@ -12,7 +12,7 @@ namespace Engine.Objects
         /// The world position of where the object is.
         /// </summary>
         public Vector3 Pos = Vector3.Zero;
-        public Vector3 Rotation = Vector3.Zero;
+        public Quaternion Rotation = Quaternion.Identity;
 
     }
 }

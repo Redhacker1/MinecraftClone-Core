@@ -1,8 +1,8 @@
 ﻿using System;
 using Engine.MathLib;
-using Engine.MathLib.Random;
+using MCClone_Core.Random;
 using MCClone_Core.World_CS.Blocks;
-using Random = Engine.MathLib.Random.Random;
+using Random = MCClone_Core.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
@@ -69,7 +69,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             
         }
 
-        public virtual void generate_details(ChunkCs Chunk, Random Rng, int[,] GroundHeight, bool CheckingInterChunkGen = true)
+        public virtual void generate_details(ChunkCs Chunk, Random.Random Rng, int[,] GroundHeight, bool CheckingInterChunkGen = true)
         {
         }
 

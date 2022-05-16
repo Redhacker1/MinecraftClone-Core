@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using DdsKtxSharp;
 using Pfim;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -9,11 +10,23 @@ using IS = SixLabors.ImageSharp;
 
 namespace Engine.Rendering
 {
+    struct BC1
+    {
+        ushort[] rgb; // 565 colors
+        uint bitmap; // 2bpp rgb bitmap
+
+        public BC1()
+        {
+            rgb = new ushort[2];
+            bitmap = 0;
+        }
+    };
+    
     
     //TODO: Expose options in constructor for materials (eg, flipmode, texture filtering, clamp mode, etc)
     public class Texture : IDisposable, IGraphicsResource
     {
-        public Veldrid.Texture _texture;
+        public Veldrid.Texture _texture = null;
         
 
         public Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false)
@@ -28,33 +41,47 @@ namespace Engine.Rendering
             }
             else
             {
-                byte[] newData;
-                int width;
-                int height;
-                using (IImage image = Pfim.Pfim.FromFile(path))
+
+                DdsKtxParser parser = DdsKtxParser.FromMemory(File.ReadAllBytes(path));
+                DdsKtx.ddsktx_sub_data sub_data;
+                byte[] imageData = parser.GetSubData(0,0, 0, out sub_data);
+                int width = parser.Info.width;
+                int height= parser.Info.height;
+                switch (parser.Info.format)
                 {
-                    width = image.Width;
-                    height = image.Height;
                     
-                    // Since image sharp can't handle data with line padding in a stride
-                    // we create an stripped down array if any padding is detected
-                    var tightStride = image.Width * image.BitsPerPixel / 8;
-                    if (image.Stride != tightStride)
-                    {
-                        newData = new byte[image.Height * tightStride];
-                        for (int i = 0; i < image.Height; i++)
-                        {
-                            Buffer.BlockCopy(image.Data, i * image.Stride, newData, i * tightStride, tightStride);
-                        }
-                    }
-                    else
-                    {
-                        newData = image.Data;
-                    }
-                    image.Dispose();
+                    case DdsKtx.ddsktx_format.DDSKTX_FORMAT_RGBA8:
+                        img = IS.Image.LoadPixelData<Bgra32>(cfg, imageData, width, height).CloneAs<Rgba32>();;
+                        break;
+                    case DdsKtx.ddsktx_format.DDSKTX_FORMAT_BC1:
+                        return;
+                        break;
+                    default:
+                        return;
+                        Console.WriteLine(parser.Info.format);
+                        break;
+                        //throw new ArgumentOutOfRangeException();
                 }
                 
-                img = IS.Image.LoadPixelData<Rgba32>(cfg, newData, width, height);
+                
+                
+                // Since image sharp can't handle data with line padding in a stride
+                // we create an stripped down array if any padding is detected
+                int tightStride = width * height;
+                
+                
+                
+                if (imageData.Length != tightStride)
+                {
+                    var newData = new byte[tightStride];
+                    for (int i = 0; i < height; i++)
+                    {
+                        Buffer.BlockCopy(newData, i * width, newData, i * tightStride, tightStride);
+                    }
+
+                    imageData = newData;
+                }
+                
             }
 
             if (flipX)
@@ -98,7 +125,7 @@ namespace Engine.Rendering
         public Texture(GraphicsDevice device, Span<byte> data)
         {
             
-            var cfg = IS.Configuration.Default;
+            IS.Configuration cfg = IS.Configuration.Default;
             cfg.PreferContiguousImageBuffers = true;
             IS.Image<Rgba32> img = IS.Image.Load<Rgba32>(cfg, data);
             Texture tex = new Texture();

@@ -24,7 +24,7 @@ namespace ObjDemo
 
 		public override void _Ready()
 		{
-			Rotation = Vector3.Zero;
+			Rotation = Quaternion.Identity;
 			_fpCam = new Camera(Pos, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			_fpCam.Rotation = Vector3.Zero;
 			InputHandler.SetMouseMode(0, CursorMode.Raw);

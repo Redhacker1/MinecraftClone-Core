@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
+using System.Runtime;
 using Engine.Renderable;
 using Engine.Rendering;
-using Engine.Rendering.Culling;
 using Engine.Windowing;
 using ImGuiNET;
 using MCClone_Core.World_CS.Generation;
@@ -41,26 +39,8 @@ namespace MCClone_Core.Debug_and_Logging
             ulong VertexCount = 0;
             var currentsnapshot = Mesh.Meshes.ToArray();
             
-
-            List<Mesh> meshes = new List<Mesh>(currentsnapshot.Length);
             
-            Parallel.ForEach(currentsnapshot, mesh =>
-            {
-                if (IntersectionHandler.MeshInFrustrum(mesh, frustum))
-                {
-                    lock (thing)
-                    {
-                        meshes.Add(mesh);
-                    }
-                }
-            });  
-            foreach (Mesh mesh in meshes)
-            {
-                if (mesh != null )
-                {
-                    VertexCount += mesh.GetMeshSize();   
-                }
-            }
+            
             CurrentProcess?.Dispose();
             CurrentProcess = Process.GetCurrentProcess();
             float MemUsage = CurrentProcess.WorkingSet64;
@@ -68,7 +48,7 @@ namespace MCClone_Core.Debug_and_Logging
 
             ImGui.Text($"Memory: {MemUsage}MB");
             ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
-            ImGui.Text($"Potentially visible mesh count: {meshes.Count}, Mesh count: {currentsnapshot.Length}");
+            ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Length}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
 
@@ -81,6 +61,7 @@ namespace MCClone_Core.Debug_and_Logging
             if (updated)
             {
                 ProcWorld.Instance.UpdateRenderDistance(Distance);
+                GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             }
 
             string buttonText = ProcWorld.Instance.UseThreadPool ? "Disable ThreadPool" : "Enable ThreadPool";

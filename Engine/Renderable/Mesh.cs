@@ -55,34 +55,14 @@ namespace Engine.Renderable
         {
             if (_objectReference != null)
             {
-                var cullingmatrix = ViewMatrix;
+                Matrix4x4 cullingmatrix = ViewMatrix;
+                cullingmatrix.Translation = GetObjectReference().Pos - Offset;
                 
-
-                var CurrentRotation = Rotation;
-                var CurrentPosition = Position;
-
-                cullingmatrix.Translation = Position - Offset;
+                Vector3 TempMin = Vector3.Transform(Minpoint, cullingmatrix);
+                Vector3 TempMax = Vector3.Transform(Maxpoint, cullingmatrix);
                 
-                var TempMin = Vector3.Transform(Minpoint, cullingmatrix);
-                var TempMax = Vector3.Transform(Maxpoint, cullingmatrix);
-
-                if (TempMin.X > TempMax.X && TempMin.Y > TempMax.Y && TempMin.Z > TempMax.Z)
-                {
-                    outValues[0] = TempMax;
-                    outValues[1] = TempMin;
-                }
-                else
-                {
-                    outValues[0] = TempMin;
-                    outValues[1] = TempMax;
-                }
-                
-                
-            }
-            else
-            {
-                outValues[0] = Vector3.Zero;
-                outValues[1] = Vector3.Zero;
+                outValues[0] = Vector3.Min(TempMax, TempMin);
+                outValues[1] = Vector3.Max(TempMax, TempMin);
             }
 
         }

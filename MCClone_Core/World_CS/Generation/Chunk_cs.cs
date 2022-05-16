@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +7,6 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Renderable;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
@@ -39,7 +39,7 @@ namespace MCClone_Core.World_CS.Generation
 
 	public class ChunkCs : GameObject
 	{
-		readonly ConcurrentDictionary<Vector2, ChunkCs> LoadedChunks;
+		internal static ConcurrentDictionary<Vector2, ChunkCs> LoadedChunks;
 		List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 		Dictionary<byte, BlockStruct> palette = new Dictionary<byte, BlockStruct>();
 		
@@ -85,26 +85,49 @@ namespace MCClone_Core.World_CS.Generation
 		static readonly int[] Cross4 = {2, 0, 5, 7};
 		
 		static readonly BaseGenerator Generator = new ForestGenerator();
+		static ArrayPool<byte> BlockPool = ArrayPool<byte>.Shared;
+		static ArrayPool<bool> ViskPool = ArrayPool<bool>.Shared;
 
-		public byte[] BlockData;
-		readonly bool[,,] _visibilityMask;
+
+		public readonly byte[] BlockData;
+		readonly bool[] _visibilityMask;
 		public bool ChunkDirty;
 
 		public ChunkCs()
 		{
-			if (LoadedChunks == null)
+			BlockData = BlockPool.Rent(MaxX * MaxY * MaxZ);
+			for (int i = 0; i < BlockData.Length; i++)
 			{
-				LoadedChunks = ProcWorld.Instance.LoadedChunks;
+				BlockData[i] = 0;
 			}
-			BlockData = new byte[MaxX * MaxY * MaxZ];
-			_visibilityMask = new bool[MaxX, MaxY, MaxZ];
-			ChunkMesh = new ChunkMesh(this, ProcWorld.Instance._material);
+			
+			
+			_visibilityMask = ViskPool.Rent(MaxX * MaxY * MaxZ);
+			for (int i = 0; i < _visibilityMask.Length; i++)
+			{
+				_visibilityMask[i] = false;
+			}
+			
+			
+			ChunkMesh = new ChunkMesh(this);
 			ProcWorld.Instance._material.AddReference(ChunkMesh);
 		}
 
 
-		public void InstantiateChunk(ProcWorld w, int cx, int cz, long seed)
+		public void InstantiateChunk(int cx, int cz, long seed)
 		{
+
+			for (int i = 0; i < BlockData.Length; i++)
+			{
+				BlockData[i] = 0;
+			}
+			
+			for (int i = 0; i < _visibilityMask.Length; i++)
+			{
+				BlockData[i] = 0;
+			}
+			
+			
 			
 			Pos = new Vector3(cx * (MaxX), 0, cz * MaxZ);
 			ChunkCoordinate = new Int2(cx, cz);
@@ -113,7 +136,7 @@ namespace MCClone_Core.World_CS.Generation
 		}
 
 		static readonly HeapPool pool = new HeapPool(NativeMemoryHeap.Instance, uint.MaxValue);
-		ByteStore<Int2> BlockVerts = ByteStore<Int2>.Create(pool, 1);
+		ByteStore<int> BlockVerts = ByteStore<int>.Create(pool, 1);
 		ByteStore<Vector3> blocksNormals = ByteStore<Vector3>.Create(pool, 1);
 		ByteStore<uint> chunkIndices = ByteStore<uint>.Create(pool, 1);
 		ByteStore<Vector2> BlockUVs = ByteStore<Vector2>.Create(pool, 1);
@@ -121,6 +144,12 @@ namespace MCClone_Core.World_CS.Generation
 		Stopwatch stopwatch =Stopwatch.StartNew();
 		public void Update()
 		{
+
+			if (_freed)
+			{
+				return;
+			}
+			
 			stopwatch.Restart();
 			
 			BlockVerts.Clear();
@@ -131,9 +160,9 @@ namespace MCClone_Core.World_CS.Generation
 			uint index = 0;
 			
 			//Making use of multidimensional arrays allocated on creation
+			for (int z = 0; z < MaxZ; z++)
 			for (int y = 0; y < MaxY; y++)
 			for (int x = 0; x < MaxX; x++)
-			for (int z = 0; z < MaxZ; z++)
 			{
 	
 				byte block = BlockData[GetFlattenedIndex(x, y, z)];
@@ -153,13 +182,13 @@ namespace MCClone_Core.World_CS.Generation
 						ref index);
 				}
 			}
-
-			ChunkMesh.GenerateMesh(BlockVerts.Span, BlockUVs.Span, chunkIndices.Span);
-
-			if (stopwatch.Elapsed.Milliseconds > 1)
+			
+			lock (renderlock)
 			{
-				Console.WriteLine(stopwatch.Elapsed.TotalMilliseconds);	
+				ChunkMesh.GenerateMesh(BlockVerts.Span, BlockUVs.Span, chunkIndices.Span);
+				ChunkMesh.Render = true;	
 			}
+			
 		}
 		
 
@@ -170,7 +199,8 @@ namespace MCClone_Core.World_CS.Generation
 			for (int y = 0; y < MaxY; y++)
 			for (int x = 0; x < MaxX; x++)
 			{
-				_visibilityMask[x,y,z] = BlockHelper.BlockTypes[BlockData[GetFlattenedIndex(x,y,z)]].Transparent;
+				int index = GetFlattenedIndex(x, y, z);
+				_visibilityMask[index] = BlockHelper.BlockTypes[BlockData[index]].Transparent;
 			}
 		}
 	
@@ -179,10 +209,11 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			if (x >= 0 && x < MaxX && y >= 0 && y < MaxY && z >= 0 && z < MaxZ)
 			{
-				if (!overwrite && BlockData[GetFlattenedIndex(x, y, z)] != 0) return;
-				BlockData[GetFlattenedIndex(x, y, z)] = b;
+				var index = GetFlattenedIndex(x, y, z);
+				if (!overwrite && BlockData[index] != 0) return;
+				BlockData[index] = b;
 
-				_visibilityMask[x, y, z] = BlockHelper.BlockTypes[b].Transparent;
+				_visibilityMask[index] = BlockHelper.BlockTypes[b].Transparent;
 				ChunkDirty = true;
 				//NeedsSaved = true;
 			}
@@ -224,7 +255,7 @@ namespace MCClone_Core.World_CS.Generation
 			output[5] = is_block_transparent(x, y, z + 1, DiscardOnlyAir);
 		}
 
-		void _create_block(Span<bool> check, int x, int y, int z, byte block, ByteStore<Int2> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint index)
+		void _create_block(Span<bool> check, int x, int y, int z, byte block, ByteStore<int> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint index)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			IntVec3 coord = new IntVec3(x, y, z);
@@ -247,9 +278,14 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-        void create_face(IReadOnlyList<int> I, ref IntVec3 offset, Vector2 textureAtlasOffset, ByteStore<Int2> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint currentindex)
+        void create_face(int[] I, ref IntVec3 offset, Vector2 textureAtlasOffset, ByteStore<int> blocks, ByteStore<Vector3> blocksNormals, ByteStore<Vector2> uVs, ByteStore<uint> indices, ref uint currentindex)
         {
-	        blocks.PrepareCapacityFor(4);
+	        if (_freed)
+	        {
+		        return;
+	        }
+	        
+	        blocks.PrepareCapacityFor(1);
 	        indices.PrepareCapacityFor(6);
 	        uVs.PrepareCapacityFor(4);
 
@@ -269,19 +305,19 @@ namespace MCClone_Core.World_CS.Generation
 		        {V[I[0]] + offset, V[I[1]] + offset, V[I[2]] + offset, V[I[3]] + offset};
 	        Span<Vector2> uvs = stackalloc Vector2[4] { uvOffset, uvB, uvC, uvD};
 
-	        Int2 CompressedPos = new Int2();
+	        int CompressedPos;
 	        for (int i = 0; i < Verts.Length; i++)
 	        {
 		        
-		        CompressedPos.Y = Verts[i].Y;
-		        CompressedPos.X = (Verts[i].X << 5) | Verts[i].Z;
+		        CompressedPos = (Verts[i].X << 5) | Verts[i].Z;
+		        CompressedPos = CompressedPos << 9 | Verts[i].Y;
 		        
-		        blocks.Append(CompressedPos);
+		        blocks?.Append(CompressedPos);
 	        }
 
 	        //blocks.AppendRange(Verts);
-	        uVs.AppendRange(uvs);	
-	        indices.AppendRange(Indices);
+	        uVs?.AppendRange(uvs);	
+	        indices?.AppendRange(Indices);
 	        currentindex += 4;
 
 	        //blocksNormals.AddRange(NormalGenerate(a, b, c, d));
@@ -308,6 +344,7 @@ namespace MCClone_Core.World_CS.Generation
 		
 		bool is_block_transparent(int x, int y, int z, bool DiscardAir = false)
 		{
+			int index = GetFlattenedIndex(x, y, z);
 			if (y < 0 || y >= MaxY)
 			{
 				return false;
@@ -332,17 +369,16 @@ namespace MCClone_Core.World_CS.Generation
 
 			if (DiscardAir)
 			{
-				return BlockHelper.BlockTypes[BlockData[GetFlattenedIndex(x, y, z)]].Air;
+				return BlockHelper.BlockTypes[BlockData[index]].Air;
 			}
 
-			return _visibilityMask[x, y, z];
+			return _visibilityMask[index];
 		}
-		
+
+		object renderlock = new object();
 		protected override void OnFree()
 		{
 			base.OnFree();
-			
-			
 			BlockVerts.Dispose();
 			BlockUVs.Dispose();
 			blocksNormals.Dispose();
@@ -350,8 +386,12 @@ namespace MCClone_Core.World_CS.Generation
 			BlockUVs.Dispose();
 			ChunkMesh.Dispose();
 			ProcWorld.Instance._material.RemoveReference(ChunkMesh);
+
+			_freed = true;
 		}
-		
+
+		bool _freed = false;
+
 
 		byte vertexAO(byte side1, byte side2, byte corner) {
 			if(side1 == side2)

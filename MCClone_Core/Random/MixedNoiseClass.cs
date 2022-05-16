@@ -1,4 +1,4 @@
-﻿namespace Engine.MathLib.Random
+﻿namespace MCClone_Core.Random
 {
     public class MixedNoiseClass
     {

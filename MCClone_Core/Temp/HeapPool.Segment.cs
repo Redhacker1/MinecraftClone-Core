@@ -26,21 +26,21 @@ namespace MCClone_Core.Temp
                 MaxCount = maxCount;
             }
 
-            public void* Rent(MemoryHeap heap, out nuint actualByteCapacity)
+            public IntPtr Rent(MemoryHeap heap, out nuint actualByteCapacity)
             {
                 lock (_pooled)
                 {
                     if (_pooled.TryPop(out IntPtr pooled))
                     {
                         actualByteCapacity = BlockSize;
-                        return (void*)pooled;
+                        return pooled;
                     }
                 }
 
                 return heap.Alloc(BlockSize, out actualByteCapacity);
             }
 
-            public void Return(MemoryHeap heap, void* buffer)
+            public void Return(MemoryHeap heap, IntPtr buffer)
             {
                 lock (_pooled)
                 {

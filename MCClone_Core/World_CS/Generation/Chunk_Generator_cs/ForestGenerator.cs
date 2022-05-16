@@ -1,7 +1,7 @@
 using System;
 using Engine.MathLib;
-using Engine.MathLib.Random;
-using Random = Engine.MathLib.Random.Random;
+using MCClone_Core.Random;
+using Random = MCClone_Core.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
@@ -40,7 +40,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 			}
 		}
 
-		public override void generate_details(ChunkCs Chunk, Random Rng, int[,] GroundHeight, bool CheckingInterChunkGen = true)
+		public override void generate_details(ChunkCs Chunk, Random.Random Rng, int[,] GroundHeight, bool CheckingInterChunkGen = true)
 		{
 
 			const int treeWidth = 2;

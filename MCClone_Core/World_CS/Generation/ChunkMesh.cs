@@ -5,12 +5,13 @@ using Engine.Renderable;
 using Engine.Rendering;
 using Engine.Rendering.Culling;
 using Engine.Windowing;
+using Silk.NET.Assimp;
 
 namespace MCClone_Core.World_CS.Generation;
 
 struct VertexElements
 { 
-    public Int2 pos;
+    public int pos;
     public Vector2 UV;
 }
 
@@ -21,7 +22,7 @@ public class ChunkMesh : Renderable
     internal Vector3 Maxpoint;
 
     bool UpdatingMesh = true;
-    public ChunkMesh(MinimalObject chunkCs, Material instanceMaterial)
+    public ChunkMesh(MinimalObject chunkCs)
     {
         ebo = new IndexBuffer<uint>(WindowClass._renderer.Device, 1);
         vbo = new VertexBuffer<VertexElements>(WindowClass._renderer.Device, new VertexElements[1]);
@@ -30,29 +31,27 @@ public class ChunkMesh : Renderable
 
     public override bool ShouldRender(Frustrum frustum)
     {
-        return !UpdatingMesh && MeshInFrustrum(this, frustum) && vbo != null;
+        return !UpdatingMesh && MeshInFrustrum(this, frustum) && vbo != null && Render;
     }
     
     
-    void CreateVertexArray(Span<Int2> _vertices, Span<Vector2> _uvs, VertexElements[] vertexArray)
+    void CreateVertexArray(Span<int> _vertices, Span<Vector2> _uvs, Span<VertexElements> vertexArray)
     {
         Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
         Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
         Vector3 VertexFloatingPoint = new Vector3();
         for (int i = 0; i <_vertices.Length; i++)
         {
-            int X = _vertices[i].X >> 5;
-            int Z = _vertices[i].X & 31;
-            //vertexArray[offset].XZ = 0;
+            int Y = _vertices[i] & 511;
+            int X = _vertices[i] >> 14;
+            int Z = (_vertices[i] >> 9) & 31;
+            
+            
             VertexFloatingPoint.X = X;
             VertexFloatingPoint.Z = Z;
-            VertexFloatingPoint.Y = _vertices[i].Y;
+            VertexFloatingPoint.Y = Y;
 
-
-
-            /*vertexArray[i].pos = _vertices[i];
-            vertexArray[i].pos.X = _vertices[i].X;
-            vertexArray[i].pos.X &= _vertices[i].Z;*/
+            
             vertexArray[i].pos = _vertices[i];
 
             vertexArray[i].UV = _uvs[i];
@@ -68,9 +67,9 @@ public class ChunkMesh : Renderable
     /// <summary>
     /// Updates the Vertex Array, this allows for the mesh to be updated with the supplied data from the MeshData.
     /// </summary>
-    public void GenerateMesh(Span<Int2> _vertices, Span<Vector2> _uvs, Span<uint> _indices)
+    public void GenerateMesh(Span<int> _vertices, Span<Vector2> _uvs, Span<uint> _indices)
     {
-        VertexElements[] vertsTest = new VertexElements[_vertices.Length];
+        Span<VertexElements> vertsTest = _vertices.Length <= 8192 ? stackalloc VertexElements[_vertices.Length] : new VertexElements[_vertices.Length];
         CreateVertexArray(_vertices, _uvs, vertsTest);
 
         UpdatingMesh = true;
@@ -97,33 +96,13 @@ public class ChunkMesh : Renderable
         if (_objectReference != null)
         {
             var cullingmatrix = ViewMatrix;
-                
-
-            var CurrentRotation = Rotation;
-            var CurrentPosition = Position;
-
             cullingmatrix.Translation = Position - Offset;
                 
             var TempMin = Vector3.Transform(Minpoint, cullingmatrix);
             var TempMax = Vector3.Transform(Maxpoint, cullingmatrix);
-
-            if (TempMin.X > TempMax.X && TempMin.Y > TempMax.Y && TempMin.Z > TempMax.Z)
-            {
-                outValues[0] = TempMax;
-                outValues[1] = TempMin;
-            }
-            else
-            {
-                outValues[0] = TempMin;
-                outValues[1] = TempMax;
-            }
                 
-                
-        }
-        else
-        {
-            outValues[0] = Vector3.Zero;
-            outValues[1] = Vector3.Zero;
+            outValues[0] = Vector3.Min(TempMax, TempMin);
+            outValues[1] = Vector3.Max(TempMax, TempMin);
         }
 
     }
@@ -134,8 +113,8 @@ public class ChunkMesh : Renderable
         {
 
             Span<Vector3> outValues = stackalloc Vector3[2];
-            mesh?.GetMinMaxScaled(outValues, frustum.camerapos);
-            AABB aabb = new(outValues[0], outValues[1]);
+            mesh.GetMinMaxScaled(outValues, frustum.camerapos);
+            AABB aabb = new AABB(outValues[0], outValues[1]);
             return IntersectionHandler.aabb_to_frustum(ref aabb, frustum);   
         }
 

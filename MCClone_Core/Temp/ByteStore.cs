@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using static System.Runtime.CompilerServices.Unsafe;
 
 namespace MCClone_Core.Temp
 {
@@ -20,8 +21,8 @@ namespace MCClone_Core.Temp
         public nuint ByteCapacity { get; private set; }
         public nuint ByteCount => (nuint)((byte*)_head - (byte*)Buffer);
 
-        public nuint Count => ByteCount / (nuint)Unsafe.SizeOf<T>();
-        public nuint Capacity => ByteCapacity / (nuint)Unsafe.SizeOf<T>();
+        public nuint Count => ByteCount / (nuint)SizeOf<T>();
+        public nuint Capacity => ByteCapacity / (nuint)SizeOf<T>();
 
         public Span<T> Span => new(Buffer, (int)Count);
         public Span<T> FullSpan => new(Buffer, (int)Capacity);
@@ -56,8 +57,8 @@ namespace MCClone_Core.Temp
                 return new ByteStore<T>(heap);
             }
 
-            void* newBuffer = heap.Alloc(byteCount, out nuint newByteCapacity);
-            Unsafe.CopyBlockUnaligned(newBuffer, Buffer, (uint)byteCount);
+            IntPtr newBuffer = heap.Alloc(byteCount, out nuint newByteCapacity);
+            CopyBlockUnaligned((void*)newBuffer, Buffer, (uint)byteCount);
 
             ByteStore<T> newStore = new(heap, (T*)newBuffer, newByteCapacity);
             newStore._head = (T*)((byte*)newStore._head + byteCount);
@@ -92,17 +93,17 @@ namespace MCClone_Core.Temp
 
         public static ByteStore<T> Create(MemoryHeap heap, nuint capacity)
         {
-            void* buffer = heap.Alloc(capacity * (nuint)Unsafe.SizeOf<T>(), out nuint actualByteCapacity);
+            IntPtr buffer = heap.Alloc(capacity * (nuint)SizeOf<T>(), out nuint actualByteCapacity);
             return new ByteStore<T>(heap, (T*)buffer, actualByteCapacity);
         }
 
         private void Resize(nuint newCapacity)
         {
             nuint byteCount = ByteCount;
-            void* newBuffer = Heap.Realloc(
-                Buffer, 
+            IntPtr newBuffer = Heap.Realloc(
+                (IntPtr)Buffer, 
                 ByteCapacity,
-                newCapacity * (uint)Unsafe.SizeOf<T>(), 
+                newCapacity * (uint)SizeOf<T>(), 
                 out nuint newByteCapacity);
 
             Buffer = (T*)newBuffer;
@@ -113,7 +114,7 @@ namespace MCClone_Core.Temp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void EnsureCapacity(nuint capacity)
         {
-            if (ByteCapacity < capacity * (nuint)Unsafe.SizeOf<T>())
+            if (ByteCapacity < capacity * (nuint)SizeOf<T>())
             {
                 nuint newCapacity = Math.Min(capacity * 2, capacity + 1024 * 64);
                 Resize(newCapacity);
@@ -166,7 +167,7 @@ namespace MCClone_Core.Temp
             Buffer = null;
             if (buffer != null)
             {
-                Heap.Free(ByteCapacity, buffer);
+                Heap.Free(ByteCapacity, (IntPtr)buffer);
             }
             _head = null;
         }

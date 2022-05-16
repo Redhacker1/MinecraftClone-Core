@@ -9,12 +9,12 @@ namespace MCClone_Core.Temp
     {
         public abstract nuint GetBlockSize(nuint byteCapacity);
 
-        public abstract void* Alloc(nuint byteCapacity, out nuint actualByteCapacity);
+        public abstract IntPtr Alloc(nuint byteCapacity, out nuint actualByteCapacity);
 
-        public abstract void Free(nuint byteCapacity, void* buffer);
+        public abstract void Free(nuint byteCapacity, IntPtr buffer);
 
-        public virtual void* Realloc(
-            void* buffer,
+        public virtual IntPtr Realloc(
+            IntPtr buffer,
             nuint previousByteCapacity,
             nuint requestedByteCapacity,
             out nuint actualByteCapacity)
@@ -25,12 +25,12 @@ namespace MCClone_Core.Temp
                 return buffer;
             }
 
-            void* newBuffer = Alloc(requestedByteCapacity, out actualByteCapacity);
+            IntPtr newBuffer = Alloc(requestedByteCapacity, out actualByteCapacity);
             if (buffer != null)
             {
                 Unsafe.CopyBlockUnaligned(
-                    newBuffer,
-                    buffer,
+                    (void*)newBuffer,
+                    (void*)buffer,
                     (uint)Math.Min(requestedByteCapacity, previousByteCapacity));
 
                 Free(previousByteCapacity, buffer);

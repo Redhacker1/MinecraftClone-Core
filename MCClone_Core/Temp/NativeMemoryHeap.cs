@@ -16,26 +16,26 @@ public sealed unsafe class NativeMemoryHeap : MemoryHeap
         return byteCapacity;
     }
 
-    public override void* Alloc(nuint byteCapacity, out nuint actualByteCapacity)
+    public override IntPtr Alloc(nuint byteCapacity, out nuint actualByteCapacity)
     {
         actualByteCapacity = byteCapacity;
         if (byteCapacity == 0)
         {
-            return null;
+            return IntPtr.Zero;
         }
 
         GC.AddMemoryPressure((long)byteCapacity);
-        return NativeMemory.Alloc(byteCapacity);
+        return (IntPtr)NativeMemory.Alloc(byteCapacity);
     }
 
-    public override void Free(nuint byteCapacity, void* buffer)
+    public override void Free(nuint byteCapacity, IntPtr buffer)
     {
-        NativeMemory.Free(buffer);
+        NativeMemory.Free((void*)buffer);
         GC.RemoveMemoryPressure((long)byteCapacity);
     }
 
-    public override void* Realloc(
-        void* buffer,
+    public override IntPtr Realloc(
+        IntPtr buffer,
         nuint previousByteCapacity,
         nuint requestedByteCapacity,
         out nuint actualByteCapacity)
@@ -50,11 +50,11 @@ public sealed unsafe class NativeMemoryHeap : MemoryHeap
         if (requestedByteCapacity == 0)
         {
             Free(previousByteCapacity, buffer);
-            return null;
+            return IntPtr.Zero;
         }
 
         GC.AddMemoryPressure((long)requestedByteCapacity);
-        void* newBuffer= NativeMemory.Realloc(buffer, requestedByteCapacity);
+        IntPtr newBuffer= (IntPtr)NativeMemory.Realloc((void*)buffer, requestedByteCapacity);
 
         GC.RemoveMemoryPressure((long)previousByteCapacity);
         return newBuffer;

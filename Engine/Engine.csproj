@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>9</LangVersion>
+        <LangVersion>10</LangVersion>
         <OutputType>Exe</OutputType>
     </PropertyGroup>
 
@@ -16,6 +16,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="DdsKtxSharp" Version="1.1.0.1" />
       <PackageReference Include="ImGui.NET" Version="1.87.3" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
       <PackageReference Include="Pfim" Version="0.10.3" />
@@ -102,10 +103,7 @@
             <LogicalName>imgui-frag.metallib</LogicalName>
         </EmbeddedResource>
     </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\SpirvReflectSharp\SpirvReflectSharp.csproj" />
-    </ItemGroup>
+    
     
     
 

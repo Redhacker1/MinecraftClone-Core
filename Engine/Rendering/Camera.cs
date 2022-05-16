@@ -65,9 +65,9 @@ namespace Engine.Rendering
             return Matrix4x4.CreatePerspectiveFieldOfView(GetFov(), AspectRatio, NearPlane, FarPlane);
         }
 
-        public Frustrum GetViewFrustum(Span<Plane> planes)
+        public Frustrum GetViewFrustum(Plane[] planes)
         {
-            Frustrum frustum = new Frustrum(GetFov(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos, planes);
+            Frustrum frustum = new Frustrum(GetFov(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos, ref planes);
 
             return frustum;
         }

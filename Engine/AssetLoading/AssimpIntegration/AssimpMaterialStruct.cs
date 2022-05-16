@@ -4,7 +4,7 @@ using Silk.NET.Assimp;
 
 
 // Referenced from: http://assimp.sourceforge.net/lib_html/materials.html
-namespace Engine.AssetLoading.Assimp
+namespace Engine.AssetLoading.AssimpIntegration
 {
     public struct AssimpMaterialStruct
     {

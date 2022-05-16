@@ -42,14 +42,14 @@ namespace Engine.Rendering
         }
 
 
+        Plane[] sides = new Plane[6];
         protected override void PrePass(CommandList list)
         {
             Span<Matrix4x4> UpdateMatrix = stackalloc Matrix4x4[2];
-            Span<Plane> sides = stackalloc Plane[6];
 
             if (_camera != null)
             {
-                Frustrum = _camera.GetViewFrustum(sides);
+                Frustrum = _camera.GetViewFrustum(sides );
                 UpdateMatrix[0] = _camera.GetProjectionMatrix();
 
                 UpdateMatrix[1] = _camera.GetViewMatrix();

@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using SpirvReflectSharp;
 using Veldrid;
 using Veldrid.SPIRV;
 
@@ -68,31 +67,6 @@ namespace Engine.Rendering
         void LoadShader(byte[] bytecode, ShaderStages type, GraphicsDevice device, string Entrypoint = "main" )
         {
             _spirvSrcCode = bytecode; ;
-
-            using (ShaderModule module = SpirvReflect.ReflectCreateShaderModule(bytecode))
-            {
-                module.GetCode();
-
-
-                var out_vars = module.EnumerateOutputVariables();
-                var push_constants = module.EnumeratePushConstants();
-                Console.WriteLine("push_constants:\n");
-                foreach (var constants in push_constants)
-                {
-                    Console.WriteLine(constants.TypeDescription.StorageClass);
-                    foreach (var member in constants.Members)
-                    {
-                        Console.WriteLine(member.Name);
-                        Console.WriteLine(member.TypeDescription.TypeFlags);
-                    }
-                    Console.WriteLine(constants.Name);
-                    Console.WriteLine(constants.DecorationFlags);
-                    Console.WriteLine(constants.Offset);
-                    Console.WriteLine(constants.DecorationFlags);
-                    Console.WriteLine(constants.TypeDescription.Op);
-                    Console.WriteLine();
-                }
-            }
 
 
             byte[] result = CompileShader(device.BackendType, bytecode, type);

@@ -1,7 +1,7 @@
 ﻿
 using System;
 
-namespace Engine.MathLib.Random
+namespace MCClone_Core.Random
 {
     public class NoiseUtil
     {

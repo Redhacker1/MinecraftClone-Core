@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Engine.Debug
+namespace Engine.Debugging
 {
     public static class ConsoleLibrary
     {
@@ -31,7 +31,6 @@ namespace Engine.Debug
             public CommandFunc Method;
             public string Description;
             public string HelpMessage;
-            public bool ThreadSafe;
         }
 
         static readonly Dictionary<string, Convar> GVars = new Dictionary<string, Convar>();
@@ -52,17 +51,15 @@ namespace Engine.Debug
 
         public static void InitConsole(Action<string> WriteOutputDelegate)
         {
-
-
             _printDelegate = WriteOutputDelegate;
-            BindCommand("help", "Gives context as to what command does, usage: \"help <CommandName>\"", "Usage: \n \"help <CommandName>\". additional modifiers:\n -more - pulls up helptext", Help, true);
-            BindCommand("list_commands", "Lists all bound commands, Usage: \"list_commands\"", "Usage: \"list_commands\"\n additional modifiers:\n -detailed, pulls up description", ListCommands, true);
-            BindCommand("clear", "clears Console data", "Usage: clear", ClearScrollback, true);
-            BindCommand("say", "prints text to console, does not ignore ';'", "Usage say \"Text\"", Say, true);
+            BindCommand("help", "Gives context as to what command does, usage: \"help <CommandName>\"", "Usage: \n \"help <CommandName>\". additional modifiers:\n -more - pulls up helptext", Help);
+            BindCommand("list_commands", "Lists all bound commands, Usage: \"list_commands\"", "Usage: \"list_commands\"\n additional modifiers:\n -detailed, pulls up description", ListCommands);
+            BindCommand("clear", "clears Console data", "Usage: clear", ClearScrollback);
+            BindCommand("say", "prints text to console, does not ignore ';'", "Usage say \"Text\"", Say);
         }
         
         /// <summary>
-        /// This is the always safe way of passing in a command. It will choose the method most approperate
+        /// This is the always safe way of passing in a command. It will choose the method most appropriate
         /// </summary>
         /// <param name="Text"></param>
         public  static void SendCommand(string Text)
@@ -112,7 +109,8 @@ namespace Engine.Debug
 
             return FirstPass;
         }
-
+        
+        
         static IEnumerable<List<string>> TokenizeCommands(IEnumerable<string> Commands)
         {
             List<List<string>> OutputList = new List<List<string>>();
@@ -132,8 +130,6 @@ namespace Engine.Debug
         ///  Another benefit is that it can run only when it was called on main thread, which also allows me to make seperate queues
         /// </summary>
         /// <param name="Text">This is the raw unparsed command</param>
-        /// <param name="InvokedOnMain">Use when invoking on main thread so it will check main thread command queue (only useful for last two experimental modes)</param>
-        /// <param name="DecideThreadingMode">Usually not necissary, really only used internally</param>
         public static void process_command(string Text)
         {
             //Sanity check
@@ -191,11 +187,11 @@ namespace Engine.Debug
         }
 
         //TODO: Use Attribute to automatically generate this, making it clean
-        public static void BindCommand(string CommandName,string Description, string HelpText, CommandFunc Method, bool ThreadSafe)
+        public static void BindCommand(string CommandName,string Description, string HelpText, CommandFunc Method)
         {
             CommandStruct Command = new CommandStruct
             {
-                Method = Method, Description = Description, HelpMessage = HelpText, ThreadSafe = ThreadSafe
+                Method = Method, Description = Description, HelpMessage = HelpText
             };
 
             BoundCommands[CommandName.Trim()] = Command;

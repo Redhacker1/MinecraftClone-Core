@@ -6,7 +6,9 @@ namespace MCClone_Core.Physics
 {
     public static class Raycast
     {
-
+        
+        
+        //TODO: These are currently broken and have been since implemented, need to work out a way to do them correctly.
         public static HitResult CastToPoint(Vector3 startDir, Vector3 endLocation, float debugtime)
         {
             Vector3 delta = endLocation - startDir;
@@ -50,19 +52,19 @@ namespace MCClone_Core.Physics
                     Vector3 normal = new Vector3();
                     
                     
-                    normal.X = (t == tvec.X) ? 1 : 0;
+                    normal.X = t == tvec.X ? 1 : 0;
                     if (sign.X == 1)
                     {
                         normal.X = -normal.X;
                     }
                     
-                    normal.Y = (t == tvec.Y) ? 1 : 0;
+                    normal.Y = t == tvec.Y ? 1 : 0;
                     if (sign.Y == 1)
                     {
                         normal.Y = -normal.Y;
                     }
                     
-                    normal.Z = (t == tvec.Z) ? 1 : 0;
+                    normal.Z = t == tvec.Z ? 1 : 0;
                     if (sign.Z == 1)
                     {
                         normal.Z = -normal.Z;

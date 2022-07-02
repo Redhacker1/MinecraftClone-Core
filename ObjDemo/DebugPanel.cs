@@ -2,12 +2,11 @@
 using System.Diagnostics;
 using System.Numerics;
 using System.Threading.Tasks;
+using Engine.Collision;
 using Engine.Renderable;
-using Engine.Rendering;
-using Engine.Rendering.Culling;
+using Engine.Rendering.Abstract;
 using Engine.Windowing;
 using ImGuiNET;
-using Plane = Engine.Rendering.Culling.Plane;
 
 namespace ObjDemo
 {
@@ -17,7 +16,6 @@ namespace ObjDemo
         int Distance;
         bool PressedBefore;
         internal bool Movable = false;
-        Plane[] sides = new Plane[6];
         Process CurrentProcess;
         public DebugPanel()
         {
@@ -33,33 +31,12 @@ namespace ObjDemo
         object thing = new object();
         public override void CreateUI()
         {
-            var frustum = Camera.MainCamera.GetViewFrustum(sides);
+            var frustum = Camera.MainCamera.GetViewFrustum(out _);
             ulong VertexCount = 0;
-            Mesh[] currentsnapshot = Mesh.Meshes.ToArray();
 
-            List<Mesh> meshes = new List<Mesh>();
-            
-            Parallel.ForEach(currentsnapshot, mesh =>
-            {
-                if (IntersectionHandler.MeshInFrustrum(mesh, frustum ))
-                {
-                    lock (thing)
-                    {
-                        meshes.Add(mesh);
-                    }
-                }
-            });  
-            foreach (Mesh mesh in meshes)
-            {
-                if (mesh != null )
-                {
-                    VertexCount += mesh.GetMeshSize();   
-                }
-            }
 
             ImGui.Text($"Memory is at: {CurrentProcess.WorkingSet64.ToString()} bytes!");
-            ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
-            ImGui.Text($"Potentially visible mesh count: {meshes.Count}");
+            ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
 
             Vector3 camerapos = Camera.MainCamera.Pos;

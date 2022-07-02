@@ -30,10 +30,13 @@ namespace VeldridCubeTest
             if (Math.Abs(o.X - acceleration.X) > 0.001f) PosDelta.X = 0;
             if (Math.Abs(o.Y - acceleration.Y) > 0.001f) PosDelta.Y = 0;
             if (Math.Abs(o.Z - acceleration.Z) > 0.001f) PosDelta.Z = 0;
-
-            Pos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
-            Pos.Y = (Aabb.MinLoc.Y + EyeOffset);
-            Pos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
+            Vector3 pos = new Vector3()
+            {
+                X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f,
+                Y = Aabb.MinLoc.Y + EyeOffset,
+                Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f
+            };
+            SetPos(pos);
             
         }
         
@@ -43,11 +46,10 @@ namespace VeldridCubeTest
         {
             PhysicsTick = true;
             Ticks = true;
-            Pos = position;
             float w = AabbWidth / 2.0f;
             float h = AabbHeight / 2.0f;
             
-            Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            Aabb = new Aabb(new Vector3(position.X - w, position.Y - h, position.Z - w), new Vector3(position.X + w, position.Y + h, position.Z + w));
             
         }
         
@@ -59,7 +61,7 @@ namespace VeldridCubeTest
             float w = AabbWidth / 2.0f;
             float h = AabbHeight / 2.0f;
             
-            Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            Aabb = new Aabb(new Vector3(Position.X - w, Position.Y - h, Position.Z - w), new Vector3(Position.X + w, Position.Y + h, Position.Z + w));
             
         }
 
@@ -78,21 +80,28 @@ namespace VeldridCubeTest
 
         public virtual void SetPos(Vector3 pos)
         {
-            Pos = pos;
+            Position = pos;
             float w = AabbWidth / 2.0f;
             float h = AabbHeight / 2.0f;
             
-            Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
-            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
+            Aabb.MinLoc = new Vector3(pos.X - w, pos.Y - h, pos.Z - w);
+            Aabb.MaxLoc = new Vector3(pos.X + w, pos.Y + h, pos.Z + w);
         }
 
         public virtual void Rotate(float rotX, float rotY)
         {
-            Rotation.X = (Rotation.Y - rotX * 0.15f);
-            Rotation.Y = ((Rotation.Y + rotY * 0.15f) % 360.0f);
+            Vector3 tempRot = new Vector3();
+            tempRot.X = Rotation.Y - rotX * 0.15f;
+            tempRot.Y = (Rotation.Y + rotY * 0.15f) % 360.0f;
             
-            if (Rotation.X < -90.0) Rotation.X = -90.0f;
-            if (Rotation.X > 90.0) Rotation.X = 90.0f;
+            if (Rotation.X < -90.0) tempRot.X = -90.0f;
+            if (Rotation.X > 90.0) tempRot.X = 90.0f;
+
+            Rotation = Quaternion.CreateFromYawPitchRoll(
+                MathHelper.DegreesToRadians(tempRot.X),
+                MathHelper.DegreesToRadians(tempRot.Y), 
+                MathHelper.DegreesToRadians(tempRot.Z)
+                );
         }
     }
 }

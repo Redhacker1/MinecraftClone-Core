@@ -6,10 +6,7 @@ layout(set = 0, binding = 0) uniform ProjectionBuffer
     mat4 View;
 };
 
-layout(set = 1, binding = 0) uniform WorldBuffer
-{
-    mat4 World;
-};
+layout(set = 1, binding = 0) uniform mat4 WorldBuffer;
 
 layout(location = 0) in vec3 Position;
 layout(location = 1) in vec2 TexCoords;

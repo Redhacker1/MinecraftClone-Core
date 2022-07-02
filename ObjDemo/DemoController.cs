@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 using Engine.Input;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
 using Silk.NET.Input;
 
 namespace ObjDemo
@@ -41,12 +41,8 @@ namespace ObjDemo
             }
 
 
-            _velocity.X = (direction.X * _speed * (float)deltatime);
-            _velocity.Z = (direction.Z * _speed * (float)deltatime);
-            if (_pawn.Noclip)
-            {
-                _velocity.Y = (direction.Y * _speed * (float)deltatime);
-            }
+            _velocity.X = direction.X * _speed * (float)deltatime;
+            _velocity.Z = direction.Z * _speed * (float)deltatime;
 
             _pawn.MoveRelative(_velocity.X, _velocity.Z, _speed);
             _pawn.Move(_velocity);

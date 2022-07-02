@@ -2,7 +2,6 @@
 using Engine.MathLib;
 using MCClone_Core.Random;
 using MCClone_Core.World_CS.Blocks;
-using Random = MCClone_Core.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
@@ -28,7 +27,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             {
                 for (int z = 0; z < ChunkCs.MaxZ; z++)
                 {
-                    double hNoise = MathHelper.Clamp(((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z)))/2,  0, 1);
+                    double hNoise = MathHelper.Clamp((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z))/2,  0, 1);
                     int yHeight = (int) (hNoise * (GenHeight - 1) + 1);
                     
                     groundHeight[x,z] = yHeight;

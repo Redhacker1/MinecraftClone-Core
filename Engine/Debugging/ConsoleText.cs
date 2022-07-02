@@ -3,8 +3,9 @@ using System.Numerics;
 using Engine.Renderable;
 using ImGuiNET;
 
-namespace Engine.Debug
+namespace Engine.Debugging
 {
+    // TODO: When I write my own UI solution, move this over to it!
     public class ConsoleText : ImGUIPanel
     {
         byte[] test = new byte[100];
@@ -12,6 +13,7 @@ namespace Engine.Debug
         string Test_Results = "";
         public ConsoleText()
         {
+            ConsoleLibrary.InitConsole(SetConsoleScrollback);
             PanelName = "Console Window";
         }
 
@@ -22,15 +24,16 @@ namespace Engine.Debug
         }
         public override unsafe void CreateUI()
         {
-
             string scrollback = ConsoleLibrary.GetScrollback();
+            
+            ImGui.SetNextItemWidth(ImGui.GetWindowSize().X - (ImGui.CalcTextSize("Submit").X * 2));
             ImGui.InputTextMultiline("##Scrollback", ref scrollback, (uint) Scrollback.Length,
                 new Vector2(ImGui.GetWindowSize().X - 20, ImGui.GetWindowSize().Y - 90), ImGuiInputTextFlags.ReadOnly);
 
+
             ImGui.Columns(2, "", true);
-            var modified = ImGui.InputText("##CurrentCommand",ref Test_Results, 4096, ImGuiInputTextFlags.EnterReturnsTrue, Callback);
+            var modified = ImGui.InputText("##CurrentCommand",ref Test_Results, ushort.MaxValue, ImGuiInputTextFlags.EnterReturnsTrue);
             ImGui.SetScrollX(ImGui.GetScrollMaxX());
-            //var modified = ImGui.InputText(string.Empty, ref Test_Results, 100, ImGuiInputTextFlags.EnterReturnsTrue | ImGuiInputTextFlags.CallbackEdit, Callback  );
             if (modified)
             {
                 ConsoleLibrary.process_command(Test_Results);
@@ -38,18 +41,17 @@ namespace Engine.Debug
                 
                 ImGui.SetKeyboardFocusHere(-1);
             }
+            ImGui.SetColumnWidth(0, ImGui.GetWindowSize().X - (ImGui.CalcTextSize("Submit").X * 2));
             ImGui.NextColumn();
-            ImGui.Button("Submit");
-
-            //ImGui.SetScrollY(10);
+            bool selected = ImGui.Button("Submit");
+            if (selected)
+            {
+                ConsoleLibrary.process_command(Test_Results);
+                Test_Results = "";
+                
+                ImGui.SetKeyboardFocusHere(-1);
+            }
         }
         
-
-        unsafe int Callback(ImGuiInputTextCallbackData* data)
-        {
-            Console.WriteLine(data->EventChar);
-            Console.WriteLine("Callback called!");
-            return 1;
-        }
     }
 }

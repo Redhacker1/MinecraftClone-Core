@@ -7,12 +7,11 @@ using System;
 using System.Numerics;
 using Engine.Input;
 using Engine.MathLib;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
 using Silk.NET.Input;
 
 namespace ObjDemo
 {
-	//[Tool]
 	public class Player: CharacterEntity
 	{
 		
@@ -25,15 +24,18 @@ namespace ObjDemo
 		public override void _Ready()
 		{
 			Rotation = Quaternion.Identity;
-			_fpCam = new Camera(Pos, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
-			_fpCam.Rotation = Vector3.Zero;
+			_fpCam = new Camera(Position, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
+			{
+				Rotation = Rotation
+			};
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
+			MoveMouse = true;
 			_controller = new DemoController(this);
 		}
 
 		public override void _Process(double delta)
 		{
-			_fpCam.Pos = Pos;
+			_fpCam.Pos = Position;
 			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
 			{
 				if (MoveMouse)

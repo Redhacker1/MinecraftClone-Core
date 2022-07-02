@@ -98,12 +98,8 @@ namespace Engine.Rendering
 
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                FPS = (uint) (1000f/ _stopwatch.Elapsed.TotalMilliseconds);   
+                FPS = (uint) (1/_stopwatch.Elapsed.TotalSeconds);   
             }
-            //Console.WriteLine(FPS);
-
-
-            //Device.WaitForIdle();
 
         }
         

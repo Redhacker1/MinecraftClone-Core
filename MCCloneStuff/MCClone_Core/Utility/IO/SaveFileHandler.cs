@@ -1,0 +1,58 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Numerics;
+using MCClone_Core.World_CS.Generation;
+
+namespace MCClone_Core.Utility.IO
+{
+    public static class SaveFileHandler
+    {
+        // Possible Save Handlers
+        static readonly List<BaseFileHandler> ValidFormats = new List<BaseFileHandler>();
+        
+        // TODO: Save files in reigon file
+        static readonly BaseFileHandler DefaultSaveFileFormat = new ChunkFilesV1();
+        
+        
+        public static void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world, bool optimizeSave = true)
+        {
+            foreach (BaseFileHandler format in ValidFormats)
+            {
+                if (format.ChunkExists(world, chunkCoords) && format != DefaultSaveFileFormat)
+                {
+                    File.Delete(format.GetFilename(chunkCoords, world, true));
+                    File.Delete(format.GetFilename(chunkCoords, world, false));
+                }
+            }
+            DefaultSaveFileFormat.WriteChunkData(blocks,chunkCoords,world,optimizeSave);
+        }
+
+        public static bool ChunkExists(WorldData world, Int2 location)
+        {
+            if (DefaultSaveFileFormat.ChunkExists(world, location) == false)
+            {
+                return ValidFormats.Any(format => format.ChunkExists(world, location));   
+            }
+            return true;
+        }
+
+        public static ChunkCs GetChunkData(ProcWorld worldref ,WorldData world, Int2 location, out bool chunkExists)
+        {
+            ChunkCs data = DefaultSaveFileFormat.GetChunkData(world, location, out chunkExists);
+            if (data == null)
+            {
+                foreach (BaseFileHandler format in ValidFormats)
+                {
+                    data = format.GetChunkData(world, location, out chunkExists);
+                    if (data != null)
+                    {
+                        return data;
+                    }
+                }   
+            }
+            
+            return data;
+        }
+    }
+}

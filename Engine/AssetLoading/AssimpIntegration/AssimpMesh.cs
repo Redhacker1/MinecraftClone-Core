@@ -3,7 +3,7 @@ using Silk.NET.Assimp;
 
 namespace Engine.AssetLoading.AssimpIntegration
 {
-    public class AssimpMesh
+    public struct AssimpMesh
     {
         public string Name;
         public PrimitiveType PrimitiveTypes;
@@ -17,6 +17,7 @@ namespace Engine.AssetLoading.AssimpIntegration
         public bool HasNormals;
         public bool HasPositions;
         public bool HasVertexColors;
+        
 
         public Vector3[] Vertices;
         public Vector3[][] TextureCoords;

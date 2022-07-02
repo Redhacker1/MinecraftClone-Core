@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using System.Runtime;
+using Engine.Collision;
 using Engine.Renderable;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
 using Engine.Windowing;
 using ImGuiNET;
 using MCClone_Core.World_CS.Generation;
-using Plane = Engine.Rendering.Culling.Plane;
+using Plane = System.Numerics.Plane;
 
 namespace MCClone_Core.Debug_and_Logging
 {
@@ -28,14 +28,13 @@ namespace MCClone_Core.Debug_and_Logging
             PanelName = "Debugging";
             ThreadPooled = ProcWorld.Instance.UseThreadPool;
         }
-
-        object thing = new object();
+        
         public override void CreateUI()
         {
             
 
 
-            var frustum = Camera.MainCamera.GetViewFrustum(sides);
+            Frustum frustum = Camera.MainCamera.GetViewFrustum(out _);
             ulong VertexCount = 0;
             var currentsnapshot = Mesh.Meshes.ToArray();
             
@@ -47,7 +46,7 @@ namespace MCClone_Core.Debug_and_Logging
             MemUsage /= 1048576;
 
             ImGui.Text($"Memory: {MemUsage}MB");
-            ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
+            ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
             ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Length}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
@@ -69,8 +68,6 @@ namespace MCClone_Core.Debug_and_Logging
             {
                 ProcWorld.Instance.UseThreadPool = !ProcWorld.Instance.UseThreadPool;
             }
-
-
         }
         
         

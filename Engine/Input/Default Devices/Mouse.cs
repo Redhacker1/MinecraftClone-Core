@@ -4,7 +4,7 @@ using Silk.NET.Input;
 
 namespace Engine.Input.Default_Devices
 {
-    public class Mouse : InputDevice
+    internal sealed class Mouse : InputDevice
     {
         public Vector2 Position;
         public Vector2 Delta;
@@ -33,8 +33,6 @@ namespace Engine.Input.Default_Devices
                 _mouseKeysJustPressed.Add(button, false);
                 _mouseKeysJustReleased.Add(button, false);
             }
-            
-
         }
 
         internal void SetMouseMode(CursorMode mode)

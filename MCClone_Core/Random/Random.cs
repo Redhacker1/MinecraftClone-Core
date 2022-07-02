@@ -26,7 +26,7 @@ namespace MCClone_Core.Random
 
         protected int Next(int bits)
         {
-            _seed = ((_seed) * uint.MaxValue + 11L) & ((1L << 48) - 1);
+            _seed = (_seed * uint.MaxValue + 11L) & ((1L << 48) - 1);
 
             return (int)((ulong)_seed >> (48 - bits));
         }
@@ -76,7 +76,7 @@ namespace MCClone_Core.Random
 
         public float NextFloat()
         {
-            return Next(24) / ((float)(1 << 24));
+            return Next(24) / (float)(1 << 24);
         }
 
         public double NextDouble()

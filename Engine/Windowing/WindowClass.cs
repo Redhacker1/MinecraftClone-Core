@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using Engine.Input;
 using Engine.Objects;
-using Engine.Rendering;
+using Engine.Rendering.Veldrid;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -14,9 +13,9 @@ namespace Engine.Windowing
         public Shader Shader;
         public Texture Texture;
 
-        public static Renderer _renderer;
-        
-        Game gameinstance;
+        public static Renderer Renderer { get; protected set; }
+
+        readonly Game _gameInstance;
         public static IWindow Handle;
 
         public WindowClass(int width, int height, int posx, int posy, string WindowName, Game GameClass)
@@ -34,23 +33,22 @@ namespace Engine.Windowing
 
             //Assign events.
             Handle.Update += Update;
-            //Handle.Render += OnRender;
             Handle.Load += OnLoad;
             Handle.Closing += OnClose;
 
-            gameinstance = GameClass;
+            _gameInstance = GameClass;
         }
         
-        public WindowClass(IWindow windowHandle, Game GameClass)
+        public WindowClass(IWindow windowHandle, Game gameClass)
         {
             Handle = windowHandle;
 
             //Assign events.
-            Handle.Update += Update;
+            //Handle.Update += Update;
             Handle.Load += OnLoad;
             Handle.Closing += OnClose;
 
-            gameinstance = GameClass;
+            _gameInstance = gameClass;
         }
         
 
@@ -59,20 +57,20 @@ namespace Engine.Windowing
             IInputContext context = Handle.CreateInput();
             InputHandler.InitInputHandler(context);
 
-            _renderer = new Renderer(Handle);
-            Handle.FramebufferResize += _renderer.OnResize;
-            Handle.Render += _renderer.OnRender;
+            Renderer = new Renderer(Handle);
+            Handle.FramebufferResize += Renderer.OnResize;
+            Handle.Render += Renderer.OnRender;
 
-            gameinstance.Gamestart();
+            _gameInstance.Gamestart();
             
         }
 
         void OnClose()
         {
-            gameinstance.GameEnded();
+            _gameInstance.GameEnded();
+            Renderer.Dispose();
         }
         
-        Stopwatch timer = Stopwatch.StartNew();
 
 
         double physicsDelta;
@@ -115,6 +113,7 @@ namespace Engine.Windowing
                     }
                     if (physicsProcess && gameObject.PhysicsTick)
                     {
+                        // TODO: Implement physics sub-stepping when on low frame rates
                         gameObject._PhysicsProcess(physicsDelta);
                     }
                 }

@@ -3,10 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading;
-using Engine.Debug;
-using Engine.Rendering;
-using Engine.Rendering.Culling;
-using Plane = Engine.Rendering.Culling.Plane;
+using Engine.Collision;
+using Engine.Debugging;
+using Engine.Rendering.Abstract;
 
 namespace MCClone_Core.World_CS.Generation;
 
@@ -15,7 +14,6 @@ public class ChunkMesher
 {
 
     Thread _thread;
-    Plane[] _planes = new Plane[6];
     Queue<ChunkCs> PreferredMeshes = new Queue<ChunkCs>();
     Queue<ChunkCs> BackupMeshes = new Queue<ChunkCs>();
 
@@ -24,7 +22,7 @@ public class ChunkMesher
 
     void MeshOrderer()
     {
-        Frustrum? frustum = Camera.MainCamera?.GetViewFrustum(_planes);
+        Frustum? frustum = Camera.MainCamera?.GetViewFrustum(out _);
 
         if (frustum == null)
         {
@@ -56,7 +54,7 @@ public class ChunkMesher
             bool success = Meshes.TryDequeue(out ChunkCs mesh);
             if (success)
             {
-                AABB boundingbox = new AABB(mesh.Pos, mesh.Pos + new Vector3(ChunkCs.MaxX, ChunkCs.MaxY, ChunkCs.MaxZ));
+                AABB boundingbox = new AABB(mesh.Position, mesh.Position + new Vector3(ChunkCs.MaxX, ChunkCs.MaxY, ChunkCs.MaxZ));
                 if (IntersectionHandler.aabb_to_frustum(ref boundingbox, frustum.Value))
                 {
                     PreferredMeshes.Enqueue(mesh);
@@ -80,7 +78,8 @@ public class ChunkMesher
     
     public void Stop()
     {
-        stop = true;
+        Console.WriteLine("Stop Meshing!");
+        _stop = true;
     }
 
     public void AddMesh(ChunkCs mesh)
@@ -92,12 +91,12 @@ public class ChunkMesher
 
 
 
-    bool stop = false;
+    bool _stop;
     
     void _thread_Mesh()
     {
         ConsoleLibrary.DebugPrint("ThreadGen Thread Running");
-        while (!stop)
+        while (!_stop)
         {
             MeshingProcess();
         }
@@ -106,11 +105,8 @@ public class ChunkMesher
     void MeshingProcess()
     {
         MeshOrderer();
-        ChunkCs chunk = null;
+        ChunkCs chunk;
 
-        
-        
-        
         for (int iteration = 0; iteration < PreferredMeshes.Count; iteration++)
         {
             PreferredMeshes.TryDequeue(out chunk);

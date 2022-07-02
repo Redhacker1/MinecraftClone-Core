@@ -15,7 +15,7 @@ namespace MCClone_Core.World_CS.Generation
         
         public bool Equals(Int2 comparison)
         {
-            return (X == comparison.X && Y == comparison.Y);
+            return X == comparison.X && Y == comparison.Y;
         }
 
         public readonly override int GetHashCode()

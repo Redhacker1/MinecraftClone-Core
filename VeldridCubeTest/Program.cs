@@ -3,11 +3,12 @@ using Engine;
 using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
+using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using Veldrid;
-using Shader = Engine.Rendering.Shader;
-using Texture = Engine.Rendering.Texture;
+using Shader = Engine.Rendering.Veldrid.Shader;
+using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace VeldridCubeTest
 {
@@ -44,11 +45,11 @@ namespace VeldridCubeTest
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/frag.spv", WindowClass.Renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
-						new Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
+						new Shader("./Assets/vert.spv", WindowClass.Renderer.Device, ShaderStages.Vertex)
 					}
 
 
@@ -67,17 +68,17 @@ namespace VeldridCubeTest
 				new VertexLayoutDescription(
 					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3)),
-				WindowClass._renderer,
+				WindowClass.Renderer,
 				vertexLayout,
 				fragmentLayout
 			);
 			
 			
-			var atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+			var atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
+			var pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
 			
-			material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			material.ResourceSet(1,WindowClass._renderer.WorldBuffer, pointSampler, atlas);
+			material.ResourceSet(0, WindowClass.Renderer.ViewProjBuffer);
+			material.ResourceSet(1,WindowClass.Renderer.WorldBuffer, pointSampler, atlas);
 
 
 			MeshData data = new MeshData
@@ -118,10 +119,10 @@ namespace VeldridCubeTest
 					20,21,22, 20,22,23,
 				}
 			};
-			Object = new Entity(Vector3.One, Vector2.Zero);
-			Mesh mesh = new Mesh(Object, material);
+			Object = new Entity(Vector3.Zero, Quaternion.Identity);
+			Mesh mesh = new Mesh();
 			mesh.GenerateMesh(data);
-			material.AddReference(mesh);
+
 
         }
         

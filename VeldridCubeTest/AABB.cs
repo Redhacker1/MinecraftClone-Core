@@ -33,7 +33,7 @@ namespace VeldridCubeTest
       return new Aabb(minLoc, maxLoc);
     }
 
-    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, (MaxLoc + size));
+    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, MaxLoc + size);
 
     public double ClipXCollide(Aabb c, double xa)
     {

@@ -6,7 +6,7 @@ using Godot;
 using System.Numerics;
 using Engine.Input;
 using Engine.MathLib;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
 using Silk.NET.Input;
 
 namespace VeldridCubeTest
@@ -24,14 +24,14 @@ namespace VeldridCubeTest
 
 		public override void _Ready()
 		{
-			_fpCam = new Camera(Pos, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(Position, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
 		}
 
 		public override void _Process(double delta)
 		{
-			_fpCam.Pos = Pos;
+			_fpCam.Pos = Position;
 			Freelook();
 		}
 

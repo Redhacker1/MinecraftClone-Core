@@ -1,7 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Engine;
-using Engine.Debug;
+using Engine.Debugging;
 using Engine.Initialization;
 using Engine.Renderable;
 using Engine.Windowing;
@@ -41,6 +42,8 @@ namespace MCClone_Core
             {
                 SteamClient.Init(1789570);
                 Console.WriteLine("SteamAPI enabled successfully");
+                IEnumerable<Friend> friends = SteamFriends.GetFriends();
+                
             }
             catch (Exception e)
             {
@@ -52,7 +55,7 @@ namespace MCClone_Core
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
             
-            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
+            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero);
             player.Noclip = false;
             script = new WorldScript(world);
             script._player = player;
@@ -63,7 +66,6 @@ namespace MCClone_Core
         {
             Console.WriteLine("Shutting down SteamAPI");
             SteamClient.Shutdown();
-            
             world.SaveAndQuit();
         }
         

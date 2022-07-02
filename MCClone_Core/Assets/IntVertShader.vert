@@ -11,15 +11,15 @@ layout(set = 1, binding = 0) uniform WorldBuffer
     mat4 World;
 };
 
-layout(location = 0) in int PositionXZ;
+layout(location = 0) in int PositionXYZ;
 layout(location = 1) in vec2 TexCoords;
 layout(location = 0) out vec2 fsin_texCoords;
 
 void main()
 {
-    int Y =  PositionXZ & 511;
-    int X =  PositionXZ >> 14;
-    int Z = (PositionXZ >> 9) & 31;
+    int Y =  PositionXYZ & 511;
+    int X =  PositionXYZ >> 14;
+    int Z = (PositionXYZ >> 9) & 31;
     
     vec4 worldPosition = World * vec4(X, Y, Z, 1);
     vec4 viewPosition = View * worldPosition;

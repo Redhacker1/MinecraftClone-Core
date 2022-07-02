@@ -1,0 +1,6 @@
+﻿Note: These files are currently veldrid specific, I think that they should be moved into generally 
+applicable and a usable generic rendering RHI API, separating them from veldrid to help transition the dedicated DX 
+(and possibly future vulkan) API
+
+Merge Buffers into a single base class encompasses all required functionality, currently there are many {Insert Buffer Type Here}Base 
+and then an implementation file, this is a holdover and should be possible with a little effort to merge some of the operations over.

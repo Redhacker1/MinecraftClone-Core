@@ -53,13 +53,14 @@ namespace Engine.Objects
             }
         }
         
+        Vector3 _pos = Vector3.Zero;
         public Vector3 Position {
-            get => ModelMatrix.Translation;
+            get => _pos;
             set
             {
                 lock (_locker)
                 {
-                    ModelMatrix.Translation = value;
+                    _pos = value;
                     RegenMatrix4X4();   
                 }
             }
@@ -81,7 +82,7 @@ namespace Engine.Objects
         
         void RegenMatrix4X4()
         {
-            ModelMatrix = Matrix4x4.CreateFromQuaternion(Rotation) * Matrix4x4.CreateScale(Scale) * Matrix4x4.CreateTranslation(Position);
+            ModelMatrix = Matrix4x4.CreateFromQuaternion(_rotation) * Matrix4x4.CreateScale(_scale) * Matrix4x4.CreateTranslation(_pos);
             OnTransformUpdated();
         }
 
@@ -100,17 +101,32 @@ namespace Engine.Objects
         {
             lock (_locker)
             {
-                ModelMatrix.Translation = position;
+                _pos = position;
                 _rotation = rotation;
                 _scale = scale;
                 RegenMatrix4X4();
             }
         }
-
-        internal Matrix4x4 GetCameraSpacePos(Camera camera)
+        // Sets the transform of this object to be equal to that of another object
+        public void SetTransform(MinimalObject minimalObject)
         {
-            Matrix4x4 cameraSpaceMatrix = ModelMatrix;
-            cameraSpaceMatrix.Translation = Position - camera.Pos;
+            lock (_locker)
+            {
+                _pos = minimalObject._pos;
+                _rotation = minimalObject._rotation;
+                _scale = minimalObject._scale;
+                RegenMatrix4X4();
+            }
+        }
+
+        internal Matrix4x4 GetCameraSpaceTransform(ref CameraInfo camera)
+        {
+            Matrix4x4 cameraSpaceMatrix;
+            lock (_locker)
+            {
+                cameraSpaceMatrix = ModelMatrix;
+            }
+            cameraSpaceMatrix.Translation = Position - camera.CameraPos;
             return cameraSpaceMatrix;
         }
         

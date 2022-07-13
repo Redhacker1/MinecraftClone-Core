@@ -110,11 +110,9 @@ namespace MCClone_Core.World_CS.Generation
 
 			ResourceLayoutDescription ProjectionLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			ResourceLayoutDescription ModelLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ModelProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			
-			
-			
+
+
+
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
@@ -124,24 +122,24 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				var vertexlayout = new VertexLayoutDescription[]
 				{
-					new VertexLayoutDescription(
-						new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
-						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
-					),
-					new VertexLayoutDescription((uint)sizeof(Matrix4x4), 1, 
+					new VertexLayoutDescription((uint)sizeof(Vector4) * 4, 1, 
 						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4))
+						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+					new VertexLayoutDescription(
+						new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
+						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
+					)
 				};
 
 				_material = new Material(materialDescription, vertexlayout, WindowClass.Renderer,
-					new[] {fragmentLayout});
+					new[] {ProjectionLayout, fragmentLayout});
 			}
 			
 			atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
 			var pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
-			_material.ResourceSet(2, pointSampler, atlas);
+			_material.ResourceSet(1, pointSampler, atlas);
 
 
 

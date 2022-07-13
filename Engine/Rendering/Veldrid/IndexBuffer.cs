@@ -11,6 +11,7 @@ namespace Engine.Rendering.Veldrid
         
         public IndexBuffer(GraphicsDevice gDevice, Span<T> data)
         {
+            BufferType = BufferUsage.IndexBuffer;
             unsafe
             {
                 BufferObject = gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(T) *  data.Length), BufferUsage.IndexBuffer));
@@ -19,6 +20,7 @@ namespace Engine.Rendering.Veldrid
         }
         public IndexBuffer(GraphicsDevice gDevice, int length)
         {
+            BufferType = BufferUsage.IndexBuffer;
             unsafe
             {
                 BufferObject = gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(T) *  length), BufferUsage.IndexBuffer));

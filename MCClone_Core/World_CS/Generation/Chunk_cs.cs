@@ -114,6 +114,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			ChunkMesh = new ChunkMesh(this);
 			_instance3D = new Instance3D(ChunkMesh, ProcWorld.Instance._material);
+			_instance3D.SetTransform(this);
 			
 			// This is hacky and bad design but will work for now, TODO: come up with an API to handle this!
 			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
@@ -136,6 +137,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			
 			Position = new Vector3(cx * MaxX, 0, cz * MaxZ);
+			_instance3D.Position = Position;
 			ChunkCoordinate = new Int2(cx, cz);
 			
 			Generator.Generate(this, cx, cz, seed);

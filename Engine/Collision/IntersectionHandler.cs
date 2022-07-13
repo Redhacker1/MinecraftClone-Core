@@ -27,7 +27,7 @@ namespace Engine.Collision;
         {
             if (mesh != null)
             {
-                mesh.GetInstanceAABB(out AABB aabb, frustum.camerapos);
+                mesh.GetInstanceAabb(out AABB aabb, frustum.camerapos);
                 return aabb_to_frustum(ref aabb, frustum);   
             }
 

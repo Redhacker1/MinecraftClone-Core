@@ -10,6 +10,7 @@ namespace Engine.Rendering.Veldrid
         
         public unsafe VertexBuffer(GraphicsDevice gDevice, ReadOnlySpan<TDataType> data)
         {
+            BufferType = BufferUsage.VertexBuffer;
             SafeCreateBuffer(gDevice, (uint)data.Length);
             ModifyBuffer(data, gDevice);
         }

@@ -46,11 +46,11 @@ namespace Engine.Renderable
         internal override void BindResources(CommandList list)
         {
 
-            if (vbo.BufferType != BufferUsage.VertexBuffer)
+            if (vbo.BufferType != BufferUsage.VertexBuffer || ebo?.BufferType == 0)
             {
                 //Buffer has not been initialized, not an error, just has not been initialized,
                 //should not trip, that being said, if run on another thread it might, and just covering bases, if it does we just need to skip ahead and move along
-                if (vbo.BufferType == 0)
+                if (vbo.BufferType == 0 || ebo.BufferType == 0)
                 {
                     return;
                 }
@@ -58,7 +58,7 @@ namespace Engine.Renderable
                 throw new InvalidOperationException("Cannot bind non vertex buffer!");
             }
             ebo?.Bind(list);
-            vbo.Bind(list);
+            vbo.Bind(list, 1);
             
         }
 

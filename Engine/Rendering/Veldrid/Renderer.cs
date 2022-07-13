@@ -57,7 +57,7 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Default, true, true), GraphicsBackend.Direct3D11);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(true, PixelFormat.R32_Float, false, ResourceBindingModel.Default, true, true), GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
             

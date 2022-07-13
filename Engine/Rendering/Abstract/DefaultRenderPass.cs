@@ -7,13 +7,14 @@ using Veldrid;
 namespace Engine.Rendering.Abstract
 {
     /// <summary>
-    /// The default general purpose render pass for the engine, renders all materials added to this pass,
-    /// little else is done, but might be a good starting point for future expansion and mimics current functionality.
+    /// The default general purpose render pass for the engine, renders all models added to this pass,
+    /// little else is done, but might be a good starting point for future expansion and optimization!.
     /// </summary>
     // TODO: move from 
     public class DefaultRenderPass : RenderPass
     {
         VertexBuffer<Matrix4x4> Transforms;
+        ResourceSet CameraResourceSet;
         CommandList TransformsUpdateList;
         
         public DefaultRenderPass(Renderer _backingRenderer) : base(_backingRenderer)
@@ -32,6 +33,8 @@ namespace Engine.Rendering.Abstract
             ResourceSetDescription resourceSetDescription =
                 new ResourceSetDescription(layout, ViewProjBuffer.bufferObject);
 
+            CameraResourceSet = backingRenderer.Device.ResourceFactory.CreateResourceSet(resourceSetDescription);
+
            TransformsUpdateList = _backingRenderer.Device.ResourceFactory.CreateCommandList();
            TransformsUpdateList.Name = "TransformsUpdatePass";
 
@@ -48,10 +51,10 @@ namespace Engine.Rendering.Abstract
                 ViewProjBuffer.ModifyBuffer(updateMatrix, backingRenderer.Device);
             }
 
-// A more memory efficent, though possibly slower version 
+// A more memory efficient, though possibly slower version 
 #if EfficentTransformsExperimental
 
-            // TODO: after modifying the buffers to use a single base class and adding the ability to offset, this can be done in batches using only the stack.
+            // TODO: after modifying the buffers to use a single base class and adding the ability to offset, this can be done in batches using only the stack. Is this worth it, it could be slower and would result in high stack usage. Investigate further!
             Span<Matrix4x4> transforms = stackalloc Matrix4x4[512];
             (int, int) passes = Math.DivRem(instances.Count, 512);
             for (int passCount = 0; passCount == passes.Item1 ; passCount++)
@@ -66,13 +69,13 @@ namespace Engine.Rendering.Abstract
                 Transforms.ModifyBuffer(transforms, backingRenderer.Device, (uint)passCount * 512);
             }
 #else
-            // Possibly faster, though consumes quite a bit more memory, could be cached though as to improve memory usage
-            // Alternatively we could look into stackalloc, though it would be more dangerous
+            // Possibly faster, though consumes quite a bit more memory, could have the array cached and resized though as to improve memory usage
+            // Alternatively we could use the implementation above, though it may be slower!
             int countNumber = instances.Count;
             Matrix4x4[] transforms = new Matrix4x4[countNumber];
             for (int index = 0; index < countNumber; index++)
             {
-                transforms[index] = instances[index].GetCameraSpacePos(camera.Self);
+                transforms[index] = instances[index].GetCameraSpaceTransform(ref camera);
             }
             Transforms.ModifyBuffer(transforms, backingRenderer.Device);
 #endif
@@ -90,9 +93,10 @@ namespace Engine.Rendering.Abstract
                 {
                     Instance3D instance = instances[index];
                     instance.ModelMaterial.Bind(list);
-                
-                
+                    list.SetGraphicsResourceSet(0, CameraResourceSet);
                     instance._baseRenderableElement.BindResources(list);
+                    list.SetVertexBuffer(0, Transforms.BufferObject);
+                    
                     list.Draw(instance._baseRenderableElement.VertexElements, 1, 0, (uint)index);
                 }   
             }

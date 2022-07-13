@@ -28,10 +28,10 @@ public sealed class Instance3D : MinimalObject
         return isVisible && IntersectionHandler.MeshInFrustrum(this, camera.CameraFrustum);
     }
 
-    public void GetInstanceAABB(out AABB boundingBox, Vector3 frustumCamerapos = default)
+    public void GetInstanceAabb(out AABB boundingBox, Vector3 frustumCamerapos = default)
     {
         boundingBox = Boundingbox;
-        boundingBox.Origin -= frustumCamerapos;
+        boundingBox.Origin = Position - frustumCamerapos;
     }
 
     protected override void OnTransformUpdated()
@@ -43,7 +43,10 @@ public sealed class Instance3D : MinimalObject
     {
         AABB boundingBox = _baseRenderableElement.GetBoundingBox();
         boundingBox.GetMinMax(out Vector3 minpoint, out Vector3 Maxpoint);
-        boundingBox.SetAABB(Vector3.Transform(minpoint, ModelMatrix), Vector3.Transform(Maxpoint, ModelMatrix));
+        var min = Vector3.Min(minpoint, Maxpoint);
+        var max = Vector3.Max(Maxpoint, minpoint);
+        
+        boundingBox.SetAABB(Vector3.Transform(min, ModelMatrix), Vector3.Transform(max, ModelMatrix));
         return boundingBox;
     }
 

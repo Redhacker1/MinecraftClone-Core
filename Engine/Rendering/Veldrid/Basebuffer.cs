@@ -22,9 +22,9 @@ public abstract class BaseBufferUntyped : IGraphicsResource
 
 
     public DeviceBuffer BufferObject { get; protected set; }
-    public BufferUsage BufferType => BufferObject?.Usage ?? 0;
-    
-    
+    public BufferUsage BufferType { protected init; get; }
+
+
     /// <summary>
     /// Used for most buffers in Veldrid, with the exception of Uniform buffers 
     /// </summary>

@@ -74,7 +74,7 @@ namespace Engine.Rendering.Abstract
             {
                 instances = Cull(Instances, ref cameraInfo);
             }
-            Sort(instances);
+            Sort(instances, cameraInfo);
             PrePass(ref cameraInfo, list, instances);
             Pass(list, instances, ref cameraInfo);
             PostPass(list);
@@ -107,22 +107,23 @@ namespace Engine.Rendering.Abstract
         ///  The sorting algorithm, by default sorts position in world space using <see cref="List{T}.Sort()"/>>.
         /// </summary>
         /// <param name="instances"></param>
-        protected virtual void Sort(List<Instance3D> instances)
+        /// <param name="cameraInfo">Camera reference</param>
+        protected virtual void Sort(List<Instance3D> instances, CameraInfo cameraInfo)
         {
-            instances.Sort((instance3D, instance3D1) => GreaterThan(instance3D.Position, instance3D1.Position));
+            instances.Sort((instance3D, instance3D1) => GreaterThan(instance3D.Position, instance3D1.Position, ref cameraInfo));
         }
         
-        int GreaterThan(Vector3 first, Vector3 second)
+        int GreaterThan(Vector3 first, Vector3 second, ref CameraInfo cameraInfo)
         {
-            if (first.X > second.X && first.Y > second.Y && first.Z > second.Z)
+            if (Vector3.Distance(cameraInfo.CameraPos, first) > Vector3.Distance(cameraInfo.CameraPos, second))
             {
                 return 1;
             }
-            if (Math.Abs(first.X - second.X) < float.Epsilon && Math.Abs(first.Y - second.Y) < float.Epsilon && Math.Abs(first.Z - second.Z) < float.Epsilon)
+            if (Math.Abs(Vector3.Distance(cameraInfo.CameraPos, first) - Vector3.Distance(cameraInfo.CameraPos, second)) < float.Epsilon)
             {
                 return 0;
             }
-            if (first.X < second.X && first.Y < second.Y && first.Z < second.Z)
+            if (Vector3.Distance(cameraInfo.CameraPos, first) < Vector3.Distance(cameraInfo.CameraPos, second))
             {
                 return -1;
             }

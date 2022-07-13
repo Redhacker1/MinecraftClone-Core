@@ -27,7 +27,7 @@
       <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.15.0" />
       <PackageReference Include="SixLabors.ImageSharp" Version="2.1.3" />
       <PackageReference Include="Veldrid" Version="4.9.0-beta1" />
-      <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+      <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
     </ItemGroup>
 
     <ItemGroup>

@@ -5,7 +5,7 @@ namespace MCClone_Core.Temp;
 
 public sealed unsafe class NativeMemoryHeap : MemoryHeap
 {
-    public static NativeMemoryHeap Instance { get; } = new();
+    public static NativeMemoryHeap Instance { get; } = new NativeMemoryHeap();
 
     private NativeMemoryHeap()
     {

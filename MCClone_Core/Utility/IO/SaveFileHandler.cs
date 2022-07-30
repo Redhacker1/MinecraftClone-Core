@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace MCClone_Core.Utility.IO
         static readonly BaseFileHandler DefaultSaveFileFormat = new ChunkFilesV1();
         
         
-        public static void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world, bool optimizeSave = true)
+        public static void WriteChunkData(Span<byte> blocks, Int2 chunkCoords, WorldData world, bool optimizeSave = true)
         {
             foreach (BaseFileHandler format in ValidFormats)
             {

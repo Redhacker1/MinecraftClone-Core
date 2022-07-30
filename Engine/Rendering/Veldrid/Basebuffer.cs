@@ -24,6 +24,8 @@ public abstract class BaseBufferUntyped : IGraphicsResource
     public DeviceBuffer BufferObject { get; protected set; }
     public BufferUsage BufferType { protected init; get; }
 
+    public uint LengthInBytes => BufferObject.SizeInBytes;
+
 
     /// <summary>
     /// Used for most buffers in Veldrid, with the exception of Uniform buffers 
@@ -81,7 +83,7 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
             SafeCreateBuffer(device, (uint)readOnlySpan.Length);
 
         }
-        device.UpdateBuffer(BufferObject, 0, readOnlySpan.Slice(0, readOnlySpan.Length));   
+        device.UpdateBuffer(BufferObject, 0, readOnlySpan[..readOnlySpan.Length]);   
     }
 
     /// <summary>
@@ -89,7 +91,6 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
     /// </summary>
     /// <param name="readOnlySpan">The data you which to feed into your index buffer</param>
     /// <param name="device">The graphics device you wish to use to feed into your buffer</param>
-    /// <param name="offset">The offset from the start of the buffer (In sizeof(TData)) you wish to start filling</param>
     /// <param name="count">The number of elements you wish to insert into TData from the offset</param>
     /// <typeparam name="T">The type of variable you wish to fill in</typeparam>
     public void ModifyBuffer(ReadOnlySpan<T> readOnlySpan, GraphicsDevice device, int count)

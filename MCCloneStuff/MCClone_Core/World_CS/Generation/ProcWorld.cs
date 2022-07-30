@@ -8,18 +8,18 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
-using Engine.Debug;
+using Engine.Debugging;
 using Engine.MathLib;
-using Engine.Rendering;
+using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using MCClone_Core.Physics;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
 using Veldrid;
-using Material = Engine.Rendering.Material;
-using Shader = Engine.Rendering.Shader;
-using Texture = Engine.Rendering.Texture;
+using Material = Engine.Rendering.Veldrid.Material;
+using Shader = Engine.Rendering.Veldrid.Shader;
+using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -97,11 +97,11 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					{
 						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
+						new Shader("./Assets/frag.spv", WindowClass.Renderer.Device, ShaderStages.Fragment)
 					},
 					{
 						ShaderStages.Vertex,
-						new Shader("./Assets/intvert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
+						new Shader("./Assets/intvert.spv", WindowClass.Renderer.Device, ShaderStages.Vertex)
 					}
 
 
@@ -110,49 +110,36 @@ namespace MCClone_Core.World_CS.Generation
 
 			ResourceLayoutDescription ProjectionLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			ResourceLayoutDescription ModelLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ModelProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			
-			
-			
+
+
+
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("AtlasBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("Lighting", ResourceKind.UniformBuffer, ShaderStages.Fragment));
-			
-			_material = new Material(materialDescription, 
-				new VertexLayoutDescription(
-					new VertexElementDescription("PositionX", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
-					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)),
-				WindowClass._renderer,
-				ProjectionLayout,
-				ModelLayout,
-				fragmentLayout
-			);
-			
-			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
 
-			AtlasInfo info = new AtlasInfo()
+			unsafe
 			{
-				TextureSize = new Int2((int)atlas._texture.Width, (int)atlas._texture.Height),
-				length = 8,
-				width = 4,
-			};
-			Span<AtlasInfo> info_1 = stackalloc AtlasInfo[1];
-			info_1[0] = info;
+				var vertexlayout = new VertexLayoutDescription[]
+				{
+					new VertexLayoutDescription((uint)sizeof(Matrix4x4), 1, 
+						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+					new VertexLayoutDescription(
+						new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
+						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
+					)
+				};
 
-			Span<Vector4> Light = stackalloc Vector4[1];
-			Light[0] = new Vector4(1,1,1,0);
-
+				_material = new Material(materialDescription, vertexlayout, WindowClass.Renderer,
+					new[] {ProjectionLayout, fragmentLayout});
+			}
 			
-			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light);
-			UniformBuffer<AtlasInfo> buffer = new UniformBuffer<AtlasInfo>(WindowClass._renderer.Device, info_1);
-			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer);
-			_material.ResourceSet(2, buffer, pointSampler, atlas, AmbientLight);
+			atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
+			var pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
+			_material.ResourceSet(1, pointSampler, atlas);
 
 
 
@@ -178,9 +165,9 @@ namespace MCClone_Core.World_CS.Generation
 
 			ConsoleLibrary.DebugPrint("Binding Console Commands");
 			// Console Binds
-			ConsoleLibrary.BindCommand("reload_chunks", "reloads all currently loaded chunks", "reload_chunks", ReloadChunks, false);
-			ConsoleLibrary.BindCommand("reset", "Reloads world after saving, ","reset", Restart, false);
-			ConsoleLibrary.BindCommand("GCCall", "Runs the GC, ","GCCall", GCCall, false);
+			ConsoleLibrary.BindCommand("reload_chunks", "reloads all currently loaded chunks", "reload_chunks", ReloadChunks);
+			ConsoleLibrary.BindCommand("reset", "Reloads world after saving, ","reset", Restart);
+			ConsoleLibrary.BindCommand("GCCall", "Runs the GC, ","GCCall", GCCall);
 			
 		}
 
@@ -238,13 +225,13 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					// Either go right or up
 					// Prioritize going right
-					if ((Math.Abs(deltaPos.Y - _currentLoadRadius) < 0.001f) && (Math.Abs(-deltaPos.X - _currentLoadRadius) > 0.001f))
+					if (Math.Abs(deltaPos.Y - _currentLoadRadius) < 0.001f && Math.Abs(-deltaPos.X - _currentLoadRadius) > 0.001f)
 					{
 						//Go right
 						_lastChunk = _load_chunk((int)_lastChunk.X - 1, (int) _lastChunk.Y);
 					}
 					// Either moving in constant x or we just reached bottom right. Addendum by donovan: this looping on the X axis has happened to me actually
-					else if ((MathF.Abs(-deltaPos.X - _currentLoadRadius) < 0.001f) || (MathF.Abs(-deltaPos.X - deltaPos.Y) < 0.001f))
+					else if (MathF.Abs(-deltaPos.X - _currentLoadRadius) < 0.001f || MathF.Abs(-deltaPos.X - deltaPos.Y) < 0.001f)
 					{
 						// Go up
 						_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y - 1);
@@ -262,12 +249,12 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					//Either go left or down
 					//Prioritize going left
-					if ((Math.Abs(-deltaPos.Y - _currentLoadRadius) < 0.001f) && (Math.Abs(deltaPos.X - _currentLoadRadius) > 0.001f))
+					if (Math.Abs(-deltaPos.Y - _currentLoadRadius) < 0.001f && Math.Abs(deltaPos.X - _currentLoadRadius) > 0.001f)
 					{
 						//Go left
 						_lastChunk = _load_chunk((int) _lastChunk.X + 1, (int) _lastChunk.Y);	
 					}
-					else if ((MathF.Abs(deltaPos.X - _currentLoadRadius) < 0.001f) || (MathF.Abs(deltaPos.X - (-deltaPos.Y)) < 0.001f))
+					else if (MathF.Abs(deltaPos.X - _currentLoadRadius) < 0.001f || MathF.Abs(deltaPos.X - -deltaPos.Y) < 0.001f)
 					{
 						// Go down
 						// Stop the last one where we'd go over the limit
@@ -482,7 +469,7 @@ namespace MCClone_Core.World_CS.Generation
 		
 		public void SaveAndQuit()
 		{
-			
+			Console.WriteLine("Save And Quit!");
 			Mesher.Stop();
 		#if !Core
 			var tree = GetTree();

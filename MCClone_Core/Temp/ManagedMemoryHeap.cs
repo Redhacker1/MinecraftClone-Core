@@ -18,7 +18,9 @@ public class ManagedMemoryHeap : MemoryHeap
         byte[] array = GC.AllocateArray<byte>((int) byteCapacity, true);
         actualByteCapacity = (nuint) array.Length;
         IntPtr address;
-        
+
+        Memory<byte> test = new Memory<byte>();
+
         fixed (byte* arrayaddress = array)
         {
             address = (IntPtr)arrayaddress;   
@@ -34,9 +36,6 @@ public class ManagedMemoryHeap : MemoryHeap
 
     public override unsafe void Free(nuint byteCapacity, IntPtr buffer)
     {
-        if (Blocks.ContainsKey(buffer))
-        {
-            Blocks.TryRemove(buffer, out _);
-        } 
+        Blocks.TryRemove(buffer, out _);
     }
 }

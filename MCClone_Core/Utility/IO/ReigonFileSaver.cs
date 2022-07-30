@@ -88,7 +88,7 @@ namespace MCClone_Core.Utility.IO
             throw new NotImplementedException();
         }
 
-        public override void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
+        public override void WriteChunkData(Span<byte> blocks, Int2 chunkCoords, WorldData world,
             bool optimizeSave = true)
         {
             throw new NotImplementedException();

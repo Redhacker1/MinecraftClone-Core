@@ -3,7 +3,7 @@ using Silk.NET.Assimp;
 
 namespace Engine.AssetLoading.AssimpIntegration
 {
-    public class AssimpMesh
+    public struct AssimpMesh
     {
         public string Name;
         public PrimitiveType PrimitiveTypes;

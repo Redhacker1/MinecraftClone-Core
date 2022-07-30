@@ -15,18 +15,11 @@ namespace Engine.Windowing
 
         public static Renderer Renderer { get; protected set; }
 
-        readonly Game _gameInstance;
+        readonly GameEntry _gameInstance;
         public static IWindow Handle;
 
-        public WindowClass(int width, int height, int posx, int posy, string WindowName, Game GameClass)
+        public WindowClass(WindowOptions options, GameEntry GameClass)
         {
-
-            WindowOptions options = WindowOptions.Default;
-            options.Size = new Vector2D<int>(width, height);
-            options.Position = new Vector2D<int>(posx, posy);
-            options.Title = WindowName;
-            options.VSync = false;
-            
             Handle = Window.Create(options);
             Handle.IsContextControlDisabled = true;
 
@@ -39,7 +32,7 @@ namespace Engine.Windowing
             _gameInstance = GameClass;
         }
         
-        public WindowClass(IWindow windowHandle, Game gameClass)
+        public WindowClass(IWindow windowHandle, GameEntry gameClass)
         {
             Handle = windowHandle;
 

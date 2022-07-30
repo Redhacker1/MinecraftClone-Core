@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
 using MCClone_Core.World_CS.Generation;
 
 namespace MCClone_Core.Utility.IO
@@ -11,7 +10,7 @@ namespace MCClone_Core.Utility.IO
         // Possible Save Handlers
         static readonly List<BaseFileHandler> ValidFormats = new List<BaseFileHandler>();
         
-        // TODO: Save files in reigon file
+        // TODO: Save files in region file
         static readonly BaseFileHandler DefaultSaveFileFormat = new ChunkFilesV1();
         
         

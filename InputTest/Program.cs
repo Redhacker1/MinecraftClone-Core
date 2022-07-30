@@ -15,7 +15,7 @@ namespace InputTest
         }
     }
 
-    internal class GameClass : Game
+    internal class GameClass : GameEntry
     {
         public override void Gamestart()
         {

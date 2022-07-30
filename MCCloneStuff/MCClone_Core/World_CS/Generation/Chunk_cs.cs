@@ -7,6 +7,8 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Engine.MathLib;
 using Engine.Objects;
+using Engine.Rendering.Abstract;
+using Engine.Windowing;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
@@ -59,6 +61,7 @@ namespace MCClone_Core.World_CS.Generation
 		public const int MaxY = 384;
 		public const int MaxZ = 16;
 		ChunkMesh ChunkMesh;
+		Instance3D _instance3D;
 
 
 		static readonly IntVec3[] V =
@@ -110,7 +113,10 @@ namespace MCClone_Core.World_CS.Generation
 			
 			
 			ChunkMesh = new ChunkMesh(this);
-			ProcWorld.Instance._material.AddReference(ChunkMesh);
+			_instance3D = new Instance3D(ChunkMesh, ProcWorld.Instance._material);
+
+			// This is hacky and bad design but will work for now, TODO: come up with an API to handle this!
+			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
 		}
 
 
@@ -129,9 +135,10 @@ namespace MCClone_Core.World_CS.Generation
 			
 			
 			
-			Pos = new Vector3(cx * (MaxX), 0, cz * MaxZ);
+			Position = new Vector3(cx * MaxX, 0, cz * MaxZ);
+			_instance3D.SetTransform(this);
 			ChunkCoordinate = new Int2(cx, cz);
-			
+
 			Generator.Generate(this, cx, cz, seed);
 		}
 
@@ -186,8 +193,8 @@ namespace MCClone_Core.World_CS.Generation
 			lock (renderlock)
 			{
 				ChunkMesh.GenerateMesh(BlockVerts.Span, BlockUVs.Span, chunkIndices.Span);
-				ChunkMesh.Render = true;	
 			}
+			_instance3D.SetTransform(this);
 			
 		}
 		
@@ -221,7 +228,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				//GD.Print("External Chunk Write");
 
-				Vector3 worldCoordinates = new(x + Pos.X, y, z + Pos.Z);
+				Vector3 worldCoordinates = new Vector3(x + Position.X, y, z + Position.Z);
 				
 				int cx = ChunkCoordinate.X;
 				int cz = ChunkCoordinate.Y;
@@ -312,12 +319,12 @@ namespace MCClone_Core.World_CS.Generation
 		        CompressedPos = (Verts[i].X << 5) | Verts[i].Z;
 		        CompressedPos = CompressedPos << 9 | Verts[i].Y;
 		        
-		        blocks?.Append(CompressedPos);
+		        blocks.Append(CompressedPos);
 	        }
 
 	        //blocks.AppendRange(Verts);
-	        uVs?.AppendRange(uvs);	
-	        indices?.AppendRange(Indices);
+	        uVs.AppendRange(uvs);	
+	        indices.AppendRange(Indices);
 	        currentindex += 4;
 
 	        //blocksNormals.AddRange(NormalGenerate(a, b, c, d));
@@ -330,7 +337,7 @@ namespace MCClone_Core.World_CS.Generation
 			Vector3 qr = c - a;
 			Vector3 qs = b - a;
 
-			Vector3 normal = new Vector3((qr.Y * qs.Z) - (qr.Z * qs.Y),(qr.Z * qs.X) - (qr.X * qs.Z), (qr.X * qs.Y) - (qr.Y * qs.X) );
+			Vector3 normal = new Vector3(qr.Y * qs.Z - qr.Z * qs.Y,qr.Z * qs.X - qr.X * qs.Z, qr.X * qs.Y - qr.Y * qs.X );
 
 			return new[] {normal, normal, normal, normal, normal, normal};
 
@@ -352,8 +359,8 @@ namespace MCClone_Core.World_CS.Generation
 
 			if (x < 0 || x >= MaxX || z < 0 || z >= MaxZ)
 			{
-				int cx = (x / MaxX);
-				int cz = (z / MaxZ);
+				int cx = x / MaxX;
+				int cz = z / MaxZ;
 				Vector2 cpos = new Vector2(cx, cz);
 
 				if (ProcWorld.Instance.LoadedChunks.ContainsKey(cpos))
@@ -385,7 +392,6 @@ namespace MCClone_Core.World_CS.Generation
 			chunkIndices.Dispose();
 			BlockUVs.Dispose();
 			ChunkMesh.Dispose();
-			ProcWorld.Instance._material.RemoveReference(ChunkMesh);
 
 			_freed = true;
 		}
@@ -398,7 +404,6 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				return 0;
 			}
-
 			return (byte)(3 - (side1 + side2 + corner));
 		}
 	}

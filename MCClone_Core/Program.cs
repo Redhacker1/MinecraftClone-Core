@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using Engine;
+using Engine.Attributes;
 using Engine.Debugging;
 using Engine.Initialization;
 using Engine.Renderable;
@@ -26,7 +29,8 @@ namespace MCClone_Core
         }
     }
 
-    internal class MinecraftCloneCore: Game
+    [GameDefinition("Blocky Worlds", true)]
+    internal class MinecraftCloneCore: GameEntry
     {
         WorldScript script;
         ImGUIPanel _panel;
@@ -36,6 +40,29 @@ namespace MCClone_Core
         
         public override void Gamestart()
         {
+            Stopwatch watch = Stopwatch.StartNew();
+            List<Type> obsoleteTypes = AttributeHelpers.FindAllTypeOfAttribute<ObsoleteAttribute>();
+            Console.WriteLine(obsoleteTypes.Count);
+            Console.WriteLine("Classes with obsolete items found: ");
+            foreach (Type type in obsoleteTypes)
+            {
+                Console.WriteLine($"Classname: {type.Name} is obsolete!");
+                Attribute.GetCustomAttributes(type);
+
+                AttributeHelpers.GetAttributes<ObsoleteAttribute>(type);
+                
+                IEnumerable<object> attributes = AttributeHelpers.GetAttributes(type).Where(attribute => attribute 
+                    is ObsoleteAttribute);
+                foreach (Attribute attribute in attributes)
+                {
+                    ObsoleteAttribute obsoleteAttribute = attribute as ObsoleteAttribute;
+                    Console.WriteLine(obsoleteAttribute?.Message);
+                }
+            }
+
+            Console.WriteLine(watch.ElapsedMilliseconds);
+            
+            
             ConsoleLibrary.InitConsole(consoleBox.SetConsoleScrollback);
             Console.WriteLine("Initializing Steam API");
             try

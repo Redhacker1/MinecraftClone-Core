@@ -77,7 +77,7 @@ namespace MCClone_Core.Utility.IO
 
             for (int i = 0; i <  serializedBlockData.Length; i++)
             {
-                referencedChunk.BlockData[i] = blockDict[serializedBlockData[i]];
+                referencedChunk.BlockData.FullSpan[i] = blockDict[serializedBlockData[i]];
             }
 
             if (compressed)
@@ -91,7 +91,7 @@ namespace MCClone_Core.Utility.IO
             return referencedChunk;
         }
 
-        public override void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
+        public override void WriteChunkData(Span<byte> blocks, Int2 chunkCoords, WorldData world,
             bool optimizeSave = true)
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
@@ -118,7 +118,7 @@ namespace MCClone_Core.Utility.IO
 
             for (int blockIndex = 0; blockIndex < encodedBytes.Length; blockIndex++)
             {
-                encodedBytes[blockIndex] = saveData.BlockPalette[saveData.ChunkBlocks[blockIndex]];
+                encodedBytes[blockIndex] = saveData.BlockPalette[saveData.ChunkBlocks.Span[blockIndex]];
             }
             fileWriter.Write(encodedBytes);
 

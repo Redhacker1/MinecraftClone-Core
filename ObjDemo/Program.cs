@@ -20,17 +20,17 @@ using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace ObjDemo
 {
-	internal class ObjDemo : Game
+	internal class ObjDemo : GameEntry
 	{
 		ConsoleText debug_console = new ConsoleText();
-
+		MeshSpawner thing;
 		public override void Gamestart()
 		{
 			base.Gamestart();
 
 			DebugPanel panel = new DebugPanel();
 			Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX, 1.77777F, true);
-			MeshSpawner thing = new MeshSpawner();
+			thing = new MeshSpawner();
 
 
 
@@ -62,8 +62,7 @@ namespace ObjDemo
 		List<GameObject> Nodes = new List<GameObject>();
 
 
-
-		void CreateBaseMaterial()
+		unsafe void CreateBaseMaterial()
 		{
 			MaterialDescription materialDescription = new MaterialDescription
 			{
@@ -103,17 +102,30 @@ namespace ObjDemo
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly,
 					ShaderStages.Fragment));
 
-			baseMaterial = new Material(materialDescription,
-				new VertexLayoutDescription(
-					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate,
-						VertexElementFormat.Float3),
-					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate,
-						VertexElementFormat.Float3))
+			baseMaterial = new Material(materialDescription, 
+				new[] {
+					new VertexLayoutDescription((uint)sizeof(Matrix4x4), 1, 
+						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+					
+					new VertexLayoutDescription(
+						new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate,
+							VertexElementFormat.Float3),
+						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate,
+							VertexElementFormat.Float3)
+						
+					)
+				}
 				, WindowClass.Renderer,
-
-				ProjectionLayout,
-				ModelLayout,
-				fragmentLayout
+				
+				new []
+				{
+					ProjectionLayout,
+					ModelLayout,
+					fragmentLayout	
+				}
 
 			);
 
@@ -148,13 +160,16 @@ namespace ObjDemo
 		string Name;
 		AssimpNodeTree[] Children;
 		Mesh[] Meshes;
+		Instance3D[] _instance3Ds;
 
 		public AssimpNodeTree(AssimpScene scene, AssimpNode nodeDescription, Matrix4x4 nodeOffset, Material material)
 		{
-
+			
+			Console.WriteLine("Assembling node!");
 			Name = nodeDescription.Name;
 
 			Meshes = new Mesh[nodeDescription.MeshIndices.Length];
+			_instance3Ds = new Instance3D[nodeDescription.MeshIndices.Length];
 
 			Matrix4x4 nodeTransform = nodeOffset * nodeDescription.Transform;
 
@@ -167,6 +182,7 @@ namespace ObjDemo
 				int location = 0;
 				foreach (uint indices in nodeDescription.MeshIndices)
 				{
+					Console.WriteLine("building meshes...");
 					AssimpMesh Mesh = scene.Meshes[indices];
 					Meshes[location] = new Mesh();
 					List<uint> MeshIndices = new List<uint>();
@@ -177,6 +193,9 @@ namespace ObjDemo
 					}
 
 					Meshes[location].GenerateMesh(Mesh.Vertices, Mesh.TextureCoords[0], MeshIndices.ToArray());
+					_instance3Ds[location] = new Instance3D(Meshes[location], material);
+					_instance3Ds[location].SetTransform(this);
+					WindowClass.Renderer.Passes[0].AddInstance(_instance3Ds[location]);
 					location++;
 				}
 			}

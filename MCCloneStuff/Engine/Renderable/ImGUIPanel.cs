@@ -50,7 +50,7 @@ namespace Engine.Renderable
             {
                 Draggable = true;
             }
-            Flags = (ImGuiWindowFlags)(((int)Flags & ~(int)FlagToDisable));
+            Flags = (ImGuiWindowFlags)((int)Flags & ~(int)FlagToDisable);
         }
 
         public virtual void CreateUI()

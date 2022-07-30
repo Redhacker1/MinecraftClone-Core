@@ -1,5 +1,9 @@
-﻿using Engine.Initialization;
+﻿using System.Numerics;
+using Engine.Debugging;
+using Engine.Initialization;
 using Engine.Objects;
+using Engine.Renderable;
+using Engine.Rendering.Abstract;
 
 namespace Engine
 {
@@ -13,14 +17,21 @@ namespace Engine
 
     internal class GameTest : Game
     {
+        UITestEntity Entity;
         public override void Gamestart()
         {
             base.Gamestart();
-            var Entity = new UITestEntity();
+            Entity = new UITestEntity();
         }
     }
 
     class UITestEntity : Entity
     {
+        ImGUIPanel console;
+
+        public override void _Ready()
+        {
+            console = new ConsoleText();
+        }
     }
 }

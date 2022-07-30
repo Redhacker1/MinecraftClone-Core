@@ -19,11 +19,10 @@ layout(location = 0) out vec2 fsin_texCoords;
 void main()
 {
     int Y =  PositionXYZ & 511;
-    int X =  PositionXYZ >> 14;
     int Z = (PositionXYZ >> 9) & 31;
-    
+    int X =  PositionXYZ >> 14;
     mat4 World = mat4(Matrix1xx, Matrix2xx, Matrix3xx, Matrix4xx);
-    
+
     vec4 worldPosition = World * vec4(X, Y, Z, 1);
     vec4 viewPosition = View * worldPosition;
     vec4 clipPosition = Projection * viewPosition;

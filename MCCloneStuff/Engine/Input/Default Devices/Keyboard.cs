@@ -3,13 +3,13 @@ using Silk.NET.Input;
 
 namespace Engine.Input.Default_Devices
 {
-    public class Keyboard : InputDevice
+    public sealed class Keyboard : InputDevice
     {
-        IKeyboard _keyboardDevice;
-        
-        Dictionary<Key, bool> _allKeys = new Dictionary<Key, bool>();
-        Dictionary<Key, bool> _keysJustPressed = new Dictionary<Key, bool>();
-        Dictionary<Key, bool> KeyRearmed = new Dictionary<Key, bool>();
+        readonly IKeyboard _keyboardDevice;
+
+        readonly Dictionary<Key, bool> _allKeys = new Dictionary<Key, bool>();
+        readonly Dictionary<Key, bool> _keysJustPressed = new Dictionary<Key, bool>();
+        readonly Dictionary<Key, bool> _keyRearmed = new Dictionary<Key, bool>();
         
         
         internal Keyboard(int id, IKeyboard keyboard, string name = "")
@@ -22,7 +22,7 @@ namespace Engine.Input.Default_Devices
             {
                 _allKeys.Add(key, false);
                 _keysJustPressed.Add(key, false);
-                KeyRearmed.Add(key, false);
+                _keyRearmed.Add(key, false);
             }
         }
         
@@ -33,14 +33,14 @@ namespace Engine.Input.Default_Devices
             {
                 bool keyPressed = _keyboardDevice.IsKeyPressed(currentKey);
 
-                if (_keysJustPressed[currentKey] == false && keyPressed && KeyRearmed[currentKey])
+                if (_keysJustPressed[currentKey] == false && keyPressed && _keyRearmed[currentKey])
                 {
                     _keysJustPressed[currentKey] = true;
-                    KeyRearmed[currentKey] = false;
+                    _keyRearmed[currentKey] = false;
                 }
-                else if (keyPressed == false && KeyRearmed[currentKey] == false)
+                else if (keyPressed == false && _keyRearmed[currentKey] == false)
                 {
-                    KeyRearmed[currentKey] = true;
+                    _keyRearmed[currentKey] = true;
                 }
                 else
                 {

@@ -32,10 +32,12 @@
 
     <ItemGroup>
       <Folder Include="AssetLoading\DDSLoader" />
-      <Folder Include="Attributes" />
+      <Folder Include="AssetLoading\Shaders" />
       <Folder Include="GameUI" />
       <Folder Include="Rendering\" />
+      <Folder Include="Rendering\DX11" />
       <Folder Include="Rendering\Temp\Sprite" />
+      <Folder Include="StateKeeping" />
       <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>
 

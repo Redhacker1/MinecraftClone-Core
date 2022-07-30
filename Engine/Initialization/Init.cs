@@ -1,4 +1,6 @@
-﻿
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using Engine.Windowing;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -7,27 +9,109 @@ namespace Engine.Initialization
 {
     public class Init
     {
-        public static void InitEngine(int x, int y, int width, int height, string windowName, Game gameclass)
+        public static void InitEngine(int x, int y, int width, int height, string windowName, GameEntry gameclass)
         {
-            WindowClass window = InitGame(x, y, width, height, windowName, gameclass);
+            InitWindow(x, y, width, height, windowName, gameclass);
             WindowClass.Handle?.Run();
-            
         }
 
-        static WindowClass InitGame(int x, int y, int width, int height, string windowName, Game gameclass)
+        static WindowClass InitWindow(int x, int y, int width, int height, string windowName, GameEntry gameclass)
         {
 
-            WindowOptions options = WindowOptions.Default;
+            WindowOptions options = new WindowOptions();
             options.Size = new Vector2D<int>(width, height);
             options.Position = new Vector2D<int>(x, y);
             options.Title = windowName;
             options.VSync = false;
             options.API = GraphicsAPI.Default;
             
-            IWindow handle = Window.Create(options);
-            WindowClass window = new WindowClass(width, height, x, y, windowName, gameclass);
+            WindowClass window = new WindowClass(options, gameclass);
 
             return window;
+        }
+
+        List<Parameter> ParseLaunchOptions(params string[] commands)
+        {
+            List<Parameter> LaunchOptions = new List<Parameter>();
+            bool expectsCommand = true;
+            Parameter currentparam = new Parameter();
+            StringBuilder workingstringBuilder = new StringBuilder();
+            bool stringCMD = false;
+            char characterize = (char) 0;
+            
+            foreach (var str in commands)
+            {
+                var workingstring = str;
+
+                bool isCommand = str.StartsWith('-');
+                if (!stringCMD)
+                {
+                    workingstring = workingstring.Trim();
+                }
+
+                if (!isCommand)
+                {
+                    if (!stringCMD)
+                    {
+                        workingstring = workingstring.Trim();
+                        LaunchOptions.Add(currentparam);
+ 
+                    }
+                    if (expectsCommand)
+                    {
+                        continue;
+                    }
+
+                    characterize = workingstring[0] switch
+                    {
+                        '"' => '"',
+                        ',' => ',',
+                        _ => characterize
+                    };
+
+                    if (characterize != (char)0 && workingstring[^1] != characterize)
+                    {
+                        workingstringBuilder.Append(workingstring);
+                        stringCMD = true;
+                    }
+                    else if(stringCMD)
+                    {
+                        workingstringBuilder.Append(workingstring);
+                        if (workingstring[^1] == characterize)
+                        {
+                            characterize = (char)0;
+                            workingstring = workingstringBuilder.ToString();
+                            currentparam.variable = workingstring;
+                            expectsCommand = true;
+                            LaunchOptions.Add(currentparam);
+
+                        }
+                    }
+                    else
+                    {
+                        currentparam.variable = str;
+                        expectsCommand = true;
+                        LaunchOptions.Add(currentparam);
+                    }
+
+                }
+                else
+                {
+                    currentparam = new Parameter
+                    {
+                        prefix = workingstring
+                    };
+                    expectsCommand = false;
+                }
+            }
+
+            return LaunchOptions;
+        }
+
+
+        public void LoadGame()
+        {
+            
         }
     }
 }

@@ -14,7 +14,7 @@ namespace LineTest
         }
     }
 
-    class LinesDemo : Game
+    class LinesDemo : GameEntry
     {
         Player character;
         Line line;

@@ -21,7 +21,7 @@ namespace VeldridCubeTest
         }
     }
 
-    class CubeDemo : Game
+    class CubeDemo : GameEntry
     {
 	    Material material;
 	    Entity Object;

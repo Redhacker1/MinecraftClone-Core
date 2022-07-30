@@ -40,6 +40,8 @@ namespace Engine.Rendering.Abstract
 
 
         }
+
+        Matrix4x4[] transforms = new Matrix4x4[1];
         protected override void PrePass(ref CameraInfo camera, CommandList list, List<Instance3D> instances)
         {
             // Create the matrix 
@@ -72,7 +74,13 @@ namespace Engine.Rendering.Abstract
             // Possibly faster, though consumes quite a bit more memory, could have the array cached and resized though as to improve memory usage
             // Alternatively we could use the implementation above, though it may be slower!
             int countNumber = instances.Count;
-            Matrix4x4[] transforms = new Matrix4x4[countNumber];
+
+
+            if (countNumber > transforms?.Length)
+            {
+                transforms = new Matrix4x4[countNumber];                
+            }
+
             for (int index = 0; index < countNumber; index++)
             {
                 transforms[index] = instances[index].GetCameraSpaceTransform(ref camera);
@@ -92,12 +100,25 @@ namespace Engine.Rendering.Abstract
                 for (int index = 0; index < instances.Count; index++)
                 {
                     Instance3D instance = instances[index];
-                    instance.ModelMaterial.Bind(list);
-                    list.SetGraphicsResourceSet(0, CameraResourceSet);
-                    instance._baseRenderableElement.BindResources(list);
-                    list.SetVertexBuffer(0, Transforms.BufferObject);
-                    
-                    list.Draw(instance._baseRenderableElement.VertexElements, 1, 0, (uint)index);
+                    if (instance._baseRenderableElement.VertexElements == 0)
+                    {
+                        Console.WriteLine("Error: Mesh with Zero vertex elements being drawn!");
+                    }
+
+                    if (instance.ModelMaterial.Bind(list, CameraResourceSet))
+                    {
+                        instance._baseRenderableElement.BindResources(list);
+                        list.SetVertexBuffer(0, Transforms.BufferObject);
+
+                        if (instance._baseRenderableElement.UseIndexedDrawing)
+                        {
+                            list.DrawIndexed(instance._baseRenderableElement.VertexElements, 1, 0, 0, (uint)index);
+                        }
+                        else
+                        {
+                            list.Draw(instance._baseRenderableElement.VertexElements, 1, 0, (uint)index);      
+                        }
+                    }
                 }   
             }
         }

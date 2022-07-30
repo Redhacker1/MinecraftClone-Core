@@ -8,18 +8,19 @@ namespace Engine.Objects
     /// </summary>
     public class GameObject : MinimalObject, IDisposable
     {
-        public static List<WeakReference<GameObject>> Objects = new List<WeakReference<GameObject>>();
+        internal static List<WeakReference<GameObject>> Objects = new List<WeakReference<GameObject>>();
+
         internal bool Started = false;
         public bool PhysicsTick = false;
         public bool Ticks = false;
         internal bool cleanup;
         bool Freed;
-        
-        WeakReference<GameObject> ownWeakRef;
+
+        readonly WeakReference<GameObject> ownWeakRef;
 
         public GameObject()
         {
-            ownWeakRef = new WeakReference<GameObject>((this));
+            ownWeakRef = new WeakReference<GameObject>(this);
             Objects.Add(ownWeakRef); 
         }
         

@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using Engine.Collision;
 using Engine.Rendering.Veldrid;
 using Veldrid;
+using Vulkan;
+using static System.GC;
 
 namespace Engine.Renderable
 {
@@ -11,8 +13,12 @@ namespace Engine.Renderable
     /// <summary>
     /// Engine type for referring to a generic Model. 
     /// </summary>
-    public abstract class BaseRenderableUntyped
+    public abstract class BaseRenderableUntyped : IDisposable
     {
+
+        public bool UseIndexedDrawing {get; protected set; }
+        public bool Disposed {get; internal set; }
+        
         public uint VertexElements;
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public abstract void GetMinMax(out Vector3 minPoint, out Vector3 maxPoint);
@@ -27,15 +33,36 @@ namespace Engine.Renderable
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AABB GetBoundingBox()
         {
-            var bbox =new AABB();
+            AABB bbox =new AABB();
             GetMinMax(out Vector3 minPoint, out Vector3 maxPoint);
             bbox.SetAABB(minPoint, maxPoint);
             return bbox;
         }
+
+        protected virtual void ReleaseEngineResources()
+        {
+            
+        }
+
+        protected virtual void OnDisposed()
+        {
+            return;
+        }
+
+        public void Dispose()
+        {
+            SuppressFinalize(this);
+            if (Disposed == false)
+            {
+                Disposed = true;
+                ReleaseEngineResources();
+                OnDisposed();
+            }
+        }
     }
 
 
-    public abstract class BaseRenderable<T> : BaseRenderableUntyped where T : unmanaged
+    public abstract class BaseRenderable<T> :BaseRenderableUntyped where T : unmanaged
     {
 
         protected IndexBuffer<uint> ebo;
@@ -46,7 +73,7 @@ namespace Engine.Renderable
         internal override void BindResources(CommandList list)
         {
 
-            if (vbo.BufferType != BufferUsage.VertexBuffer || ebo?.BufferType == 0)
+            if (vbo.BufferType != BufferUsage.VertexBuffer || ebo?.BufferType == 0 && Disposed == false)
             {
                 //Buffer has not been initialized, not an error, just has not been initialized,
                 //should not trip, that being said, if run on another thread it might, and just covering bases, if it does we just need to skip ahead and move along
@@ -55,12 +82,26 @@ namespace Engine.Renderable
                     return;
                 }
                 
-                throw new InvalidOperationException("Cannot bind non vertex buffer!");
+                throw new InvalidOperationException("Cannot bind non vertex or non index buffer!");
             }
-            ebo?.Bind(list);
+
+            if (UseIndexedDrawing)
+            {
+                ebo?.Bind(list);   
+            }
             vbo.Bind(list, 1);
             
         }
 
+        protected override void ReleaseEngineResources()
+        {
+            ebo?.Dispose();
+            vbo?.Dispose();   
+        }
+
+        ~BaseRenderable()
+        {
+            Console.WriteLine("Mesh object leak!");
+        }
     }
 }

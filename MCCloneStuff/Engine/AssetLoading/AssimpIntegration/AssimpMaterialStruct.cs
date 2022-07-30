@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
-using Silk.NET.Assimp;
 
 
 // Referenced from: http://assimp.sourceforge.net/lib_html/materials.html

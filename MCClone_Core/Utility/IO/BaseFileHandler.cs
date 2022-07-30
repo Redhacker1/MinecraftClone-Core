@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using MCClone_Core.World_CS.Generation;
@@ -11,7 +12,7 @@ namespace MCClone_Core.Utility.IO
         public string FileExtension = ".cdat";
 
         public abstract ChunkCs GetChunkData(WorldData world, Int2 int2, out bool chunkExists);
-        public abstract void WriteChunkData(byte[] blocks, Int2 int2, WorldData world,
+        public abstract void WriteChunkData(Span<byte> span, Int2 int2, WorldData world,
             bool optimizeSave = true);
 
         public virtual string GetFilename(Int2 chunkCoords, WorldData world, bool compressed)
@@ -42,7 +43,7 @@ namespace MCClone_Core.Utility.IO
         }
         
         
-        protected virtual SaveInfo SerializeChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
+        protected virtual SaveInfo SerializeChunkData(Span<byte> blocks, Int2 chunkCoords, WorldData world,
             bool optimizeStorage)
         {
             SaveInfo chunkSaveData = new SaveInfo();
@@ -50,7 +51,7 @@ namespace MCClone_Core.Utility.IO
             chunkSaveData.VersionNumber = 1; // Again Default Version number to one
             chunkSaveData.Location = chunkCoords; // Location of the chunk, will be saved somehow in chunk file
             chunkSaveData.BiomeId = 0; // Currently Unused Will come eventually
-            chunkSaveData.ChunkBlocks = blocks;
+            chunkSaveData.ChunkBlocks = blocks.ToArray();
             
 
             List<byte> Blocks = new List<byte>(128);

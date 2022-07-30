@@ -7,6 +7,7 @@ using Veldrid.SPIRV;
 
 namespace Engine.Rendering.Veldrid
 {
+
     public class Shader : IDisposable
     {
         unsafe byte[] GetBytes(byte* ptr)

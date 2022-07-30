@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime;
 using System.Threading;
+using Engine.Attributes;
 using Engine.Debugging;
 using Engine.MathLib;
 using Engine.Rendering.Veldrid;
@@ -30,7 +31,7 @@ namespace MCClone_Core.World_CS.Generation
 		public bool UseThreadPool = true;
 		int _chunksPerFrame = 8;
 
-		public static bool Threaded = true;
+		public static bool Threaded = false;
 
 		bool ForceRenderDistanceCheck;
 
@@ -109,7 +110,7 @@ namespace MCClone_Core.World_CS.Generation
 			};
 
 			ResourceLayoutDescription ProjectionLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 
 
@@ -120,14 +121,14 @@ namespace MCClone_Core.World_CS.Generation
 
 			unsafe
 			{
-				var vertexlayout = new VertexLayoutDescription[]
+				VertexLayoutDescription[] vertexlayout = new[]
 				{
-					new VertexLayoutDescription((uint)sizeof(Vector4) * 4, 1, 
+					new VertexLayoutDescription((uint)sizeof(Matrix4x4), 1, 
 						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
 						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
-					new VertexLayoutDescription(
+					new VertexLayoutDescription(12, 0,
 						new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
 						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
 					)
@@ -138,7 +139,7 @@ namespace MCClone_Core.World_CS.Generation
 			}
 			
 			atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
+			TextureSampler pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
 			_material.ResourceSet(1, pointSampler, atlas);
 
 
@@ -182,6 +183,8 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
+		// This is a template ConCommand Attribute explantation for later
+		[ConCommand("GCCall", "Runs the GC", "GCCall")]
 		static string GCCall(params string[] args)
 		{
 			GC.Collect(2, GCCollectionMode.Forced, true, true);
@@ -362,7 +365,7 @@ namespace MCClone_Core.World_CS.Generation
 
 			if (LoadedChunks.ContainsKey(chunkpos) && ValidPlace(bx, y, bz))
 			{
-				return LoadedChunks[chunkpos].BlockData[ChunkCs.GetFlattenedIndex(bx, y, bz)];
+				return LoadedChunks[chunkpos].BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, y, bz)];
 			}
 
 			return 0;
@@ -398,7 +401,7 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
-			if (c.BlockData[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;
+			if (c.BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;
 			ConsoleLibrary.DebugPrint($"Changed block at {bx} {by} {bz} in chunk {cx}, {cz}");
 			c?._set_block_data(bx,by,bz,T);
 			_update_chunk(cx, cz);
@@ -421,7 +424,7 @@ namespace MCClone_Core.World_CS.Generation
 					_unloadChunk((int) key.X, (int) key.Y);
 			}
 
-			GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+			//GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 			//GC.Collect(2, GCCollectionMode.Optimized, false, true);
 		}
 		
@@ -436,7 +439,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				var chunk = LoadedChunks[cpos];
 				
-				SaveFileHandler.WriteChunkData(chunk.BlockData, chunk.ChunkCoordinate, World);
+				//SaveFileHandler.WriteChunkData(chunk.BlockData.FullSpan, chunk.ChunkCoordinate, World);
 				chunk.Free();
 				LoadedChunks.TryRemove(cpos, out _);
 			}
@@ -489,7 +492,7 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					_threads.AddRequest(() =>
 					{
-						SaveFileHandler.WriteChunkData(chunk.Value.BlockData,
+						SaveFileHandler.WriteChunkData(chunk.Value.BlockData.FullSpan,
 							chunk.Value.ChunkCoordinate, World);
 						chunk.Value.Free();
 						

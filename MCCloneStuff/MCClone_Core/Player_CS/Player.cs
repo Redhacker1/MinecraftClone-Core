@@ -1,14 +1,11 @@
-#define Core
-#if !Core
-using Godot;
-#endif
+
 
 using System;
 using System.Numerics;
-using Engine.Debug;
+using Engine.Debugging;
 using Engine.Input;
 using Engine.MathLib;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
 using MCClone_Core.Physics;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
@@ -51,20 +48,20 @@ namespace MCClone_Core.Player_CS
 			#endif
 		}
 
-		public Player(Vector3 pos, Vector2 dir, Level level) : base(pos, dir, level)
+		public Player(Vector3 pos, Vector2 dir) : base(pos, dir)
 		{
 			ConsoleLibrary.BindCommand("Noclip", "Enables or Disables noclip", "Noclip", arguments =>
 			{
 				ToggleNoclip();
 				return "";
-			}, false);
+			});
 		}
 
 		public override void _Ready()
 		{
 			PhysicsTick = true;
 
-			FPCam = new Camera(new Vector3(Pos.X, Pos.Y + .8f, Pos.Z), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			FPCam = new Camera(new Vector3(Position.X, Position.Y + .8f, Position.Z), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			//.FOV = 100;
 			#if Core
 			MoveMouse = true;
@@ -110,13 +107,13 @@ namespace MCClone_Core.Player_CS
 			}
 			
 			
-			FPCam.Pos = new Vector3(Pos.X, Pos.Y + 0, Pos.Z);
+			FPCam.Pos = new Vector3(Position.X, Position.Y + 0, Position.Z);
 			if (MoveMouse)
 			{
 				Freelook();
 			}
 
-			Vector3 Location = Pos;
+			Vector3 Location = Position;
 			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
 			Vector3 pos = result.Location;
 
@@ -148,18 +145,18 @@ namespace MCClone_Core.Player_CS
 		public override void _PhysicsProcess(double delta)
 		{
 			
-			double cx = Math.Floor((Pos.X ) / ChunkCs.MaxX);
-			double cz = Math.Floor((Pos.Z) / ChunkCs.MaxZ);
-			double px = Pos.X - cx * ChunkCs.MaxX;
-			double py = Pos.Y;
-			double pz = Pos.Z - cz * ChunkCs.MaxZ;
+			double cx = Math.Floor(Position.X / ChunkCs.MaxX);
+			double cz = Math.Floor(Position.Z / ChunkCs.MaxZ);
+			double px = Position.X - cx * ChunkCs.MaxX;
+			double py = Position.Y;
+			double pz = Position.Z - cz * ChunkCs.MaxZ;
 			Vector3 forward = Vector3.UnitZ;
 			
 			
 
 			if (!_paused && MoveMouse)
 			{
-				Vector3 Location = Pos;
+				Vector3 Location = Position;
 				HitResult result = Raycast.CastInDirection(Location,forward, -1, 5);
 				Vector3 pos = result.Location;
 

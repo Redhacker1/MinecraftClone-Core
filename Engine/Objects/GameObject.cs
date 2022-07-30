@@ -14,7 +14,7 @@ namespace Engine.Objects
         public bool PhysicsTick = false;
         public bool Ticks = false;
         internal bool cleanup;
-        bool Freed;
+        public bool Freed;
 
         readonly WeakReference<GameObject> ownWeakRef;
 

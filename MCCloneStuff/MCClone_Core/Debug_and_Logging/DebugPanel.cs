@@ -1,13 +1,13 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using System.Runtime;
+using Engine.Collision;
 using Engine.Renderable;
-using Engine.Rendering;
+using Engine.Rendering.Abstract;
 using Engine.Windowing;
 using ImGuiNET;
 using MCClone_Core.World_CS.Generation;
-using Plane = Engine.Rendering.Culling.Plane;
+using Plane = System.Numerics.Plane;
 
 namespace MCClone_Core.Debug_and_Logging
 {
@@ -18,38 +18,29 @@ namespace MCClone_Core.Debug_and_Logging
         internal bool Movable = false;
         Plane[] sides = new Plane[6];
         bool ThreadPooled;
-        Process CurrentProcess;
+        Process CurrentProcess = Process.GetCurrentProcess();
         public DebugPanel()
         {
-            CurrentProcess = Process.GetCurrentProcess();
             //AddFlag(ImGuiWindowFlags.NoMove);
             AddFlag(ImGuiWindowFlags.AlwaysAutoResize);
             AddFlag(ImGuiWindowFlags.NoCollapse);
             PanelName = "Debugging";
             ThreadPooled = ProcWorld.Instance.UseThreadPool;
         }
-
-        object thing = new object();
+        
         public override void CreateUI()
         {
-            
-
-
-            var frustum = Camera.MainCamera.GetViewFrustum(sides);
             ulong VertexCount = 0;
-            var currentsnapshot = Mesh.Meshes.ToArray();
+            var currentsnapshot = Mesh.Meshes;
             
+            CurrentProcess.Refresh();
             
-            
-            CurrentProcess?.Dispose();
-            CurrentProcess = Process.GetCurrentProcess();
-            float MemUsage = CurrentProcess.WorkingSet64;
-            MemUsage /= 1048576;
+            float MemUsage = CurrentProcess.WorkingSet64 / 1048576f;
 
-            ImGui.Text($"Memory: {MemUsage}MB");
-            ImGui.Text($"FPS Estimate: {WindowClass._renderer.FPS}");
-            ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Length}");
-            ImGui.Text($"Rendered Vertex count is: {VertexCount}");
+            ImGui.Text($"Memory: {CurrentProcess.WorkingSet64 / 1048576f}MB");
+            ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
+            //ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Count}");
+            //ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
 
             Vector3 camerapos = Camera.MainCamera.Pos;
@@ -69,8 +60,6 @@ namespace MCClone_Core.Debug_and_Logging
             {
                 ProcWorld.Instance.UseThreadPool = !ProcWorld.Instance.UseThreadPool;
             }
-
-
         }
         
         

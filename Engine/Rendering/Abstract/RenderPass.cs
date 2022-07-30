@@ -79,15 +79,17 @@ namespace Engine.Rendering.Abstract
             Pass(list, instances, ref cameraInfo);
             PostPass(list);
         }
-        
+
+        List<Instance3D> instance3Ds;
         protected virtual List<Instance3D> Cull(List<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo)
         {
-            List<Instance3D> instance3Ds = new List<Instance3D>(instances.Count);
+            instance3Ds = new List<Instance3D>(instances.Count);
             for (int i = 0; i < instances.Count; i++)
             {
-                if (instances[i].TryGetTarget(out Instance3D currentInstance))
+                // Check if the WeakReference is valid and if the mesh it points to has not been disposed. 
+                if (instances[i].TryGetTarget(out Instance3D currentInstance) && currentInstance._baseRenderableElement.Disposed == false )
                 {
-                    if (currentInstance.ShouldRender(ref cameraInfo))
+                    if (currentInstance.ShouldRender(ref cameraInfo) && currentInstance._baseRenderableElement.VertexElements > 0)
                     {
                         instance3Ds.Add(currentInstance);   
                     }
@@ -100,6 +102,7 @@ namespace Engine.Rendering.Abstract
                     instances.RemoveAt(instances.Count - 1);
                 }
             }
+            instance3Ds.TrimExcess();
             return instance3Ds;
         }
 

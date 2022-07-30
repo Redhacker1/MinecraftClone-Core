@@ -41,10 +41,11 @@ namespace ObjDemo
             }
 
 
-            _velocity.X = direction.X * _speed * (float)deltatime;
-            _velocity.Z = direction.Z * _speed * (float)deltatime;
+            _velocity.X = (float)(direction.X * Player.Speed * deltatime);
+            _velocity.Z = (float)(direction.Z * Player.Speed * deltatime);
+            _velocity.Y = (float)(direction.Y * Player.Speed * deltatime);
 
-            _pawn.MoveRelative(_velocity.X, _velocity.Z, _speed);
+            _pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
             _pawn.Move(_velocity);
         }
     }

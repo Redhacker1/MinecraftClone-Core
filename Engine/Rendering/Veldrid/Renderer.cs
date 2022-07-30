@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Numerics;
 using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
 using ImGuiNET;
-using SharpGen.Runtime;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
@@ -57,18 +55,18 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(true, PixelFormat.R32_Float, false, ResourceBindingModel.Default, true, true), GraphicsBackend.Direct3D11);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
             
             Passes[0] = new DefaultRenderPass(this);
 
         }
-
-        public GraphicsDevice Device;
+        
         CommandList _list; 
         Stopwatch _stopwatch = new Stopwatch();
         public uint FPS;
+        public GraphicsDevice Device;
         internal void OnRender(double time)
         {
             if (_disposing)
@@ -78,7 +76,7 @@ namespace Engine.Rendering.Veldrid
             _stopwatch.Restart();
             _list.Begin();
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            _list.ClearColorTarget(0, RgbaFloat.Black);
+            _list.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
             _list.ClearDepthStencil(1f);
             
             lock (Passes)
@@ -125,6 +123,7 @@ namespace Engine.Rendering.Veldrid
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             if (_disposing)
             {
                 return;

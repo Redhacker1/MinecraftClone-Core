@@ -189,7 +189,7 @@ public struct ManagedMaterialProperty
     ///  It has NO validation checks and will force the data to be casted to this type, regardless of whether the data is even valid. Use at your own risk!
     /// </summary>
     /// <param name="result">the result of the property after the force bitwise cast</param>
-    /// <param name="MaxElements">the maximum amount of elements, </param>
+    /// <param name="MaxElements">the maximum amount of elements</param>
     /// <typeparam name="T"></typeparam>
     public void DangerousGetPropertyAs<T>(out ReadOnlySpan<T> result, int MaxElements) where T : unmanaged
     {

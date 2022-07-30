@@ -15,11 +15,9 @@ namespace Engine.Objects
         public Vector3 PosDelta;
 
 
-        public Entity(Vector3 pos, Vector2 rotation)
+        public Entity(Vector3 pos, Quaternion rotation)
         {
-            Pos = pos;
-            Rotation.X = (Rotation.X - rotation.X * 0.15f);
-            Rotation.Y = ((Rotation.Y + rotation.Y * 0.15f) % 360.0f);
+            Position = pos;
         }
 
         protected Entity()

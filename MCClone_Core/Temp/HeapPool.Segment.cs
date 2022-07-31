@@ -19,9 +19,6 @@ namespace MCClone_Core.Temp
 
             public Segment(nuint blockSize, uint maxCount)
             {
-                if (blockSize > long.MaxValue)
-                    throw new ArgumentOutOfRangeException(nameof(blockSize));
-
                 BlockSize = blockSize;
                 MaxCount = maxCount;
             }

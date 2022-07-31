@@ -83,7 +83,7 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
             SafeCreateBuffer(device, (uint)readOnlySpan.Length);
 
         }
-        device.UpdateBuffer(BufferObject, 0, readOnlySpan[..readOnlySpan.Length]);   
+        device.UpdateBuffer(BufferObject, 0, readOnlySpan);   
     }
 
     /// <summary>

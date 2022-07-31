@@ -23,7 +23,7 @@ namespace Engine.Initialization
             options.Position = new Vector2D<int>(x, y);
             options.Title = windowName;
             options.VSync = false;
-            options.API = GraphicsAPI.Default;
+            options.API = GraphicsAPI.DefaultVulkan;
             
             WindowClass window = new WindowClass(options, gameclass);
 

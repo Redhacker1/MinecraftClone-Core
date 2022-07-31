@@ -45,7 +45,7 @@ namespace ObjDemo
 	{
 		static void Main()
 		{
-			Init.InitEngine(0, 0, 1600, 900, "Hello World", new ObjDemo());
+			Init.InitEngine(0, 0, 1600, 900, "Model Viewer", new ObjDemo());
 		}
 	}
 

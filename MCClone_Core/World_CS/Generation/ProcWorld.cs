@@ -33,8 +33,6 @@ namespace MCClone_Core.World_CS.Generation
 
 		public static bool Threaded = false;
 
-		bool ForceRenderDistanceCheck;
-
 		public static ProcWorld Instance;
 
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
@@ -42,8 +40,8 @@ namespace MCClone_Core.World_CS.Generation
 		// Max chunks radius comes out to (_loadRadius*2)^2 
 		public int _loadRadius = 35;
 
-		public static Random.Random WorldRandom;
-		public static long WorldSeed;
+		public readonly Random.Random WorldRandom;
+		public readonly long WorldSeed;
 		
 		public WorldData World;
 
@@ -69,13 +67,6 @@ namespace MCClone_Core.World_CS.Generation
 			WorldSeed = seed;
 			WorldRandom = new Random.Random(seed);
 			ChunkCs.LoadedChunks = LoadedChunks;
-		}
-
-		struct AtlasInfo
-		{
-			public uint length;
-			public uint width;
-			public Int2 TextureSize;
 		}
 
 		public override void _Ready()
@@ -117,7 +108,8 @@ namespace MCClone_Core.World_CS.Generation
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly,
+					ShaderStages.Fragment));
 
 			unsafe
 			{
@@ -194,7 +186,7 @@ namespace MCClone_Core.World_CS.Generation
 		public void UpdateRenderDistance(int distance)
 		{
 			_loadRadius = distance;
-			ForceRenderDistanceCheck = true;
+			enforce_render_distance(_currentChunkPos);
 		}
 
 
@@ -309,13 +301,14 @@ namespace MCClone_Core.World_CS.Generation
 
 		public string ReloadChunks(params string[] args)
 		{
-			ICollection<Vector2> chunks = LoadedChunks.Keys;
-			var chunkpos = _newChunkPos;
-			update_player_pos(Vector2.Zero);
-			update_player_pos(chunkpos);
+			ICollection<ChunkCs> chunks = LoadedChunks.Values;
+
+			foreach (ChunkCs chunk in chunks)
+			{
+				Mesher.AddMesh(chunk);
+			}
 			
-			
-			return $"{chunks.Count} Chunks sent to threadpool for processing...";
+			return $"Reloading {chunks.Count}";
 		}
 
 		public override List<Aabb> GetAabbs(int collisionlayer, Aabb aabb)

@@ -1,5 +1,0 @@
-﻿namespace Engine.Rendering.Culling
-{
-    
-        
-}

@@ -10,7 +10,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Engine\Engine.csproj" />
-        <Folder Include="Assets" />
     </ItemGroup>
 
     <ItemGroup>

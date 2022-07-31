@@ -37,7 +37,6 @@
       <Folder Include="Rendering\" />
       <Folder Include="Rendering\DX11" />
       <Folder Include="Rendering\Temp\Sprite" />
-      <Folder Include="StateKeeping" />
       <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>
 

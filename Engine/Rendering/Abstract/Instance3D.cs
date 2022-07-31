@@ -32,20 +32,8 @@ public sealed class Instance3D : MinimalObject
 
     public void GetInstanceAabb(out AABB boundingBox, Vector3 frustumCamerapos = default)
     {
-
-        var CachedAABB = Boundingbox;
-        //var TempAABB = RegenAabb();
-        // Uncomment for the slow act of calculating the AABB every frame! Should be used for debugging!
-        boundingBox = CachedAABB; //RegenAabb();
+        boundingBox = Boundingbox;
         boundingBox.Origin -= frustumCamerapos;
-        if (boundingBox.Origin != Boundingbox.Origin - frustumCamerapos)
-        {
-            throw new Exception($"{boundingBox.Origin} is not equal to {Boundingbox.Origin - frustumCamerapos}");
-        }
-        
-        
-        //boundingBox = Boundingbox;
-        //boundingBox.Origin = Position - frustumCamerapos;
     }
 
     protected override void OnTransformUpdated()

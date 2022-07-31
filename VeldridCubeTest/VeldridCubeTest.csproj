@@ -9,7 +9,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Engine\Engine.csproj" />
-        <Folder Include="Assets" />
         <Content Include="Assets\**">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>

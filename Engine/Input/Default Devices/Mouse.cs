@@ -61,7 +61,7 @@ namespace Engine.Input.Default_Devices
             Position = _inputDevice.Position;
             Delta = Position - _lastPos;
             
-            foreach (MouseButton mouseButtons in _inputDevice.SupportedButtons)
+            foreach (MouseButton mouseButtons in buttons)
             {
                 bool keyPressed = _inputDevice.IsButtonPressed(mouseButtons);
                 

@@ -55,7 +55,7 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
             
@@ -108,7 +108,8 @@ namespace Engine.Rendering.Veldrid
             
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                FPS = (uint) (1/_stopwatch.Elapsed.TotalSeconds);   
+                //Console.WriteLine((1 / (time)));
+                FPS = (uint) (1 / (time));   
             }
 
         }

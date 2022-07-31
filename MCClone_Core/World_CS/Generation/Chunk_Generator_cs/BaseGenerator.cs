@@ -55,7 +55,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             }
             
             Generate_Caves(chunk, Seed, surfaceheight, X, Z);
-            generate_details(chunk,ProcWorld.WorldRandom,surfaceheight);
+            generate_details(chunk,ProcWorld.Instance.WorldRandom,surfaceheight);
         }
 
         public virtual void generate_surface(ChunkCs Chunk,int Height, int X, int Z)

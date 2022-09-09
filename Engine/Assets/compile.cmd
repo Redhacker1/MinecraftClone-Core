@@ -4,3 +4,4 @@
 "%VULKAN_SDK%/Bin/glslc.exe" "Screenspaceshader.vert" -o "vert2D.spv"
 "%VULKAN_SDK%/Bin/glslc.exe" "LineFrag.frag" -o "LineFrag.spv"
 "%VULKAN_SDK%/Bin/glslc.exe" "LineVert.vert" -o "LineVert.spv"
+"%VULKAN_SDK%/Bin/glslc.exe" "Empty.frag" -o "Empty.spv"

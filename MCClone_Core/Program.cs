@@ -38,30 +38,9 @@ namespace MCClone_Core
         ProcWorld world;
         Player player;
         
-        public override void Gamestart()
+        public override void GameStart()
         {
-            Stopwatch watch = Stopwatch.StartNew();
-            List<Type> obsoleteTypes = AttributeHelpers.FindAllTypeOfAttribute<ObsoleteAttribute>();
-            Console.WriteLine(obsoleteTypes.Count);
-            Console.WriteLine("Classes with obsolete items found: ");
-            foreach (Type type in obsoleteTypes)
-            {
-                Console.WriteLine($"Classname: {type.Name} is obsolete!");
-                Attribute.GetCustomAttributes(type);
-
-                AttributeHelpers.GetAttributes<ObsoleteAttribute>(type);
-                
-                IEnumerable<object> attributes = AttributeHelpers.GetAttributes(type).Where(attribute => attribute 
-                    is ObsoleteAttribute);
-                foreach (Attribute attribute in attributes)
-                {
-                    ObsoleteAttribute obsoleteAttribute = attribute as ObsoleteAttribute;
-                    Console.WriteLine(obsoleteAttribute?.Message);
-                }
-            }
-
-            Console.WriteLine(watch.ElapsedMilliseconds);
-            
+            base.GameStart();
             
             ConsoleLibrary.InitConsole(consoleBox.SetConsoleScrollback);
             Console.WriteLine("Initializing Steam API");
@@ -69,15 +48,13 @@ namespace MCClone_Core
             {
                 SteamClient.Init(1789570);
                 Console.WriteLine("SteamAPI enabled successfully");
-                IEnumerable<Friend> friends = SteamFriends.GetFriends();
-                
+
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to load SteamAPI, some features will be unavailable (soon)");
+                Console.WriteLine("Failed to load SteamAPI, some features may be unavailable");
             }
-
-            base.Gamestart();
+            
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};

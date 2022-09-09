@@ -18,12 +18,12 @@ namespace LineTest
     {
         Player character;
         Line line;
-        public override void Gamestart()
+        public override void GameStart()
         {
             character = new Player();
             line = new Line();
 
-            base.Gamestart();
+            base.GameStart();
         }
     }
 

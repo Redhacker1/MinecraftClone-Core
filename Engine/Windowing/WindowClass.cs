@@ -1,6 +1,7 @@
 ﻿using System;
 using Engine.Input;
 using Engine.Objects;
+using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -54,7 +55,7 @@ namespace Engine.Windowing
             Handle.FramebufferResize += Renderer.OnResize;
             Handle.Render += Renderer.OnRender;
 
-            _gameInstance.Gamestart();
+            _gameInstance.GameStart();
             
         }
 

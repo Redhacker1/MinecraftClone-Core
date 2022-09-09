@@ -17,10 +17,10 @@ namespace InputTest
 
     internal class GameClass : GameEntry
     {
-        public override void Gamestart()
+        public override void GameStart()
         {
             Console.WriteLine("Game started");
-            base.Gamestart();
+            base.GameStart();
             InputObject game = new InputObject();
 
         }

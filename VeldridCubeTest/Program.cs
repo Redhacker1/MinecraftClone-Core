@@ -7,7 +7,7 @@ using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using Veldrid;
-using Shader = Engine.Rendering.Veldrid.Shader;
+using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace VeldridCubeTest
@@ -26,7 +26,7 @@ namespace VeldridCubeTest
 	    Material material;
 	    Entity Object;
 	    Player _player;
-        public override void Gamestart()
+        public override void GameStart()
         {
 	        _player = new Player();
 	        
@@ -65,20 +65,25 @@ namespace VeldridCubeTest
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
 			
 			material = new Material(materialDescription, 
-				new VertexLayoutDescription(
-					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
-					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3)),
+				new VertexLayoutDescription[1]
+				{
+					new VertexLayoutDescription(
+						new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
+						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
+				},
 				WindowClass.Renderer,
-				vertexLayout,
-				fragmentLayout
+				new []{				
+					vertexLayout,
+					fragmentLayout
+					
+				}
 			);
 			
 			
 			var atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
 			var pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
 			
-			material.ResourceSet(0, WindowClass.Renderer.ViewProjBuffer);
-			material.ResourceSet(1,WindowClass.Renderer.WorldBuffer, pointSampler, atlas);
+			material.ResourceSet(1, pointSampler, atlas);
 
 
 			MeshData data = new MeshData

@@ -1,5 +1,9 @@
-﻿using Engine.Windowing;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Engine.Rendering.Abstract;
+using Engine.Windowing;
 using Veldrid;
+using Shader = Engine.Rendering.Abstract.Shader;
 
 namespace Engine.Rendering.Veldrid
 {
@@ -10,31 +14,34 @@ namespace Engine.Rendering.Veldrid
         internal ResourceLayout[] layouts;
         internal ResourceSet[] Sets;
 
-        Pipeline pipeline_object;
+        Pipeline pipeline;
 
-        internal bool Bind(CommandList list, ResourceSet SetZero)
+        internal bool Bind(CommandList list, ResourceSet SetZero, bool DepthPrepass)
         {
-            if (pipeline_object != default)
+            if (pipeline != new Pipeline() && DepthPrepass == false)
             {
-                list.SetPipeline(pipeline_object._pipeline);
+                list.SetPipeline(pipeline._pipeline);
             }
-            
+
             list.SetGraphicsResourceSet(0 , SetZero);
 
-            for (int i = 1; i < Sets.Length; i++)
+            if (!DepthPrepass)
             {
-                if (Sets[i] != null)
+                for (int i = 1; i < Sets.Length; i++)
                 {
-                    list.SetGraphicsResourceSet((uint) i , Sets[i]);
-                }
-                else if(parent != null)
-                {
-                    list.SetGraphicsResourceSet((uint) i, parent.Sets[i]);
-                }
-                else
-                {
-                    return false;
-                }
+                    if (Sets[i] != null)
+                    {
+                        list.SetGraphicsResourceSet((uint) i , Sets[i]);
+                    }
+                    else if(parent != null)
+                    {
+                        list.SetGraphicsResourceSet((uint) i, parent.Sets[i]);
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }   
             }
 
             return true;
@@ -49,11 +56,12 @@ namespace Engine.Rendering.Veldrid
                 materialLayouts[layoutIndex] = renderer.Device.ResourceFactory.CreateResourceLayout(layout);
             }
             layouts = materialLayouts;
-            
-            pipeline_object = new Pipeline(description.DepthTest, description.WriteDepthBuffer,
-                description.ComparisonKind,
+
+            pipeline = new Pipeline(description.DepthTest, true,
+                ComparisonKind.Less,
                 description.CullMode, description.FaceDir, description.Topology, description.FillMode,
                 description.Shaders, renderer.Device, vertexLayoutDescription, layouts);
+
 
             Sets = new ResourceSet[materialLayouts.Length];
         }

@@ -5,12 +5,17 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
 using System.Numerics;
 using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Engine.Attributes;
 using Engine.Debugging;
 using Engine.MathLib;
+using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using MCClone_Core.Physics;
@@ -19,7 +24,7 @@ using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
 using Veldrid;
 using Material = Engine.Rendering.Veldrid.Material;
-using Shader = Engine.Rendering.Veldrid.Shader;
+using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace MCClone_Core.World_CS.Generation
@@ -31,7 +36,7 @@ namespace MCClone_Core.World_CS.Generation
 		public bool UseThreadPool = true;
 		int _chunksPerFrame = 8;
 
-		public static bool Threaded = false;
+		public static bool Threaded = true;
 
 		public static ProcWorld Instance;
 
@@ -62,6 +67,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		public ProcWorld(long seed)
 		{
+		
 			Ticks = true;
 			PhysicsTick = true;
 			WorldSeed = seed;
@@ -75,6 +81,7 @@ namespace MCClone_Core.World_CS.Generation
 				return;
 			Instance = this;
 			
+			
 			MaterialDescription materialDescription = new MaterialDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
@@ -85,19 +92,10 @@ namespace MCClone_Core.World_CS.Generation
 				WriteDepthBuffer = true,
 				FaceDir = FrontFace.Clockwise,
 				FillMode = PolygonFillMode.Solid,
-				Shaders = new Dictionary<ShaderStages, Shader>
-				{
-					{
-						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass.Renderer.Device, ShaderStages.Fragment)
-					},
-					{
-						ShaderStages.Vertex,
-						new Shader("./Assets/intvert.spv", WindowClass.Renderer.Device, ShaderStages.Vertex)
-					}
-
-
-				}
+				Shaders = new ShaderSet(
+					ShaderExtensions.CreateShaderSpirv(ShaderType.Vertex, File.ReadAllBytes("./Assets/intvert.spv"), "main"),
+					ShaderExtensions.CreateShaderSpirv(ShaderType.Fragment,	File.ReadAllBytes("./Assets/frag.spv"), "main")
+					)
 			};
 
 			ResourceLayoutDescription ProjectionLayout = new ResourceLayoutDescription(
@@ -111,24 +109,21 @@ namespace MCClone_Core.World_CS.Generation
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly,
 					ShaderStages.Fragment));
 
-			unsafe
+			VertexLayoutDescription[] vertexlayout = new[]
 			{
-				VertexLayoutDescription[] vertexlayout = new[]
-				{
-					new VertexLayoutDescription((uint)sizeof(Matrix4x4), 1, 
-						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
-						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
-					new VertexLayoutDescription(12, 0,
-						new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
-						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
-					)
-				};
+				new VertexLayoutDescription((uint)Unsafe.SizeOf<Matrix4x4>(), 1, 
+					new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+					new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+					new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+					new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+				new VertexLayoutDescription(12, 0,
+					new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
+					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
+				)
+			};
 
-				_material = new Material(materialDescription, vertexlayout, WindowClass.Renderer,
-					new[] {ProjectionLayout, fragmentLayout});
-			}
+			_material = new Material(materialDescription, vertexlayout, WindowClass.Renderer,
+				new[] {ProjectionLayout, fragmentLayout});
 			
 			atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
 			TextureSampler pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
@@ -278,6 +273,7 @@ namespace MCClone_Core.World_CS.Generation
 			bool loadChunk;
 			loadChunk = !LoadedChunks.ContainsKey(new Vector2(cpos.X, cpos.Y));
 
+			Stopwatch timer = Stopwatch.StartNew();
 			if (loadChunk)
 			{
 				ChunkCs c;
@@ -295,7 +291,7 @@ namespace MCClone_Core.World_CS.Generation
 				c.UpdateVisMask();
 				_update_chunk(cx, cz);
 			}
-			
+
 			return new Vector2(cpos.X, cpos.Y);
 		}
 
@@ -416,9 +412,6 @@ namespace MCClone_Core.World_CS.Generation
 				if (Math.Abs(key.X - currentChunkPos.X) > _loadRadius || Math.Abs(key.Y - currentChunkPos.Y) > _loadRadius)
 					_unloadChunk((int) key.X, (int) key.Y);
 			}
-
-			//GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-			//GC.Collect(2, GCCollectionMode.Optimized, false, true);
 		}
 		
 		

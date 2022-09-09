@@ -15,7 +15,7 @@ using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using Silk.NET.Input;
 using Veldrid;
-using Shader = Engine.Rendering.Veldrid.Shader;
+using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace ObjDemo
@@ -24,9 +24,9 @@ namespace ObjDemo
 	{
 		ConsoleText debug_console = new ConsoleText();
 		MeshSpawner thing;
-		public override void Gamestart()
+		public override void GameStart()
 		{
-			base.Gamestart();
+			base.GameStart();
 
 			DebugPanel panel = new DebugPanel();
 			Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX, 1.77777F, true);

@@ -30,30 +30,29 @@ namespace MCClone_Core.Debug_and_Logging
         
         public override void CreateUI()
         {
-            //ulong VertexCount = 0;
+            ulong VertexCount = 0;
 
-            //CurrentProcess.Refresh();
+            CurrentProcess.Refresh();
             
-            //float MemUsage = CurrentProcess.WorkingSet64 / 1048576f;
+            float MemUsage = CurrentProcess.WorkingSet64 / 1048576f;
 
             //ImGui.Text($"Memory: {CurrentProcess.WorkingSet64 / 1048576f}MB");
             ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
             //ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Count}");
-            //ImGui.Text($"Rendered Vertex count is: {VertexCount}");
-            //ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
+            ImGui.Text($"Rendered Vertex count is: {VertexCount}");
+            ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
 
             Vector3 camerapos = Camera.MainCamera.Pos;
-            //ImGui.InputFloat3("Player Location: ", ref camerapos, null);
+            ImGui.InputFloat3("Player Location: ", ref camerapos, null);
             //ImGui.Text($"Heapool: {ChunkSingletons.ChunkPool.MaxCapacity} bytes maxed, {ChunkSingletons.ChunkPool.AvailableBytes} free!");
             
             
-            //Distance = ProcWorld.Instance._loadRadius;
+            Distance = ProcWorld.Instance._loadRadius;
             bool updated = ImGui.SliderInt("Render distance", ref Distance, 4, 90);
 
             if (updated)
             {
                 ProcWorld.Instance.UpdateRenderDistance(Distance);
-                //GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             }
 
             string buttonText = ProcWorld.Instance.UseThreadPool ? "Disable ThreadPool" : "Enable ThreadPool";

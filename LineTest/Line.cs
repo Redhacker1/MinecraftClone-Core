@@ -8,20 +8,26 @@ using Veldrid;
 
 namespace LineTest;
 
+public struct LineVert
+{
+    public Vector3 Point1;
+    public Vector3 Point2;
+}
+
+
 public struct Line : IDisposable
 {
 
     public static readonly object locker = new object();
     public static readonly List<Line> _lines = new List<Line>();
-    public Vector3 Point1;
-    public Vector3 Point2;
-    public LineFrag LineData;
+    public LineVert LineDataVert;
+    public LineFrag LineDataFrag;
 
     public Line()
     {
-        Point1 = default;
-        Point2 = default;
-        LineData = default;
+        LineDataVert.Point1 = default;
+        LineDataVert.Point2 = default; 
+        LineDataFrag = new LineFrag();
         lock (locker)
         {
             _lines.Add(this);
@@ -52,8 +58,8 @@ public struct LineFrag
 
     public LineFrag()
     {
-        uLineWidth = default;
-        Color = default;
+        uLineWidth = 2;
+        Color = new Vector4(1,0,1,1);
         BlendFactor = 1.5f;
     }
 
@@ -74,6 +80,11 @@ class LineRenderer : RenderPass
             
     }
 
+    protected override List<Instance3D> Cull(List<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo)
+    {
+        return base.Cull(instances, ref cameraInfo);
+    }
+
     protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo cameraInfo)
     {
     
@@ -87,8 +98,8 @@ class LineRenderer : RenderPass
             {
                 // Calculate the AABB of each line NOTE: this may hamper performance,
                 // Especially when we move to have this all instanced
-                Vector3 min = Vector3.Min(line.Point1, line.Point2);
-                Vector3 max = Vector3.Max(line.Point1, line.Point2);
+                Vector3 min = Vector3.Min(line.LineDataVert.Point1, line.LineDataVert.Point2);
+                Vector3 max = Vector3.Max(line.LineDataVert.Point1, line.LineDataVert.Point2);
                 boundingBox.Origin = (min + max) * .5f;
                 boundingBox.SetExtents(max - boundingBox.Origin);
                 bool result = IntersectionHandler.aabb_to_frustum(ref boundingBox, frustum);

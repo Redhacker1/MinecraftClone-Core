@@ -55,10 +55,12 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
-            
+
+            // TODO: probably should implement some better systems for dealing with this shit!
+            //Passes[0] = new DepthPrepass(this);
             Passes[0] = new DefaultRenderPass(this);
 
         }
@@ -108,8 +110,7 @@ namespace Engine.Rendering.Veldrid
             
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                //Console.WriteLine((1 / (time)));
-                FPS = (uint) (1 / (time));   
+                FPS = (uint) (1 / time);   
             }
 
         }

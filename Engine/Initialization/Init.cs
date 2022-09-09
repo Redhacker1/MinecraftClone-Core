@@ -18,13 +18,15 @@ namespace Engine.Initialization
         static WindowClass InitWindow(int x, int y, int width, int height, string windowName, GameEntry gameclass)
         {
 
-            WindowOptions options = new WindowOptions();
-            options.Size = new Vector2D<int>(width, height);
-            options.Position = new Vector2D<int>(x, y);
-            options.Title = windowName;
-            options.VSync = false;
-            options.API = GraphicsAPI.DefaultVulkan;
-            
+            WindowOptions options = new WindowOptions
+            {
+                Size = new Vector2D<int>(width, height),
+                Position = new Vector2D<int>(x, y),
+                Title = windowName,
+                VSync = false,
+                API = GraphicsAPI.Default with {Version = new APIVersion(4, 6)}
+            };
+
             WindowClass window = new WindowClass(options, gameclass);
 
             return window;

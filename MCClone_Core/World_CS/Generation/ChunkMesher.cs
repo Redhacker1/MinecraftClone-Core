@@ -22,26 +22,28 @@ public class ChunkMesher
 
     void MeshOrderer(ref Frustum frustum)
     {
-
+        uint count = 0;
         bool Inview = false;
         for (int chunkIndex = 0; chunkIndex < Meshes.Count; chunkIndex++)
         {
-            bool success = Meshes.TryDequeue(out WeakReference<ChunkCs> meshref);
-            if (success && meshref.TryGetTarget(out ChunkCs mesh) && mesh.Freed == false)
+            bool success = Meshes.TryDequeue(out WeakReference<ChunkCs> meshRef);
+            if (success && meshRef.TryGetTarget(out ChunkCs mesh) && mesh.Freed == false)
             {
                 AABB boundingBox = new AABB
                 {
-                    Origin = mesh.Position
+                    Origin = mesh._instance3D.Position - Camera.MainCamera.Pos
                 };
-                boundingBox.SetExtents(new Vector3(ChunkCs.MaxX, ChunkCs.MaxY, ChunkCs.MaxZ)/2);
+                boundingBox.SetExtents(new Vector3(ChunkCs.MaxX/2f, ChunkCs.MaxY, ChunkCs.MaxZ/2f));
                 if (IntersectionHandler.aabb_to_frustum(ref boundingBox, frustum))
                 {
                     Inview = true;
                     mesh.Update();
+                    mesh._instance3D.GetInstanceAabb(out boundingBox);
                 }
-                else if (mesh.Freed == false)
+                else
                 {
-                    Meshes.Enqueue(meshref);
+                    count++;
+                    Meshes.Enqueue(meshRef);
                 }
             }
         }

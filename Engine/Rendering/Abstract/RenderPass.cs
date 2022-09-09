@@ -14,17 +14,21 @@ namespace Engine.Rendering.Abstract
         internal UniformBuffer<Matrix4x4> ViewProjBuffer;
         CommandList cmdList;
         protected Renderer backingRenderer;
+        public string Name;
         
         List<WeakReference<Instance3D>> Instances = new List<WeakReference<Instance3D>>();
 
-        protected RenderPass(CommandList _list, Renderer renderer)
+        protected RenderPass(CommandList _list, Renderer renderer, string name = null )
         {
+            Name = name;
             cmdList = _list;
             backingRenderer = renderer;
         }
-        protected RenderPass(Renderer renderer)
+        protected RenderPass(Renderer renderer, string name = null )
         {
+            Name = name;
             backingRenderer = renderer;
+            cmdList = renderer.Device.ResourceFactory.CreateCommandList();
         }
 
         /// <summary>
@@ -51,6 +55,7 @@ namespace Engine.Rendering.Abstract
         /// </summary>
         /// <param name="list">The target command list to execute</param>
         /// <param name="instances">The sorted list of Instances to draw</param>
+        /// <param name="camera">"The view the pass comes from!"</param>
         protected abstract void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera);
 
         internal void RunPass()
@@ -75,9 +80,18 @@ namespace Engine.Rendering.Abstract
                 instances = Cull(Instances, ref cameraInfo);
             }
             Sort(instances, cameraInfo);
+
+            if (Name != null)
+            {
+                list.PushDebugGroup(Name);   
+            }
             PrePass(ref cameraInfo, list, instances);
             Pass(list, instances, ref cameraInfo);
             PostPass(list);
+            if (Name != null)
+            {
+                list.PopDebugGroup();   
+            }
         }
         
         protected virtual List<Instance3D> Cull(List<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo)

@@ -4,6 +4,7 @@ using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
+using Engine.Rendering.Veldrid;
 
 namespace Engine
 {
@@ -13,7 +14,10 @@ namespace Engine
 
         static void Main(params string[] args)
         {
-            // TODO: This is where engine 
+            Shader ps = ShaderExtensions.CreateShaderHLSL(ShaderType.Fragment, "HLSLTest.ps", "main");
+
+
+            // TODO: This is where the engine should always init. 
             Init.InitEngine(0,0, 1024,768, "BaseEngine", new GameTest());
         }
     }
@@ -21,9 +25,9 @@ namespace Engine
     internal class GameTest : GameEntry
     {
         UITestEntity Entity;
-        public override void Gamestart()
+        public override void GameStart()
         {
-            base.Gamestart();
+            base.GameStart();
             Entity = new UITestEntity();
         }
     }

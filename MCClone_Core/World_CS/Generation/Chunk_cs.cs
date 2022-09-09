@@ -10,7 +10,6 @@ using Engine.Rendering.Abstract;
 using Engine.Windowing;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
-using MCClone_Core.World_CS.Generation.Chunk_Generator_cs;
 
 namespace MCClone_Core.World_CS.Generation
 {
@@ -84,8 +83,8 @@ namespace MCClone_Core.World_CS.Generation
 		static readonly uint[] Cross2 = {7, 5, 0, 2};
 		static readonly uint[] Cross3 = {6, 4, 1, 3};
 		static readonly uint[] Cross4 = {2, 0, 5, 7};
-		
-		readonly Instance3D _instance3D;
+
+		internal readonly Instance3D _instance3D;
 
 		public readonly SafeByteStore<byte> BlockData;
 		readonly SafeByteStore<bool> _visibilityMask;
@@ -109,6 +108,7 @@ namespace MCClone_Core.World_CS.Generation
 
 			_instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
 			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
+			WindowClass.Renderer.Passes[1]?.AddInstance(_instance3D);
 		}
 
 
@@ -127,7 +127,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			
 			
-			Position = new Vector3(cx * (MaxX), 0, cz * MaxZ);
+			Position = new Vector3(cx * MaxX, 0, cz * MaxZ);
 			ChunkCoordinate = new Int2(cx, cz);
 			
 			ChunkSingletons.Generator.Generate(this, cx, cz, seed);

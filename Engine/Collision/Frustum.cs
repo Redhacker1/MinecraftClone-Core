@@ -32,6 +32,9 @@ namespace Engine.Collision;
             
             float nearWidth = nearHeight * AspectRatio;
             float farWidth = farHeight * AspectRatio;
+            
+            
+            
 
             Vector3 farTopLeft = (farCenter + mat1 * (farHeight * 0.5f) - mat0 * (farWidth * 0.5f)) * 1f;
             Vector3 farTopRight = (farCenter + mat1 * (farHeight * 0.5f) + mat0 * (farWidth * 0.5f)) * 1f;

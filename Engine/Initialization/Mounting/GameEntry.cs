@@ -12,7 +12,7 @@ namespace Engine
         /// <summary>
         /// Called as the game is being created, by this point all engine functions are safe to call
         /// </summary>
-        public virtual void Gamestart()
+        public virtual void GameStart()
         {
         }
         

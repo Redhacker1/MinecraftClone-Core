@@ -34,8 +34,8 @@ namespace MCClone_Core
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
         Player player;
-        
-        public override void GameStart()
+
+        protected override void GameStart()
         {
             base.GameStart();
             
@@ -65,7 +65,7 @@ namespace MCClone_Core
             player.World = world;
         }
 
-        public override void GameEnded()
+        protected override void GameEnded()
         {
             Console.WriteLine("Shutting down SteamAPI");
             SteamClient.Shutdown();

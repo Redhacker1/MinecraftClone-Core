@@ -22,7 +22,7 @@ namespace ObjDemo
 		Camera _fpCam;
 
 
-		public override void _Ready()
+		protected override void _Ready()
 		{
 			Console.WriteLine("Ready");
 			Rotation = Quaternion.Identity;
@@ -33,7 +33,7 @@ namespace ObjDemo
 			Camera.MainCamera = _fpCam;
 		}
 
-		public override void _Process(double delta)
+		protected override void _Process(double delta)
 		{
 			_fpCam.Pos = Position;
 			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
@@ -60,7 +60,7 @@ namespace ObjDemo
 
 		public bool MoveMouse { get; set; }
 
-		public override void _PhysicsProcess(double delta)
+		protected override void _PhysicsProcess(double delta)
 		{
 			_controller.Move(delta);
 		}

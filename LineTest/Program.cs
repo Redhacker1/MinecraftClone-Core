@@ -18,7 +18,7 @@ namespace LineTest
     {
         Player character;
         Line line;
-        public override void GameStart()
+        protected override void GameStart()
         {
             character = new Player();
             line = new Line();

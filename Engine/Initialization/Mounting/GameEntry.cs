@@ -29,7 +29,7 @@ namespace Engine
         /// <summary>
         /// Called as the game is being created, by this point all engine functions are safe to call
         /// </summary>
-        public virtual void GameStart()
+        protected internal virtual void GameStart()
         {
             PinnedObject?._Ready();
         }
@@ -45,7 +45,7 @@ namespace Engine
         /// <summary>
         /// Calls after the engine has been shut down, any finalization logic can and should be done here! rendering functions are not safe to call here!
         /// </summary>
-        public virtual void GameEnded()
+        protected internal virtual void GameEnded()
         {
             PinnedObject?.OnFree();
         }

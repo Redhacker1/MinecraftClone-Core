@@ -23,7 +23,7 @@ namespace Engine
     internal class GameTest : GameEntry
     {
         UITestEntity Entity;
-        public override void GameStart()
+        protected internal override void GameStart()
         {
             base.GameStart();
             Entity = new UITestEntity();

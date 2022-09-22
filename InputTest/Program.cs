@@ -17,7 +17,7 @@ namespace InputTest
 
     internal class GameClass : GameEntry
     {
-        public override void GameStart()
+        protected override void GameStart()
         {
             Console.WriteLine("Game started");
             base.GameStart();

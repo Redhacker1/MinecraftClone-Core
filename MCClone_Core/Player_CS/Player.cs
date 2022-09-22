@@ -61,7 +61,10 @@ namespace MCClone_Core.Player_CS
 		{
 			PhysicsTick = true;
 
-			FPCam = new Camera(new Vector3(Position.X, Position.Y + .8f, Position.Z), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			FPCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
+			{
+				Position = new Vector3(Position.X, Position.Y + .8f, Position.Z)
+			};
 			//.FOV = 100;
 			#if Core
 			MoveMouse = true;
@@ -107,7 +110,7 @@ namespace MCClone_Core.Player_CS
 			}
 			
 			
-			FPCam.Pos = new Vector3(Position.X, Position.Y + 0, Position.Z);
+			FPCam.Position = new Vector3(Position.X, Position.Y + 0, Position.Z);
 			if (MoveMouse)
 			{
 				Freelook();

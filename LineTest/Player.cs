@@ -26,7 +26,7 @@ namespace ObjDemo
 		{
 			Console.WriteLine("Ready");
 			Rotation = Quaternion.Identity;
-			_fpCam = new Camera(Position, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(this.WorldTransform, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			_fpCam.Rotation = Quaternion.Identity;
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
@@ -35,7 +35,7 @@ namespace ObjDemo
 
 		protected override void _Process(double delta)
 		{
-			_fpCam.Pos = Position;
+			_fpCam.Position = Position;
 			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
 			{
 				if (MoveMouse)

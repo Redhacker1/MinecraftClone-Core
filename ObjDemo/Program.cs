@@ -1,6 +1,8 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
 using System.Numerics;
 using Engine;
 using Engine.AssetLoading.AssimpIntegration;
@@ -24,12 +26,13 @@ namespace ObjDemo
 	{
 		ConsoleText debug_console = new ConsoleText();
 		MeshSpawner thing;
-		public override void GameStart()
+
+		protected override void GameStart()
 		{
 			base.GameStart();
 
 			DebugPanel panel = new DebugPanel();
-			Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX, 1.77777F, true);
+			Camera fpCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitX, 1.77777F, true);
 			thing = new MeshSpawner();
 
 
@@ -64,6 +67,10 @@ namespace ObjDemo
 
 		unsafe void CreateBaseMaterial()
 		{
+			ShaderSet set = new ShaderSet(
+				new Shader(File.ReadAllBytes("./Assets/vert.spv").ToImmutableArray(), ShaderType.Vertex, "main"),
+				new Shader(File.ReadAllBytes("./Assets/frag.spv").ToImmutableArray(), ShaderType.Fragment, "main"));
+			
 			MaterialDescription materialDescription = new MaterialDescription
 			{
 				BlendState = BlendStateDescription.SingleOverrideBlend,
@@ -74,19 +81,7 @@ namespace ObjDemo
 				WriteDepthBuffer = true,
 				FaceDir = FrontFace.CounterClockwise,
 				FillMode = PolygonFillMode.Solid,
-				Shaders = new Dictionary<ShaderStages, Shader>
-				{
-					{
-						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass.Renderer.Device, ShaderStages.Fragment)
-					},
-					{
-						ShaderStages.Vertex,
-						new Shader("./Assets/vert.spv", WindowClass.Renderer.Device, ShaderStages.Vertex)
-					}
-
-
-				}
+				Shaders = set
 			};
 
 
@@ -133,7 +128,7 @@ namespace ObjDemo
 			baseMaterial.ResourceSet(2, new TextureSampler(WindowClass.Renderer.Device.Aniso4xSampler), atlas);
 		}
 
-		public override void _Ready()
+		protected override void _Ready()
 		{
 			Rotation = Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(0),
 				MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(0));
@@ -174,7 +169,7 @@ namespace ObjDemo
 			Matrix4x4 nodeTransform = nodeOffset * nodeDescription.Transform;
 
 			Matrix4x4.Decompose(nodeTransform, out Vector3 nodeScale, out Quaternion nodeRotation, out Vector3 nodePos);
-			SetTransform(nodePos, nodeRotation, nodeScale);
+			SetTransform(new Transform(nodePos, nodeRotation, nodeScale));
 
 
 			if (nodeDescription.MeshIndices != Array.Empty<uint>())
@@ -204,7 +199,7 @@ namespace ObjDemo
 				Children = new AssimpNodeTree[nodeDescription.Children.Length];
 				for (int childIndex = 0; childIndex < nodeDescription.Children.Length; childIndex++)
 				{
-					Children[childIndex] = new AssimpNodeTree(scene, nodeDescription.Children[childIndex], GetWorldTransform(),
+					Children[childIndex] = new AssimpNodeTree(scene, nodeDescription.Children[childIndex], LocalTransform.AsMatrix4X4(),
 						material);
 				}
 			}

@@ -67,13 +67,12 @@ namespace Engine.Rendering.Abstract
 
         internal virtual void RunPass(CommandList list)
         {
-            CameraInfo cameraInfo = default;
+
+            if (Camera.MainCamera == null) return;
+
+
+            CameraInfo cameraInfo = new CameraInfo(Camera.MainCamera);   
             List<Instance3D> instances;
-            
-            if (Camera.MainCamera != null)
-            {
-                cameraInfo = new CameraInfo(Camera.MainCamera);   
-            }
             lock (Instances)
             {
                 instances = Cull(Instances, ref cameraInfo);
@@ -129,15 +128,15 @@ namespace Engine.Rendering.Abstract
         
         int GreaterThan(Vector3 first, Vector3 second, ref CameraInfo cameraInfo)
         {
-            if (Vector3.Distance(cameraInfo.CameraPos, first) > Vector3.Distance(cameraInfo.CameraPos, second))
+            if (Vector3.Distance(cameraInfo.CameraTransform.Position, first) > Vector3.Distance(cameraInfo.CameraTransform.Position, second))
             {
                 return 1;
             }
-            if (Math.Abs(Vector3.Distance(cameraInfo.CameraPos, first) - Vector3.Distance(cameraInfo.CameraPos, second)) < float.Epsilon)
+            if (Math.Abs(Vector3.Distance(cameraInfo.CameraTransform.Position, first) - Vector3.Distance(cameraInfo.CameraTransform.Position, second)) < float.Epsilon)
             {
                 return 0;
             }
-            if (Vector3.Distance(cameraInfo.CameraPos, first) < Vector3.Distance(cameraInfo.CameraPos, second))
+            if (Vector3.Distance(cameraInfo.CameraTransform.Position, first) < Vector3.Distance(cameraInfo.CameraTransform.Position, second))
             {
                 return -1;
             }

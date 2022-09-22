@@ -2,7 +2,7 @@
 
 namespace MCClone_Core.Physics
 {
-  public class Aabb
+  public struct Aabb
   {
     const float Epsilon = 0.01f;
     public Vector3 MinLoc;

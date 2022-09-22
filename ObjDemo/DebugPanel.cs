@@ -36,7 +36,7 @@ namespace ObjDemo
             ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
 
-            Vector3 camerapos = Camera.MainCamera.Pos;
+            Vector3 camerapos = Camera.MainCamera.Position;
             ImGui.InputFloat3("Player Location: ", ref camerapos, null, ImGuiInputTextFlags.ReadOnly);
             
 

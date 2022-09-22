@@ -2,12 +2,13 @@
 using System.Numerics;
 using Engine.Collision.Simple;
 using Engine.MathLib;
+using Engine.Objects;
 using Plane = Engine.Collision.Simple.Plane;
 
 namespace Engine.Rendering.Abstract
 {
     // TODO: More elegant Camera class, preferably one that can more easily accommodate more than one camera. 
-    public class Camera
+    public class Camera : EngineObject
     {
         public static Camera MainCamera;
         public Vector3 Front { get; set; }
@@ -26,12 +27,10 @@ namespace Engine.Rendering.Abstract
         public float FarPlane = 1000;
 
         public Vector3 Forward => GetLookDir();
-        public Quaternion Rotation { get; set; }
-        public Vector3 Pos { get; set; }
 
-        public Camera(Vector3 pos, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
+        public Camera(Transform transform, Vector3 front, Vector3 up, float aspectRatio, bool mainCamera)
         {
-            Pos = pos;  
+            LocalTransform = transform;
             AspectRatio = aspectRatio;
             Front = front;
             Up = up;
@@ -68,7 +67,7 @@ namespace Engine.Rendering.Abstract
 
         public Frustum GetViewFrustum(out Plane[] planes)
         {
-            Frustum frustum = new Frustum(GetFov(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), Pos, frustumPlanes);
+            Frustum frustum = new Frustum(GetFov(), NearPlane, FarPlane, AspectRatio, GetViewMatrix(), LocalTransform.Position, frustumPlanes);
             planes = frustumPlanes;
             return frustum;
         }

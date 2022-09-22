@@ -11,7 +11,7 @@ namespace Engine.Collision.Simple;
         public Frustum(float FOV,float near, float far,float AspectRatio, Matrix4x4 ViewFrustum, Vector3 Pos, Plane[] planes)
         {
 
-            if (planes.Length < 6)
+            if (planes.Length < 6 || planes == null)
             {
                 throw new ArgumentException("the planes array was too small");
             }

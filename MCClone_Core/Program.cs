@@ -58,11 +58,14 @@ namespace MCClone_Core
             PinnedObject = world;
 
 
+            
             player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero);
             player.Noclip = false;
             script = new WorldScript(world);
             script._player = player;
             player.World = world;
+            
+            world.AddChild(player);
         }
 
         protected override void GameEnded()

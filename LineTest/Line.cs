@@ -37,7 +37,7 @@ public struct Line : IDisposable
 
     static Matrix4x4 ModelMatrix => Matrix4x4.CreateFromQuaternion(Quaternion.Identity)
                                     * Matrix4x4.CreateScale(1)
-                                    * Matrix4x4.CreateTranslation(Camera.MainCamera != null ? -Camera.MainCamera.Pos : Vector3.Zero);
+                                    * Matrix4x4.CreateTranslation(Camera.MainCamera != null ? -Camera.MainCamera.Position : Vector3.Zero);
 
     public void Dispose()
     {

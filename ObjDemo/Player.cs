@@ -21,21 +21,22 @@ namespace ObjDemo
 		Camera _fpCam;
 
 
-		public override void _Ready()
+		protected override void _Ready()
 		{
 			Rotation = Quaternion.Identity;
-			_fpCam = new Camera(Position, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
+			_fpCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
 			{
-				Rotation = Rotation
+				Position = this.Position,
+				Rotation = this.Rotation
 			};
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			MoveMouse = true;
 			_controller = new DemoController(this);
 		}
 
-		public override void _Process(double delta)
+		protected override void _Process(double delta)
 		{
-			_fpCam.Pos = Position;
+			_fpCam.Position = Position;
 			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
 			{
 				if (MoveMouse)
@@ -60,7 +61,7 @@ namespace ObjDemo
 
 		public bool MoveMouse { get; set; }
 
-		public override void _PhysicsProcess(double delta)
+		protected override void _PhysicsProcess(double delta)
 		{
 			_controller.Move(delta);
 		}
@@ -81,12 +82,17 @@ namespace ObjDemo
                     
 					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
 					Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
-                
-					Vector3 CameraDirection = Vector3.Zero;
-					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
+
+					Vector3 cameraDirection = new Vector3
+					{
+						X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) *
+						    MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch)),
+						Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch)),
+						Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) *
+						    MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch))
+
+					};
+					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
 				}
 			}
 		}

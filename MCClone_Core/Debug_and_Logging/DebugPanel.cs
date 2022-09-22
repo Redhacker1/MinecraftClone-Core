@@ -40,7 +40,7 @@ namespace MCClone_Core.Debug_and_Logging
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
 
-            Vector3 camerapos = Camera.MainCamera.Pos;
+            Vector3 camerapos = Camera.MainCamera.Position;
             ImGui.InputFloat3("Player Location: ", ref camerapos, null);
             //ImGui.Text($"Heapool: {ChunkSingletons.ChunkPool.MaxCapacity} bytes maxed, {ChunkSingletons.ChunkPool.AvailableBytes} free!");
             

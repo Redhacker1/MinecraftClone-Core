@@ -46,6 +46,7 @@ namespace Engine.Objects
         /// </summary>
         public void FreeSynchronous()
         {
+            _parent?.RemoveChild(this);
             EngineFree = true;
         }
 
@@ -65,7 +66,7 @@ namespace Engine.Objects
         
     #region Engine Transform Properties and Methods
 
-        internal Transform LocalTransform;
+    public Transform LocalTransform;
         public Transform WorldTransform
         {
             get
@@ -143,7 +144,7 @@ namespace Engine.Objects
             {
                 cameraSpaceMatrix = WorldTransform;
             }
-            cameraSpaceMatrix.Position = Position - camera.CameraPos;
+            cameraSpaceMatrix.Position = Position - camera.CameraTransform.Position;
             return cameraSpaceMatrix;
         }
         
@@ -152,12 +153,12 @@ namespace Engine.Objects
 
     #region Parent Child Hierarchy
 
-        protected void AddChild(EngineObject engineObject)
+    public void AddChild(EngineObject engineObject)
         {
             Children.Add(engineObject);
         }
-        
-        protected void RemoveChild(EngineObject engineObject)
+
+    public void RemoveChild(EngineObject engineObject)
         {
             Children.Remove(engineObject);
         }

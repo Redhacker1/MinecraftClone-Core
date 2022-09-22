@@ -290,6 +290,7 @@ namespace MCClone_Core.World_CS.Generation
 				LoadedChunks[new Vector2(cpos.X, cpos.Y)] = c;
 				c.UpdateVisMask();
 				_update_chunk(cx, cz);
+				AddChild(c);
 			}
 
 			return new Vector2(cpos.X, cpos.Y);
@@ -429,8 +430,8 @@ namespace MCClone_Core.World_CS.Generation
 				var chunk = LoadedChunks[cpos];
 				
 				//SaveFileHandler.WriteChunkData(chunk.BlockData.FullSpan, chunk.ChunkCoordinate, World);
-				chunk.FreeSynchronous();
 				LoadedChunks.TryRemove(cpos, out _);
+				RemoveChild(chunk);
 			}
 
 		}
@@ -483,8 +484,7 @@ namespace MCClone_Core.World_CS.Generation
 					{
 						SaveFileHandler.WriteChunkData(chunk.Value.BlockData.FullSpan,
 							chunk.Value.ChunkCoordinate, World);
-						chunk.Value.FreeSynchronous();
-						
+						RemoveChild(chunk.Value);
 
 						return null; 
 					});	

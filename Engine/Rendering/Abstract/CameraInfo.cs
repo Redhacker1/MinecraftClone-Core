@@ -1,19 +1,17 @@
 ﻿using System.Numerics;
 using Engine.Collision.Simple;
+using Engine.MathLib;
 
 namespace Engine.Rendering.Abstract;
 
 public struct CameraInfo
 {
-    public Frustum CameraFrustum;
-    
-    public Camera Self;
-
+    public readonly Frustum CameraFrustum;
+    public readonly Camera Self;
     public Vector3 Up;
     public Vector3 Forward;
     public Vector3 Right;
-    public Vector3 CameraPos;
-    public Quaternion CameraRotation;
+    public Transform CameraTransform;
 
 
     public CameraInfo(Camera camera)
@@ -21,8 +19,7 @@ public struct CameraInfo
         Up = camera.Up;
         Forward = camera.Forward;
         Right = camera.Right;
-        CameraPos = camera.Pos;
-        CameraRotation = camera.Rotation;
+        CameraTransform = camera.LocalTransform;
         Self = camera;
         CameraFrustum = camera.GetViewFrustum(out _);
     }

@@ -37,7 +37,7 @@ namespace MCClone_Core.Utility
 			_pw = world_data;
 		}
 
-		public override void _Ready()
+		protected override void _Ready()
 		{
 			
 			
@@ -78,7 +78,7 @@ namespace MCClone_Core.Utility
 		
 
 		//Called every frame. 'delta' is the elapsed time since the previous frame.
-		public override void _Process(double delta)
+		protected override void _Process(double delta)
 		{
 			//base._Process(delta);
 			

@@ -32,7 +32,8 @@ namespace InputTest
         {
             Ticks = true;
         }
-        public override void _Process(double delta)
+
+        protected override void _Process(double delta)
         {
             base._Process(delta);
             if (InputHandler.MouseDelta(0) != Vector2.Zero)

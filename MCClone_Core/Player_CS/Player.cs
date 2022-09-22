@@ -57,7 +57,7 @@ namespace MCClone_Core.Player_CS
 			});
 		}
 
-		public override void _Ready()
+		protected override void _Ready()
 		{
 			PhysicsTick = true;
 
@@ -87,8 +87,8 @@ namespace MCClone_Core.Player_CS
 			}'
 			#endif
 		}
-		
-		public override void _Process(double delta)
+
+		protected override void _Process(double delta)
 		{
 
 			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
@@ -142,7 +142,7 @@ namespace MCClone_Core.Player_CS
 			Noclip = !Noclip;
 		}
 
-		public override void _PhysicsProcess(double delta)
+		protected override void _PhysicsProcess(double delta)
 		{
 			
 			double cx = Math.Floor(Position.X / ChunkCs.MaxX);

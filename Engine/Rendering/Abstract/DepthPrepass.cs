@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Engine.MathLib;
 using Engine.Rendering.Veldrid;
 using Veldrid;
 
@@ -56,14 +57,16 @@ namespace Engine.Rendering.Abstract
             }
             
             int countNumber = instances.Count;
-            if (countNumber > transforms.Length)
+            if (transforms == null || countNumber > transforms.Length)
             {
                 transforms = new Matrix4x4[countNumber];                
             }
 
             for (int index = 0; index < countNumber; index++)
             {
-                transforms[index] = instances[index].GetCameraSpaceTransform(ref camera);
+                Transform instanceTransform = instances[index].GetCameraSpaceTransform(ref camera);
+                Transform.Compose(in instanceTransform, out Matrix4x4 outMatrix);
+                transforms[index] = outMatrix;
             }
             Transforms.ModifyBuffer(transforms, backingRenderer.Device);
 

@@ -1,9 +1,7 @@
-﻿using System;
-using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Engine.Rendering.Abstract;
 
-namespace Engine.Collision;
+namespace Engine.Collision.Simple;
 
     public static class IntersectionHandler
     {

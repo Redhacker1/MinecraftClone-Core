@@ -1,13 +1,12 @@
-﻿using System;
-using System.Numerics;
-using Engine.Collision;
+﻿using System.Numerics;
+using Engine.Collision.Simple;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Veldrid;
 
 namespace Engine.Rendering.Abstract;
 
-public sealed class Instance3D : MinimalObject
+public sealed class Instance3D : EngineObject
 {
 
     public bool isVisible = true;
@@ -41,15 +40,15 @@ public sealed class Instance3D : MinimalObject
         RegenAabb();
     }
     
-    AABB RegenAabb()
+    void RegenAabb()
     {
         
         AABB boundingBox = _baseRenderableElement.GetBoundingBox();
         boundingBox.GetMinMax(out Vector3 minpoint, out Vector3 Maxpoint);
 
-        boundingBox.SetAABB(Vector3.Transform(minpoint, ModelMatrix), Vector3.Transform(Maxpoint, ModelMatrix));
+        Matrix4x4 localMatrix = LocalTransform.AsMatrix4X4();
+        boundingBox.SetAABB(Vector3.Transform(minpoint, localMatrix), Vector3.Transform(Maxpoint, localMatrix));
         Boundingbox = boundingBox;
-        return boundingBox;
     }
 
 }

@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using Engine.Rendering.Abstract;
+﻿using Engine.Rendering.Abstract;
 using Veldrid;
-using Shader = Engine.Rendering.Abstract.Shader;
 
 namespace Engine.Rendering.Veldrid
 {

@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Engine.Collision;
+namespace Engine.Collision.Simple;
 
 // TODO: Either implement or remove.
 struct OBB

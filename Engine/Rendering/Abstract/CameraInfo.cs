@@ -1,5 +1,5 @@
 ﻿using System.Numerics;
-using Engine.Collision;
+using Engine.Collision.Simple;
 
 namespace Engine.Rendering.Abstract;
 

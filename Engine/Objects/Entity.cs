@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Engine.Collision.Simple;
 
 namespace Engine.Objects
 {
@@ -9,9 +10,8 @@ namespace Engine.Objects
     /// </summary>
     public class Entity : GameObject
     {
-        public float AabbWidth = 0;
-        public float AabbHeight = 0;
-        
+        public AABB bbox { get; set; }
+
         public Vector3 PosDelta;
 
 

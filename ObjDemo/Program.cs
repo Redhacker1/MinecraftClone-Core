@@ -204,7 +204,7 @@ namespace ObjDemo
 				Children = new AssimpNodeTree[nodeDescription.Children.Length];
 				for (int childIndex = 0; childIndex < nodeDescription.Children.Length; childIndex++)
 				{
-					Children[childIndex] = new AssimpNodeTree(scene, nodeDescription.Children[childIndex], GetTransform(),
+					Children[childIndex] = new AssimpNodeTree(scene, nodeDescription.Children[childIndex], GetWorldTransform(),
 						material);
 				}
 			}

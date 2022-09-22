@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Data;
 using Engine.Debugging;
+using Engine.Input;
+using Engine.Objects;
 
 namespace Engine
 {
@@ -9,24 +10,50 @@ namespace Engine
     /// </summary>
     public abstract class GameEntry
     {
+
+        EngineObject _pinnedObject;
+        
+        /// <summary>
+        /// The object (usually a level) that you pin to the engine, events run off of here. 
+        /// </summary>
+        public EngineObject PinnedObject
+        {
+            get => _pinnedObject;
+            set
+            {
+                _pinnedObject = value;
+                _pinnedObject._Ready();
+            }
+        }
+
         /// <summary>
         /// Called as the game is being created, by this point all engine functions are safe to call
         /// </summary>
         public virtual void GameStart()
         {
+            PinnedObject?._Ready();
+        }
+        
+        internal void Update(double delta)
+        {
+
+            InputHandler.PollInputs();
+            PinnedObject?._Process((float)delta);
+            
         }
         
         /// <summary>
-        /// Calls after the engine has been shut down, any finalization logic can and should be done here! engine creation and removal functions might not be safe to call here!
+        /// Calls after the engine has been shut down, any finalization logic can and should be done here! rendering functions are not safe to call here!
         /// </summary>
         public virtual void GameEnded()
         {
+            PinnedObject?.OnFree();
         }
 
         /// <summary>
         /// Logging callbacks should run here, still, it is best to run the engine logging function to write text, as other callbacks can and will be executed
         /// </summary>
-        /// <param name="packet">This is the packet of data the logger receives, it contains information on how to handle the packet</param>
+        /// <param name="packet">This is the packet of data the logger receives, it contains information on how to handle the message</param>
         public virtual void LogCallback(LogPacket packet)
         {
             
@@ -35,7 +62,7 @@ namespace Engine
         /// <summary>
         /// Runs on (almost) ANY thrown exception, handled or not, the only exceptions it does not get are corrupted state exceptions. which cannot be caught
         /// </summary>
-        public virtual void OnException(Exception ex)
+        public virtual void OnException(Exception ex, bool caught)
         {
             ConsoleLibrary.DebugPrint($"{ex.GetType()} thrown at: {ex.StackTrace} with, message:\n {ex.StackTrace}");
         }

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 
-namespace Engine.Collision;
+namespace Engine.Collision.Simple;
 
 public struct AABB
 {

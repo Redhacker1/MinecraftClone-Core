@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using Engine;
 using Engine.Attributes;
@@ -58,7 +55,9 @@ namespace MCClone_Core
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
-            
+            PinnedObject = world;
+
+
             player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero);
             player.Noclip = false;
             script = new WorldScript(world);

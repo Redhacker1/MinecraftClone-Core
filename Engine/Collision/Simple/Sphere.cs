@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Engine.Collision;
+namespace Engine.Collision.Simple;
 
 public struct Sphere
 {

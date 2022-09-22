@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Numerics;
 
-namespace Engine.Collision;
+namespace Engine.Collision.Simple;
 
     public struct Frustum
     {

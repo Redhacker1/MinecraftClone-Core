@@ -7,14 +7,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
 using System.Numerics;
-using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Engine.Attributes;
+using Engine.Collision.Simple;
 using Engine.Debugging;
 using Engine.MathLib;
+using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
@@ -24,12 +24,11 @@ using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
 using Veldrid;
 using Material = Engine.Rendering.Veldrid.Material;
-using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
-	public class ProcWorld : Level
+	public class ProcWorld : EngineLevel
 	{
 		public static readonly ChunkMesher Mesher = new ChunkMesher();
 		
@@ -75,7 +74,7 @@ namespace MCClone_Core.World_CS.Generation
 			ChunkCs.LoadedChunks = LoadedChunks;
 		}
 
-		public override void _Ready()
+		protected override void _Ready()
 		{
 			if (Instance != null)
 				return;
@@ -159,8 +158,9 @@ namespace MCClone_Core.World_CS.Generation
 			
 		}
 
-		public override void _Process(double delta)
+		protected override void _Process(double delta)
 		{
+			base._Process(delta);
 			if (!Threaded)
 			{
 				for (int i = 0; i < _chunksPerFrame; i++)
@@ -306,22 +306,25 @@ namespace MCClone_Core.World_CS.Generation
 			
 			return $"Reloading {chunks.Count}";
 		}
+		
 
-		public override List<Aabb> GetAabbs(int collisionlayer, Aabb aabb)
+		public override List<AABB> GetAabbs(int collisionlayer, Entity ent)
 		{
-			List<Aabb> aabbs = new List<Aabb>();
-			Vector3 a = new Vector3(aabb.MinLoc.X - 1, aabb.MinLoc.Y - 1, aabb.MinLoc.Z - 1);
-			Vector3 b = aabb.MaxLoc;
+			List<AABB> aabbs = new List<AABB>();
+			AABB aabb = ent.bbox;
+			aabb.GetMinMax(out Vector3 MinLoc, out Vector3 MaxLoc);
+			
+			Vector3 a = new Vector3(MinLoc.X - 1, MinLoc.Y - 1, MinLoc.Z - 1);
 
-			for (int z = (int) a.Z; z < b.Z; z++)
+			for (int z = (int) a.Z; z < MaxLoc.Z; z++)
 			{
-				for (int y = (int) a.Y; y < b.Y; y++)
+				for (int y = (int) a.Y; y < MaxLoc.Y; y++)
 				{
-					for (int x = (int) a.X; x < b.X; x++)
+					for (int x = (int) a.X; x < MaxLoc.X; x++)
 					{
 						byte block = GetBlockIdFromWorldPos(x, y, z);
 						if (BlockHelper.BlockTypes[block].NoCollision || block == 0) continue;
-						Aabb c = new Aabb(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
+						AABB c = new AABB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
 						aabbs.Add(c);
 					}
 				}
@@ -426,7 +429,7 @@ namespace MCClone_Core.World_CS.Generation
 				var chunk = LoadedChunks[cpos];
 				
 				//SaveFileHandler.WriteChunkData(chunk.BlockData.FullSpan, chunk.ChunkCoordinate, World);
-				chunk.Free();
+				chunk.FreeSynchronous();
 				LoadedChunks.TryRemove(cpos, out _);
 			}
 
@@ -480,7 +483,7 @@ namespace MCClone_Core.World_CS.Generation
 					{
 						SaveFileHandler.WriteChunkData(chunk.Value.BlockData.FullSpan,
 							chunk.Value.ChunkCoordinate, World);
-						chunk.Value.Free();
+						chunk.Value.FreeSynchronous();
 						
 
 						return null; 

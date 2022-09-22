@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Numerics;
-using Engine.Collision;
+using Engine.Collision.Simple;
 using Engine.MathLib;
-using Plane = Engine.Collision.Plane;
+using Plane = Engine.Collision.Simple.Plane;
 
 namespace Engine.Rendering.Abstract
 {

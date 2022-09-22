@@ -1,10 +1,8 @@
-﻿using System.Numerics;
-using Engine.Debugging;
+﻿using Engine.Debugging;
 using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
-using Engine.Rendering.Veldrid;
 
 namespace Engine
 {
@@ -36,7 +34,7 @@ namespace Engine
     {
         ImGUIPanel console;
 
-        public override void _Ready()
+        protected internal override void _Ready()
         {
             console = new ConsoleText();
         }

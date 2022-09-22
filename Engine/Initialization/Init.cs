@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 using Engine.Windowing;
 using Silk.NET.Maths;

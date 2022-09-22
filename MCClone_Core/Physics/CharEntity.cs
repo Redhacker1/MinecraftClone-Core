@@ -49,10 +49,12 @@ namespace MCClone_Core.Physics
         {
             PhysicsTick = true;
             Ticks = true;
-            float w = AabbWidth / 2.0f;
-            float h = AabbHeight / 2.0f;
             
-            Aabb = new Aabb(new Vector3(position.X - w, position.Y - h, position.Z - w), new Vector3(position.X + w, position.Y + h, position.Z + w));
+            
+            //Aabb
+            
+            
+            //Aabb = new Aabb(new Vector3(position.X - w, position.Y - h, position.Z - w), new Vector3(position.X + w, position.Y + h, position.Z + w));
             
         }
         
@@ -61,10 +63,10 @@ namespace MCClone_Core.Physics
             PhysicsTick = true;
             Ticks = true;
             
-            float w = AabbWidth / 2.0f;
-            float h = AabbHeight / 2.0f;
+            //float w = AabbWidth / 2.0f;
+            //float h = AabbHeight / 2.0f;
             
-            Aabb = new Aabb(new Vector3(Position.X - w, Position.Y - h, Position.Z - w), new Vector3(Position.X + w, Position.Y + h, Position.Z + w));
+            //Aabb = new Aabb(new Vector3(Position.X - w, Position.Y - h, Position.Z - w), new Vector3(Position.X + w, Position.Y + h, Position.Z + w));
             
         }
 
@@ -84,11 +86,11 @@ namespace MCClone_Core.Physics
         public virtual void SetPos(Vector3 pos)
         {
             Position = pos;
-            float w = AabbWidth / 2.0f;
-            float h = AabbHeight / 2.0f;
+            //float w = AabbWidth / 2.0f;
+            //float h = AabbHeight / 2.0f;
             
-            Aabb.MinLoc = new Vector3(pos.X - w, pos.Y - h, pos.Z - w);
-            Aabb.MaxLoc = new Vector3(pos.X + w, pos.Y + h, pos.Z + w);
+            //Aabb.MinLoc = new Vector3(pos.X - w, pos.Y - h, pos.Z - w);
+            //Aabb.MaxLoc = new Vector3(pos.X + w, pos.Y + h, pos.Z + w);
         }
 
         public virtual void Rotate(float rotX, float rotY)

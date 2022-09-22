@@ -1,6 +1,4 @@
-﻿using Engine.Rendering.Veldrid;
-
-namespace Engine.Rendering.Abstract;
+﻿namespace Engine.Rendering.Abstract;
 
 /// <summary>
 /// A pair of vertex and fragment SPIR-V shaders

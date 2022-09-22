@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
-using Engine.Collision;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
 using Engine.Windowing;

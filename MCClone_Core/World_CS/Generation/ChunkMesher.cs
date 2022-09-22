@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Numerics;
 using System.Threading;
-using Engine.Collision;
+using Engine.Collision.Simple;
 using Engine.Debugging;
 using Engine.Rendering.Abstract;
 

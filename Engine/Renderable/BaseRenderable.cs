@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using Engine.Collision;
+using Engine.Collision.Simple;
 using Engine.Rendering.Veldrid;
 using Veldrid;
-using Vulkan;
 using static System.GC;
 
 namespace Engine.Renderable

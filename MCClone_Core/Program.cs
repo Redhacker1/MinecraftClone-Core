@@ -16,11 +16,8 @@ namespace MCClone_Core
 {
     internal class Program
     {
-        static WindowClass window;
-
         static void Main(string[] args)
         {
-
             Init.InitEngine( 10,10, 1600, 900, "Hello World", new MinecraftCloneCore());
 
         }
@@ -51,20 +48,26 @@ namespace MCClone_Core
             {
                 Console.WriteLine("Failed to load SteamAPI, some features may be unavailable");
             }
-            
+
+
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
             world = new ProcWorld(1337) {World = worldPath};
-            PinnedObject = world;
 
-
-            
-            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero);
-            player.Noclip = false;
             script = new WorldScript(world);
+            PinnedObject = script;
+            script.AddChild(world);
+
+
+
+            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero)
+            {
+                Noclip = false
+            };
+
             script._player = player;
             player.World = world;
-            
+
             world.AddChild(player);
         }
 

@@ -17,13 +17,16 @@ namespace MCClone_Core.Debug_and_Logging
         Plane[] sides = new Plane[6];
         bool ThreadPooled;
         Process CurrentProcess = Process.GetCurrentProcess();
-        public DebugPanel()
+        public DebugPanel(ProcWorld procWorld)
         {
             //AddFlag(ImGuiWindowFlags.NoMove);
             AddFlag(ImGuiWindowFlags.AlwaysAutoResize);
             AddFlag(ImGuiWindowFlags.NoCollapse);
             PanelName = "Debugging";
-            ThreadPooled = ProcWorld.Instance.UseThreadPool;
+            
+            Debug.Assert(ProcWorld.Instance != null);
+            ThreadPooled = procWorld.UseThreadPool;
+            
         }
         
         public override void CreateUI()

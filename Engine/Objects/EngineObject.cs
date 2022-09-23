@@ -32,6 +32,7 @@ namespace Engine.Objects
             {
                 LocalTransform = transform;
             }
+            _Ready();
         }
     
         public bool Freed;
@@ -212,7 +213,7 @@ namespace Engine.Objects
         
         
         /// <summary>
-        /// Runs on initialization
+        /// Runs on initialization, called BEFORE constructor completes.
         /// </summary>
         protected internal virtual void _Ready()
         {

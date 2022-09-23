@@ -11,7 +11,7 @@ using MCClone_Core.World_CS.Generation;
 namespace MCClone_Core.Utility
 {
 	#if Core
-	public class WorldScript : GameObject
+	public class WorldScript : EngineObject
 	#else
 	//[Tool]
 	public class WorldScript : Node
@@ -27,23 +27,21 @@ namespace MCClone_Core.Utility
 
 		//public Logger Logger = new Logger(Path.Combine(Environment.CurrentDirectory,"Logs"), "DebugFile", ConsoleLibrary.DebugPrint);
 
-		static public ProcWorld _pw;
+		readonly ProcWorld _pw;
 		// Called when the node enters the scene tree for the first time.
 
-		public WorldScript(ProcWorld world_data)
+		public WorldScript(ProcWorld worldData)
 		{
 			Ticks = true;
 			PhysicsTick = true;
-			_pw = world_data;
+			_pw = worldData;
 		}
+
+		DebugPanel _debug;
 
 		protected override void _Ready()
 		{
-			
-			
-			BlockHelper.RegisterBaseBlocks();
-			WorldManager.FindWorlds();
-			var Debug = new DebugPanel();
+			_debug = new DebugPanel(_pw);
 
 
 #if !Core
@@ -66,16 +64,6 @@ namespace MCClone_Core.Utility
 			//_player.GameManager = this;
 		}
 
-		void _on_WorldScript_tree_exiting()
-		{
-			ConsoleLibrary.DebugPrint("Kill map loading thread");
-			if (_pw != null)
-			{
-				_pw.SaveAndQuit();
-				ConsoleLibrary.DebugPrint("Finished");
-			}
-		}
-		
 
 		//Called every frame. 'delta' is the elapsed time since the previous frame.
 		protected override void _Process(double delta)

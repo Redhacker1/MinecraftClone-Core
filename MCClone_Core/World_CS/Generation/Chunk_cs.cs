@@ -9,35 +9,13 @@ using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Windowing;
 using MCClone_Core.Temp;
+using MCClone_Core.Utility;
 using MCClone_Core.World_CS.Blocks;
 
 namespace MCClone_Core.World_CS.Generation
 {
-	public struct IntVec3
-	{
-		public int X;
-		public int Y;
-		public int Z;
 
-		public IntVec3(int i, int i1, int i2)
-		{
-			X = i;
-			Y = i1;
-			Z = i2;
-		}
-		
-		public static IntVec3 operator+(IntVec3 a, IntVec3 b)
-		{
-			return new IntVec3(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
-		}
-
-		public override string ToString()
-		{
-			return $"X:{X}, X:{Z}, X:{Y}";
-		}
-	}
-
-	public class ChunkCs : GameObject
+	public class ChunkCs : EngineObject
 	{
 		internal static ConcurrentDictionary<Vector2, ChunkCs> LoadedChunks;
 		readonly List<BlockStruct> _blockTypes = BlockHelper.BlockTypes;
@@ -61,16 +39,16 @@ namespace MCClone_Core.World_CS.Generation
 		readonly ChunkMesh _chunkMesh;
 
 
-		static readonly IntVec3[] V =
+		static readonly Int3[] V =
 		{
-			new IntVec3(0, 0, 0), //0
-			new IntVec3(1, 0, 0), //1
-			new IntVec3(0, 1, 0), //2
-			new IntVec3(1, 1, 0), //3
-			new IntVec3(0, 0, 1), //4
-			new IntVec3(1, 0, 1), //5
-			new IntVec3(0, 1, 1), //6
-			new IntVec3(1, 1, 1)  //7
+			new Int3(0, 0, 0), //0
+			new Int3(1, 0, 0), //1
+			new Int3(0, 1, 0), //2
+			new Int3(1, 1, 0), //3
+			new Int3(0, 0, 1), //4
+			new Int3(1, 0, 1), //5
+			new Int3(0, 1, 1), //6
+			new Int3(1, 1, 1)  //7
 		};
 
 		static readonly uint[] Top = {2, 3, 7, 6};
@@ -140,6 +118,8 @@ namespace MCClone_Core.World_CS.Generation
 		readonly SafeByteStore<Vector2> _blockUVs = SafeByteStore<Vector2>.Create(ChunkSingletons.ChunkPool, 1);
 
 		readonly Stopwatch _stopwatch =Stopwatch.StartNew();
+		
+		readonly object _renderLock = new object();
 		public void Update()
 		{
 
@@ -183,10 +163,11 @@ namespace MCClone_Core.World_CS.Generation
 				}
 			}
 			
-			lock (_renderlock)
+			lock (_renderLock)
 			{
 				_chunkMesh.GenerateMesh(_blockVerts.Span, _blockUVs.Span, _chunkIndices.Span);
 				_instance3D.SetTransform(this);	
+				AddChild(_instance3D);
 			}
 			
 		}
@@ -259,14 +240,14 @@ namespace MCClone_Core.World_CS.Generation
 		void _create_block(Span<bool> check, int x, int y, int z, byte block, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint index)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
-			IntVec3 coord = new IntVec3(x, y, z);
+			Int3 coord = new Int3(x, y, z);
 			if (blockTypes[block].TagsList.Contains("Flat"))
 			{
-				Vector2 tempvar = blockTypes[block].Only;
-				create_face(Cross1, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
-				create_face(Cross2, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
-				create_face(Cross3, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
-				create_face(Cross4, ref coord, tempvar, blocks, blocksNormals, uVs, indices, ref index);
+				Vector2 Only = blockTypes[block].Only;
+				create_face(Cross1, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross2, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross3, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross4, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
 			}
 			else
 			{
@@ -279,7 +260,7 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-        void create_face(uint[] I, ref IntVec3 offset, Vector2 textureAtlasOffset, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint currentindex)
+        void create_face(uint[] I, ref Int3 offset, Vector2 textureAtlasOffset, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint currentindex)
         {
 	        if (_freed)
 	        {
@@ -308,7 +289,7 @@ namespace MCClone_Core.World_CS.Generation
 	        for (int i = 0; i < 4; i++)
 	        {
 		        // Add Vertex
-		        IntVec3 vert = V[I[i]] + offset;
+		        Int3 vert = V[I[i]] + offset;
 		        int compressedPos = (vert.X << 5) | vert.Z;
 		        compressedPos = compressedPos << 9 | vert.Y;
 		        blocks.Append(compressedPos);
@@ -371,8 +352,7 @@ namespace MCClone_Core.World_CS.Generation
 
 			return _visibilityMask.FullSpan[index];
 		}
-
-		readonly object _renderlock = new object();
+		
 		protected override void OnFree()
 		{
 			base.OnFree();

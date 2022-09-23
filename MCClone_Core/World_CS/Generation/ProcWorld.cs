@@ -19,6 +19,7 @@ using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using MCClone_Core.Physics;
+using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
@@ -133,7 +134,7 @@ namespace MCClone_Core.World_CS.Generation
 			ConsoleLibrary.DebugPrint("Starting procworld");
 			
 			ConsoleLibrary.DebugPrint("Preparing Threadpool");
-			// Starts the threadpool;
+			// Starts the thread-pool;
 			_threads.InitializePool();
 
 			ConsoleLibrary.DebugPrint("Registering Blocks");

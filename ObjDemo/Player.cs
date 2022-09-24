@@ -21,17 +21,18 @@ namespace ObjDemo
 		Camera _fpCam;
 
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			Rotation = Quaternion.Identity;
 			_fpCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
 			{
-				Position = this.Position,
-				Rotation = this.Rotation
+				Position = Position,
+				Rotation = Rotation
 			};
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			MoveMouse = true;
 			_controller = new DemoController(this);
+			AddChild(Camera.MainCamera);
 		}
 
 		protected override void _Process(double delta)

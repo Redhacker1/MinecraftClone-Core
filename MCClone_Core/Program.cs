@@ -5,7 +5,6 @@ using Engine.Attributes;
 using Engine.Debugging;
 using Engine.Initialization;
 using Engine.Renderable;
-using Engine.Windowing;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
@@ -52,23 +51,27 @@ namespace MCClone_Core
 
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
+            
             world = new ProcWorld(1337) {World = worldPath};
-
             script = new WorldScript(world);
-            PinnedObject = script;
-            script.AddChild(world);
-
-
-
             player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero)
             {
                 Noclip = false
             };
-
+            
+            PinnedObject = world;
+            world.AddChild(script);
+            world.AddChild(player);
+            
             script._player = player;
             player.World = world;
-
-            world.AddChild(player);
+            
+            script._Ready();
+            world._Ready();
+            player._Ready();
+            
+            
+            base.GameStart();
         }
 
         protected override void GameEnded()

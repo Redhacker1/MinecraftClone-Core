@@ -82,11 +82,11 @@ namespace MCClone_Core.World_CS.Generation
 			}
 
 			_chunkMesh = new ChunkMesh();
-
-
+			
 			_instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
+			AddChild(_instance3D);
+			_instance3D._Ready();
 			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
-			WindowClass.Renderer.Passes[1]?.AddInstance(_instance3D);
 		}
 
 
@@ -139,18 +139,14 @@ namespace MCClone_Core.World_CS.Generation
 			Span<bool> transparent = stackalloc bool[6];
 			uint index = 0;
 			
-			//Making use of multidimensional arrays allocated on creation
+			
 			for (int z = 0; z < MaxZ; z++)
 			for (int y = 0; y < MaxY; y++)
 			for (int x = 0; x < MaxX; x++)
 			{
 	
 				byte block = BlockData.FullSpan[GetFlattenedIndex(x, y, z)];
-				if (block == 0)
-				{
-					continue;
-				}
-				if (_blockTypes[block].Air)
+				if (block == 0 || _blockTypes[block].Air)
 				{
 					continue;
 				}
@@ -166,8 +162,7 @@ namespace MCClone_Core.World_CS.Generation
 			lock (_renderLock)
 			{
 				_chunkMesh.GenerateMesh(_blockVerts.Span, _blockUVs.Span, _chunkIndices.Span);
-				_instance3D.SetTransform(this);	
-				AddChild(_instance3D);
+				_instance3D.SetTransform(this);
 			}
 			
 		}

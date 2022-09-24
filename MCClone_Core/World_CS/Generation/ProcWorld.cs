@@ -18,7 +18,6 @@ using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
-using MCClone_Core.Physics;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
@@ -75,7 +74,7 @@ namespace MCClone_Core.World_CS.Generation
 			ChunkCs.LoadedChunks = LoadedChunks;
 		}
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			if (Instance != null)
 				return;
@@ -271,20 +270,20 @@ namespace MCClone_Core.World_CS.Generation
 		Vector2 _load_chunk(int cx, int cz)
 		{
 			Int2 cpos = new Int2(cx, cz);
-			bool loadChunk;
-			loadChunk = !LoadedChunks.ContainsKey(new Vector2(cpos.X, cpos.Y));
-
-			Stopwatch timer = Stopwatch.StartNew();
+			bool loadChunk = !LoadedChunks.ContainsKey(new Vector2(cpos.X, cpos.Y));
+			
 			if (loadChunk)
 			{
 				ChunkCs c;
 				if (SaveFileHandler.ChunkExists(World, cpos))
 				{
 					c = SaveFileHandler.GetChunkData(this ,World, cpos, out _);
+					c._Ready();
 				}
 				else
 				{
 					c = new ChunkCs();
+					c._Ready();
 					c.InstantiateChunk(cx, cz, WorldSeed);	
 				}
 				
@@ -292,6 +291,7 @@ namespace MCClone_Core.World_CS.Generation
 				c.UpdateVisMask();
 				_update_chunk(cx, cz);
 				AddChild(c);
+
 			}
 
 			return new Vector2(cpos.X, cpos.Y);
@@ -355,11 +355,11 @@ namespace MCClone_Core.World_CS.Generation
 			int bx = MathHelper.Modulo(x, ChunkCs.MaxX);
 			int bz = MathHelper.Modulo(z, ChunkCs.MaxZ);
 
-			Vector2 chunkpos = new Vector2(cx, cz);
+			Vector2 chunkPos = new Vector2(cx, cz);
 
-			if (LoadedChunks.ContainsKey(chunkpos) && ValidPlace(bx, y, bz))
+			if (LoadedChunks.ContainsKey(chunkPos) && ValidPlace(bx, y, bz))
 			{
-				return LoadedChunks[chunkpos].BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, y, bz)];
+				return LoadedChunks[chunkPos].BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, y, bz)];
 			}
 
 			return 0;
@@ -397,7 +397,7 @@ namespace MCClone_Core.World_CS.Generation
 
 			if (c.BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;
 			ConsoleLibrary.DebugPrint($"Changed block at {bx} {by} {bz} in chunk {cx}, {cz}");
-			c?._set_block_data(bx,by,bz,T);
+			c._set_block_data(bx,by,bz,T);
 			_update_chunk(cx, cz);
 		}
 
@@ -412,7 +412,7 @@ namespace MCClone_Core.World_CS.Generation
 
 		void enforce_render_distance(Vector2 currentChunkPos)
 		{
-			foreach (var key in LoadedChunks.Keys)
+			foreach (Vector2 key in LoadedChunks.Keys)
 			{
 				if (Math.Abs(key.X - currentChunkPos.X) > _loadRadius || Math.Abs(key.Y - currentChunkPos.Y) > _loadRadius)
 					_unloadChunk((int) key.X, (int) key.Y);
@@ -428,9 +428,8 @@ namespace MCClone_Core.World_CS.Generation
 			Vector2 cpos = new Vector2(cx, cz);
 			if (LoadedChunks.ContainsKey(cpos))
 			{
-				var chunk = LoadedChunks[cpos];
-				
-				//SaveFileHandler.WriteChunkData(chunk.BlockData.FullSpan, chunk.ChunkCoordinate, World);
+				ChunkCs chunk = LoadedChunks[cpos];
+	
 				LoadedChunks.TryRemove(cpos, out _);
 				RemoveChild(chunk);
 			}

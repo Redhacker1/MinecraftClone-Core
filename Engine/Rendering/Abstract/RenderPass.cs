@@ -146,6 +146,7 @@ namespace Engine.Rendering.Abstract
         
         public void AddInstance(Instance3D instance)
         {
+            Console.WriteLine("Instance loaded!");
             lock (Instances)
             {
                 Instances.Add(new WeakReference<Instance3D>(instance));   

@@ -4,8 +4,6 @@ using Engine.Debugging;
 using Engine.Objects;
 using MCClone_Core.Debug_and_Logging;
 using MCClone_Core.Player_CS;
-using MCClone_Core.Utility.IO;
-using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
 
 namespace MCClone_Core.Utility
@@ -39,7 +37,7 @@ namespace MCClone_Core.Utility
 
 		DebugPanel _debug;
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			_debug = new DebugPanel(_pw);
 
@@ -68,8 +66,7 @@ namespace MCClone_Core.Utility
 		//Called every frame. 'delta' is the elapsed time since the previous frame.
 		protected override void _Process(double delta)
 		{
-			//base._Process(delta);
-			
+
 			if (_player == null) return;
 			_chunkX = (int) (Math.Floor(_player.Position.X) / ChunkCs.MaxX);
 			_chunkZ = (int) (Math.Floor(_player.Position.Z) / ChunkCs.MaxZ);

@@ -1,38 +1,51 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Rendering.Abstract;
 
 namespace Engine.Objects
-{   /// <summary>
+{
+    /// <summary>
     /// Has a position, Location and Rotation, is used as the base for all entities in engine, and is cheap to create
     /// Not to mention, is decoupled from the engine, so almost no bookkeeping is necessary. The downside however is it
     /// it has no tick or update methods, which in some circumstances the trade off may be worth it.
     /// </summary>
     public class EngineObject
     {
-        readonly object _locker = new object();
+
+
+#region Game loop properties
+
+        internal bool Started = false;
+        public bool PhysicsTick = false;
+        public bool Ticks = false;
+
+        internal void OnTick(float delta)
+        {
+            _Process(delta);
+            TickChildren(delta);
+        }
         
-    #region Game loop properties
-
-            internal bool Started = false;
-            public bool PhysicsTick = false;
-            public bool Ticks = false;
-            
-    #endregion
+        internal void OnPhysicsTick(float delta)
+        {
+            _PhysicsProcess(delta);
+            PhysicsTickChildren(delta);
+        }
 
 
-    #region Creation and Cleanup
+        #endregion
 
-    
-        public EngineObject(EngineObject parent = null, Transform transform = new Transform())
+
+#region Creation and Cleanup
+
+        protected EngineObject(EngineObject parent = null, Transform transform = new Transform())
         {
             _parent = parent;
             lock (_locker)
             {
                 LocalTransform = transform;
             }
-            _Ready();
         }
     
         public bool Freed;
@@ -60,14 +73,17 @@ namespace Engine.Objects
                 OnFree();
             }
         }
+        
+        
 
-    #endregion
+#endregion
         
 
         
-    #region Engine Transform Properties and Methods
+#region Engine Transform Properties and Methods
 
-    public Transform LocalTransform;
+        readonly object _locker = new object();
+        public Transform LocalTransform;
         public Transform WorldTransform
         {
             get
@@ -152,16 +168,23 @@ namespace Engine.Objects
 #endregion
 
 
-    #region Parent Child Hierarchy
+#region Parent Child Hierarchy
 
-    public void AddChild(EngineObject engineObject)
+        object childLock = new object();
+        public void AddChild(EngineObject engineObject)
         {
-            Children.Add(engineObject);
+            lock (childLock)
+            {
+                Children.Add(engineObject);   
+            }
         }
 
-    public void RemoveChild(EngineObject engineObject)
+        public void RemoveChild(EngineObject engineObject)
         {
-            Children.Remove(engineObject);
+            lock (childLock)
+            {
+                Children.Remove(engineObject);
+            }
         }
         
         EngineObject _parent;
@@ -175,6 +198,33 @@ namespace Engine.Objects
                 _parent.RemoveChild(this);
                 _parent = value;
  
+            }
+        }
+        
+        internal void TickChildren(float delta)
+        {
+            ImmutableArray<EngineObject> child;
+            lock (childLock)
+            {
+                child = Children.ToImmutableArray();
+            }
+
+            foreach (EngineObject engineObject in child)
+            {
+                engineObject.OnTick(delta);
+            }
+        }
+        
+        internal void PhysicsTickChildren(float delta)
+        {
+            ImmutableArray<EngineObject> child;
+            lock (childLock)
+            {
+                child = Children.ToImmutableArray();
+            }
+            foreach (EngineObject engineObject in child)
+            {
+                engineObject.OnTick(delta);
             }
         }
         
@@ -213,9 +263,9 @@ namespace Engine.Objects
         
         
         /// <summary>
-        /// Runs on initialization, called BEFORE constructor completes.
+        /// To be run after you run the constructor, when you want the entity to be recreated.
         /// </summary>
-        protected internal virtual void _Ready()
+        public virtual void _Ready()
         {
         }
         

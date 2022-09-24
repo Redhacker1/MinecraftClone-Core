@@ -3,6 +3,7 @@
 #if !Core
 using Godot;
 #endif
+using System;
 using System.Numerics;
 using Engine.Input;
 using Engine.Rendering.Abstract;
@@ -54,10 +55,9 @@ namespace MCClone_Core.Player_CS
             {
                 _velocity.Y = 6f * (float)delta;
             }
-
-            if (!pawn.OnGround && !pawn.Noclip)
+            else if (!pawn.OnGround && !pawn.Noclip)
             {
-                _velocity.Y -= .2f * (float)delta;
+                //_velocity.Y -= .2f * (float)delta;
             }
             else
             {
@@ -78,10 +78,12 @@ namespace MCClone_Core.Player_CS
             {
                 _velocity.Y = (float)(direction.Y * Player.Speed * delta);
             }
-
+            
+            
+            
             pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
             pawn.Move(_velocity);
-            //pawn.Pos = _velocity;
+            
         }
     }
 }

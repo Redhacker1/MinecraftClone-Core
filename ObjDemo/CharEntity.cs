@@ -2,6 +2,7 @@
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
+using Engine.Rendering.Abstract;
 
 namespace ObjDemo
 {
@@ -23,6 +24,7 @@ namespace ObjDemo
             Vector3 o = acceleration;
             
             
+            
             //Aabb.Move(acceleration);
 
 
@@ -33,13 +35,13 @@ namespace ObjDemo
             if (Math.Abs(o.Z - acceleration.Z) > 0.001f) PosDelta.Z = 0;
 
 
-            Vector3 tempPos = Position;
+            //Vector3 tempPos = Position;
 
-            tempPos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
-            tempPos.Y = (Aabb.MinLoc.Y + EyeOffset);
-            tempPos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
+            //tempPos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
+            //tempPos.Y = (Aabb.MinLoc.Y + EyeOffset);
+            //tempPos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
 
-            Position = tempPos;
+            Position += acceleration;
 
         }
         

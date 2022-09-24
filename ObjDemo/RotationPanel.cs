@@ -7,9 +7,9 @@ namespace ObjDemo
 {
     public class RotationPanel : ImGUIPanel
     {
-        GameObject _objectReference;
+        EngineObject _objectReference;
 
-        public RotationPanel(GameObject rotationObject)
+        public RotationPanel(EngineObject rotationObject)   
         {
             _objectReference = rotationObject;
         }

@@ -22,19 +22,19 @@ namespace Engine
 
     internal class GameTest : GameEntry
     {
-        UITestEntity Entity;
+        UiTestEntity _entity;
         protected internal override void GameStart()
         {
             base.GameStart();
-            Entity = new UITestEntity();
+            _entity = new UiTestEntity();
         }
     }
 
-    class UITestEntity : Entity
+    class UiTestEntity : Entity
     {
         ImGUIPanel console;
 
-        protected internal override void _Ready()
+        public override void _Ready()
         {
             console = new ConsoleText();
         }

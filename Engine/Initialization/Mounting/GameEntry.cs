@@ -11,18 +11,17 @@ namespace Engine
     public abstract class GameEntry
     {
 
-        EngineObject _pinnedObject;
+        EngineLevel _pinnedObject;
         
         /// <summary>
         /// The object (usually a level) that you pin to the engine, events run off of here. 
         /// </summary>
-        public EngineObject PinnedObject
+        public EngineLevel PinnedObject
         {
             get => _pinnedObject;
             set
             {
                 _pinnedObject = value;
-                _pinnedObject._Ready();
             }
         }
 
@@ -36,10 +35,9 @@ namespace Engine
         
         internal void Update(double delta)
         {
-
             InputHandler.PollInputs();
-            PinnedObject?._Process((float)delta);
-            
+            PinnedObject?.OnTick((float)delta);
+
         }
         
         /// <summary>

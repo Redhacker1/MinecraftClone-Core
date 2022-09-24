@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Engine.Collision.BEPUPhysics;
 using Engine.Collision.Simple;
@@ -37,13 +38,14 @@ public class EngineLevel : EngineObject
         
         physicsDelta += delta;
         bool physicsProcess = physicsDelta >= FixedStepTIme;
-        
+
         ImmutableList<EngineObject> objectSnapshot = Children.ToImmutableList();
 
         FrameUpdate(delta, objectSnapshot);
         if (physicsProcess)
         {
             FixedUpdate(physicsDelta, objectSnapshot);
+            physicsDelta = 0;
         }
         Cleanup(Children);
         
@@ -102,7 +104,7 @@ public class EngineLevel : EngineObject
                 if (entity.PhysicsTick)
                 {
                     // TODO: Implement physics sub-stepping when on low frame rates
-                    entity._PhysicsProcess(physicsDelta);
+                    entity.OnPhysicsTick((float)physicsDelta);
                 }
             }
         }

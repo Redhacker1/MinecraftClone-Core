@@ -41,6 +41,10 @@ namespace ObjDemo
 
 			InputHandler.SetMouseMode(0, CursorMode.Normal);
 
+
+			PinnedObject = thing;
+			thing._Ready();
+
 		}
 	}
 
@@ -52,7 +56,7 @@ namespace ObjDemo
 		}
 	}
 
-	internal class MeshSpawner : GameObject
+	internal class MeshSpawner : EngineLevel
 	{
 		Player player;
 		Mesh[] _meshes;
@@ -128,7 +132,7 @@ namespace ObjDemo
 			baseMaterial.ResourceSet(2, new TextureSampler(WindowClass.Renderer.Device.Aniso4xSampler), atlas);
 		}
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			Rotation = Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(0),
 				MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(0));
@@ -144,7 +148,12 @@ namespace ObjDemo
 
 			player = new Player();
 
-			var Scene = AssimpLoader.AssimpImport(@"Assets/Bistro/BistroExterior.fbx");
+			this.AddChild(player);
+			player._Ready();
+			
+			
+
+			var Scene = AssimpLoader.AssimpImport(@"Assets/Wheel.fbx");
 
 			Node = new AssimpNodeTree(Scene, Scene.RootNode, Matrix4x4.Identity, baseMaterial);
 		}

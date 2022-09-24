@@ -24,7 +24,6 @@ namespace MCClone_Core.Debug_and_Logging
             AddFlag(ImGuiWindowFlags.NoCollapse);
             PanelName = "Debugging";
             
-            Debug.Assert(ProcWorld.Instance != null);
             ThreadPooled = procWorld.UseThreadPool;
             
         }

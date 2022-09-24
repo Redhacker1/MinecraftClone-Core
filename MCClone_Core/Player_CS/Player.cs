@@ -57,7 +57,7 @@ namespace MCClone_Core.Player_CS
 			});
 		}
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			PhysicsTick = true;
 
@@ -111,10 +111,7 @@ namespace MCClone_Core.Player_CS
 			
 			
 			FPCam.Position = new Vector3(Position.X, Position.Y + 0, Position.Z);
-			if (MoveMouse)
-			{
-				Freelook();
-			}
+			Freelook();
 
 			Vector3 Location = Position;
 			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
@@ -125,7 +122,6 @@ namespace MCClone_Core.Player_CS
 			{
 				if (InputHandler.KeyboardKeyDown(0, Key.E))
 				{
-					Console.WriteLine("Pressed");
 					Vector3 norm = result.Normal;
 					_on_Player_destroy_block(pos, norm);
 				}
@@ -156,7 +152,6 @@ namespace MCClone_Core.Player_CS
 			Vector3 forward = Vector3.UnitZ;
 			
 			
-
 			if (!_paused && MoveMouse)
 			{
 				Vector3 Location = Position;

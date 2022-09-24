@@ -15,6 +15,10 @@ static class GlobalExceptionHandler
     
         
     static event Action<Exception> UnhandledExceptionThrown; 
+    
+    static event Action<Exception, bool> ExceptionThrown;
+    
+    static event Action<Exception> HandledExceptionThrown;
 
 
     static void InitHandler()

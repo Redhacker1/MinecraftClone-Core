@@ -93,8 +93,8 @@ namespace MCClone_Core.World_CS.Generation
 				FaceDir = FrontFace.Clockwise,
 				FillMode = PolygonFillMode.Solid,
 				Shaders = new ShaderSet(
-					ShaderExtensions.CreateShaderSpirv(ShaderType.Vertex, File.ReadAllBytes("./Assets/intvert.spv"), "main"),
-					ShaderExtensions.CreateShaderSpirv(ShaderType.Fragment,	File.ReadAllBytes("./Assets/frag.spv"), "main")
+					ShaderExtensions.CreateShaderSPIRV(ShaderType.Vertex, File.ReadAllBytes("./Assets/intvert.spv"), "main"),
+					ShaderExtensions.CreateShaderSPIRV(ShaderType.Fragment,	File.ReadAllBytes("./Assets/frag.spv"), "main")
 					)
 			};
 

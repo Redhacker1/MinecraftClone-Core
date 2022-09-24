@@ -12,7 +12,7 @@ namespace Engine
 
         static void Main(params string[] args)
         {
-            Shader ps = ShaderExtensions.CreateShaderHLSL(ShaderType.Fragment, "HLSLTest.ps", "main");
+            Shader ps = ShaderExtensions.CreateShaderFromFile(ShaderType.Fragment, "Assets/HLSLTest.ps", "main", ShaderExtensions.ShadingLanguage.HLSL);
 
 
             // TODO: This is where the engine should always init. 

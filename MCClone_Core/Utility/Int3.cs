@@ -40,7 +40,7 @@ namespace MCClone_Core.Utility
 
         public bool Equals(Int3 comparison)
         {
-            return Sse.MoveMask(Sse2.Xor(_backingVec, comparison._backingVec).AsSingle()) != 0;   
+            return Sse2.MoveMask(Sse2.Xor(_backingVec, comparison._backingVec).AsByte()) == 0;   
         }
 
         public override int GetHashCode()

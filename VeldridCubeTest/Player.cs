@@ -15,7 +15,7 @@ namespace VeldridCubeTest
 	public class Player: CharacterEntity
 	{
 		
-
+		public const double Speed = 5.498592;
 		DemoController _controller;
 		
 
@@ -24,19 +24,35 @@ namespace VeldridCubeTest
 
 		public override void _Ready()
 		{
-			_fpCam = new Camera(Position, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			_fpCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
+			AddChild(_fpCam);
+			
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			_controller = new DemoController(this);
+
+			Ticks = true;
+			PhysicsTick = true;
 		}
 
-		public override void _Process(double delta)
+		bool _isPaused;
+
+		protected override void _Process(double delta)
 		{
-			_fpCam.Pos = Position;
-			Freelook();
+			if (InputHandler.KeyboardJustKeyPressed(0, Key.Escape))
+			{
+				_isPaused = !_isPaused;
+				InputHandler.SetMouseMode(0, _isPaused ? CursorMode.Normal : CursorMode.Raw);
+			}
+
+			if (!_isPaused)
+			{
+				Freelook();	
+			}
 		}
 
 		protected override void _PhysicsProcess(double delta)
 		{
+			
 			_controller.Move(delta);
 		}
 		

@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using Engine;
 using Engine.Initialization;
+using Engine.MathLib;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
@@ -16,21 +18,34 @@ namespace VeldridCubeTest
     {
         static void Main()
         {
-	        Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX , 1.333333F, true );
-            Init.InitEngine(0,0, 1024, 768, "Demo Cube", new CubeDemo());
+	        Init.InitEngine(0,0, 1024, 768, "Demo Cube", new CubeDemo());
         }
     }
 
     class CubeDemo : GameEntry
     {
+	    Instance3D _instance3D;
 	    Material material;
 	    Entity Object;
 	    Player _player;
-        public override void GameStart()
-        {
+
+	    BaseLevel _level = new BaseLevel();
+
+	    protected override void GameStart()
+	    {
+		    base.GameStart();
+
+		    PinnedObject = _level;
 	        _player = new Player();
+	        _level.AddChild(_player);
+	        _player._Ready();
 	        
-	        Camera.MainCamera = new Camera(new Vector3(10, 1, 1), Vector3.UnitZ, Vector3.UnitY,1024/768, true );
+	        Camera.MainCamera = new Camera(new Transform(), Vector3.UnitZ, Vector3.UnitY,1024/768, true );
+	        
+	        ShaderSet set = new ShaderSet(
+		        ShaderExtensions.CreateShaderFromFile(ShaderType.Vertex, "./Assets/shader.vert", "main", ShaderExtensions.ShadingLanguage.GLSL),
+		        ShaderExtensions.CreateShaderFromFile(ShaderType.Fragment, "./Assets/shader.frag", "main", ShaderExtensions.ShadingLanguage.GLSL));
+	        
 	        MaterialDescription materialDescription = new MaterialDescription
 			{
 				BlendState = BlendStateDescription.SingleDisabled,
@@ -41,32 +56,25 @@ namespace VeldridCubeTest
 				WriteDepthBuffer = true,
 				FaceDir = FrontFace.Clockwise,
 				FillMode = PolygonFillMode.Solid,
-				Shaders = new Dictionary<ShaderStages, Shader>
-				{
-					{
-						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass.Renderer.Device, ShaderStages.Fragment)
-					},
-					{
-						ShaderStages.Vertex,
-						new Shader("./Assets/vert.spv", WindowClass.Renderer.Device, ShaderStages.Vertex)
-					}
-
-
-				}
+				Shaders = set,
 			};
 
 			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
 			
 			material = new Material(materialDescription, 
-				new VertexLayoutDescription[1]
+				new VertexLayoutDescription[2]
 				{
+					new VertexLayoutDescription((uint)Unsafe.SizeOf<Matrix4x4>(), 1, 
+						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+					
 					new VertexLayoutDescription(
 						new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
@@ -124,9 +132,16 @@ namespace VeldridCubeTest
 					20,21,22, 20,22,23,
 				}
 			};
-			Object = new Entity(Vector3.Zero, Quaternion.Identity);
+			Object = new Entity(new Transform());
 			Mesh mesh = new Mesh();
 			mesh.GenerateMesh(data);
+
+			_instance3D = new Instance3D(mesh, material);
+			_instance3D.SetTransform(new Transform());
+			
+			_level.AddChild(_instance3D);
+			
+			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
 
 
         }

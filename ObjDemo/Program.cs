@@ -73,7 +73,7 @@ namespace ObjDemo
 		{
 			ShaderSet set = new ShaderSet(
 				ShaderExtensions.CreateShaderFromFile(ShaderType.Vertex, "./Assets/shader.vert", "main", ShaderExtensions.ShadingLanguage.GLSL),
-				new Shader(File.ReadAllBytes("./Assets/frag.spv").ToImmutableArray(), ShaderType.Fragment, "main"));
+				ShaderExtensions.CreateShaderFromFile(ShaderType.Fragment, "./Assets/shader.frag", "main", ShaderExtensions.ShadingLanguage.GLSL));
 			
 			MaterialDescription materialDescription = new MaterialDescription
 			{
@@ -126,6 +126,9 @@ namespace ObjDemo
 
 			atlas = new Texture(WindowClass.Renderer.Device, "Assets/TextureAtlas.tga");
 			baseMaterial.ResourceSet(1, new TextureSampler(WindowClass.Renderer.Device.Aniso4xSampler), atlas);
+
+			Scale = new Vector3(.1f);
+
 		}
 
 		public override void _Ready()
@@ -168,7 +171,6 @@ namespace ObjDemo
 		public AssimpNodeTree(AssimpScene scene, AssimpNode nodeDescription, Transform nodeOffset, Material material)
 		{
 			
-			Console.WriteLine("Assembling node!");
 			Name = nodeDescription.Name;
 
 			Meshes = new Mesh[nodeDescription.MeshIndices.Length];
@@ -184,7 +186,6 @@ namespace ObjDemo
 					uint index = nodeDescription.MeshIndices[location];
 					
 					
-					Console.WriteLine("building meshes...");
 					AssimpMesh mesh = scene.Meshes[index];
 					
 					Meshes[location] = new Mesh();
@@ -203,8 +204,6 @@ namespace ObjDemo
 					WindowClass.Renderer.Passes[0].AddInstance(_instance3Ds[location]);
 				}
 			}
-			
-			Console.WriteLine(" Creating children");
 			foreach (AssimpNode child in nodeDescription.Children)
 			{
 

@@ -67,7 +67,6 @@ namespace MCClone_Core
             player.World = world;
             
             script._Ready();
-            world._Ready();
             player._Ready();
             
             

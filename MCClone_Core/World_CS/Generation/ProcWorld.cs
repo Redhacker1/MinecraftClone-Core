@@ -28,7 +28,7 @@ using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
-	public class ProcWorld : EngineLevel
+	public class ProcWorld : BaseLevel
 	{
 		public static readonly ChunkMesher Mesher = new ChunkMesher();
 		
@@ -92,8 +92,8 @@ namespace MCClone_Core.World_CS.Generation
 				FaceDir = FrontFace.Clockwise,
 				FillMode = PolygonFillMode.Solid,
 				Shaders = new ShaderSet(
-					ShaderExtensions.CreateShaderSPIRV(ShaderType.Vertex, File.ReadAllBytes("./Assets/intvert.spv"), "main"),
-					ShaderExtensions.CreateShaderSPIRV(ShaderType.Fragment,	File.ReadAllBytes("./Assets/frag.spv"), "main")
+					ShaderExtensions.CreateShaderFromFile(ShaderType.Vertex, "./Assets/IntVertShader.vert", "main", ShaderExtensions.ShadingLanguage.GLSL),
+					ShaderExtensions.CreateShaderFromFile(ShaderType.Fragment, "./Assets/shader.frag", "main", ShaderExtensions.ShadingLanguage.GLSL)
 					)
 			};
 
@@ -278,12 +278,10 @@ namespace MCClone_Core.World_CS.Generation
 				if (SaveFileHandler.ChunkExists(World, cpos))
 				{
 					c = SaveFileHandler.GetChunkData(this ,World, cpos, out _);
-					c._Ready();
 				}
 				else
 				{
 					c = new ChunkCs();
-					c._Ready();
 					c.InstantiateChunk(cx, cz, WorldSeed);	
 				}
 				
@@ -310,7 +308,7 @@ namespace MCClone_Core.World_CS.Generation
 		}
 		
 
-		public override List<AABB> GetAabbs(int collisionlayer, Entity ent)
+		public List<AABB> GetAabbs(int collisionlayer, Entity ent)
 		{
 			List<AABB> aabbs = new List<AABB>();
 			AABB aabb = ent.bbox;

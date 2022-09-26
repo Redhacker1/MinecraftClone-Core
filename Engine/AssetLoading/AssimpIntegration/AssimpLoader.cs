@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Engine.MathLib;
 using Silk.NET.Assimp;
 using File = System.IO.File;
 using Mesh = Silk.NET.Assimp.Mesh;
@@ -321,7 +322,10 @@ namespace Engine.AssetLoading.AssimpIntegration
             CurrentNode.MeshIndices = Array.Empty<uint>();
             CurrentNode.Children = Array.Empty<AssimpNode>();
             CurrentNode.Name = node->MName;
-            CurrentNode.Transform = node->MTransformation;
+            
+            Transform.Decompose(in node->MTransformation, out Transform transform);
+            CurrentNode.Transform = transform;
+            
 
             if (node->MNumMeshes != 0)
             {

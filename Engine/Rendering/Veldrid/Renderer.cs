@@ -11,6 +11,7 @@ using Veldrid;
 
 // TODO: This should be seperated into implementation and Logic files, Veldrid should NOT be a core dependency.
 // TODO: Look into making user definable or events to trigger on user defined times, say when a frame is completed or a new frame is starting.
+// TODO: The Level should probably have control over rendering the game, either that or the Game Entry, I am inclined to give it to the level class
 namespace Engine.Rendering.Veldrid
 {
 
@@ -55,7 +56,7 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
 
@@ -90,7 +91,7 @@ namespace Engine.Rendering.Veldrid
             }
 
             _imGuiHandler.Update((float) time);
-            foreach (ImGUIPanel uiPanel in ImGUIPanel.panels)
+            foreach (ImGUIPanel uiPanel in ImGUIPanel.Panels)
             {
 
                 if (uiPanel.Draggable == false)

@@ -35,7 +35,7 @@ namespace VeldridCubeTest
 			Freelook();
 		}
 
-		public override void _PhysicsProcess(double delta)
+		protected override void _PhysicsProcess(double delta)
 		{
 			_controller.Move(delta);
 		}

@@ -22,7 +22,7 @@ namespace ObjDemo
 		Camera _fpCam;
 
 
-		protected override void _Ready()
+		public override void _Ready()
 		{
 			Console.WriteLine("Ready");
 			Rotation = Quaternion.Identity;

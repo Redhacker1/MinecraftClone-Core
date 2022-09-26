@@ -2,7 +2,7 @@
 
 namespace Engine.Collision.BEPUPhysics;
 
-public interface IEnginePoseIntegrator : IPoseIntegratorCallbacks
+public interface IEnginePoseIntegrator : IPoseIntegratorCallbacks, IBepuIntegration
 {
     
 }

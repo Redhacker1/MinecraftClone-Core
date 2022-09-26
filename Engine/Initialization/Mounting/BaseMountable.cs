@@ -1,7 +1,6 @@
 ﻿namespace Engine;
 
-
-internal class BaseMountable
+public class BaseMountable
 {
         internal virtual void OnMounted()
         {

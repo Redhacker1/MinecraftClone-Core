@@ -57,7 +57,7 @@ namespace MCClone_Core.Player_CS
             }
             else if (!pawn.OnGround && !pawn.Noclip)
             {
-                //_velocity.Y -= .2f * (float)delta;
+                _velocity.Y -= .2f * (float)delta;
             }
             else
             {
@@ -74,10 +74,7 @@ namespace MCClone_Core.Player_CS
 
             _velocity.X = (float)(direction.X * Player.Speed * delta);
             _velocity.Z = (float)(direction.Z * Player.Speed * delta);
-            if (pawn.Noclip)
-            {
-                _velocity.Y = (float)(direction.Y * Player.Speed * delta);
-            }
+            _velocity.Y = (float)(direction.Y * Player.Speed * delta);
             
             
             

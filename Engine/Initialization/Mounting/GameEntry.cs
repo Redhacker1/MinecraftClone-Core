@@ -8,20 +8,22 @@ namespace Engine
     /// <summary>
     /// Game entrypoint, define all startup logic here. TODO: we could probably abstract most of this away in the simple cases, 
     /// </summary>
-    public abstract class GameEntry
+    public abstract class GameEntry : BaseMountable
     {
 
-        EngineLevel _pinnedObject;
+        ILevelContract Level;
         
         /// <summary>
         /// The object (usually a level) that you pin to the engine, events run off of here. 
         /// </summary>
-        public EngineLevel PinnedObject
+        public ILevelContract PinnedObject
         {
-            get => _pinnedObject;
+            get => Level;
             set
             {
-                _pinnedObject = value;
+                Level?.OnLevelUnload();
+                Level = value;
+                Level?.OnLevelLoad();
             }
         }
 
@@ -30,7 +32,7 @@ namespace Engine
         /// </summary>
         protected internal virtual void GameStart()
         {
-            PinnedObject?._Ready();
+            PinnedObject?.OnLevelLoad();
         }
         
         internal void Update(double delta)
@@ -45,7 +47,7 @@ namespace Engine
         /// </summary>
         protected internal virtual void GameEnded()
         {
-            PinnedObject?.OnFree();
+            PinnedObject?.OnLevelUnload();
         }
 
         /// <summary>

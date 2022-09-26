@@ -100,7 +100,7 @@ namespace Engine.Renderable
 
         ~BaseRenderable()
         {
-            Console.WriteLine("Mesh object leak!");
+            ReleaseEngineResources();
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Engine.MathLib;
 
 namespace Engine.AssetLoading.AssimpIntegration
 {
@@ -6,7 +7,7 @@ namespace Engine.AssetLoading.AssimpIntegration
     {
         public string Name;
 
-        public Matrix4x4 Transform;
+        public Transform Transform;
         public AssimpNode[] Children;
         public AssimpNode Parent;
 

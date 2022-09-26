@@ -14,6 +14,13 @@ public struct Transform
       Rotation = rotation;
       Scale = scale;
    }
+   
+   public Transform()
+   {
+      Position = Vector3.Zero;
+      Rotation = Quaternion.Identity;
+      Scale = Vector3.One;
+   }
 
    public static void Compose(in Transform inTransform, out Matrix4x4 outMatrix)
    {

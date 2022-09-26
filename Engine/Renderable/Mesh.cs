@@ -8,12 +8,18 @@ using Veldrid;
 
 namespace Engine.Renderable
 {
-    public class Mesh : BaseRenderable<float>, IDisposable
+    public struct GenericVertex
+    {
+        public Vector3 vertex;
+        public Vector3 UV;
+    }
+    
+    public class Mesh : BaseRenderable<GenericVertex>
     {
         
+        
         internal bool UpdatingMesh = true;
-
-        public static List<Mesh> Meshes = new List<Mesh>();
+        
         
         internal Vector3 Minpoint;
         internal Vector3 Maxpoint;
@@ -21,23 +27,19 @@ namespace Engine.Renderable
 
         public Mesh()
         {
-            Meshes.Add(this);
+            ebo = new IndexBuffer<uint>(WindowClass.Renderer.Device, 1);
+            vbo = new VertexBuffer<GenericVertex>(WindowClass.Renderer.Device, new GenericVertex[1]);
         }
 
 
-        void CreateVertexArray(Span<Vector3> _vertices, Span<Vector3> _uvs, ref Span<float> vertexArray)
+        void CreateVertexArray(Span<Vector3> _vertices, Span<Vector3> _uvs, ref Span<GenericVertex> vertexArray)
         {
             Vector3 tempmin = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
             Vector3 tempmax = new Vector3(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
             for (int i = 0; i <_vertices.Length; i++)
             {
-                vertexArray[i * 6] = _vertices[i].X;
-                vertexArray[i * 6 + 1] = _vertices[i].Y;
-                vertexArray[i * 6 + 2] =_vertices[i].Z;
-                
-                vertexArray[i * 6 + 3] =_uvs[i].X;
-                vertexArray[i * 6 + 4] =_uvs[i].Y;
-                vertexArray[i * 6 + 5] =_uvs[i].Z;
+                vertexArray[i].vertex = _vertices[i];
+                vertexArray[i].UV = _uvs[i];
 
                 tempmin = Vector3.Min(_vertices[i], tempmin);
                 tempmax = Vector3.Max(_vertices[i], tempmax);
@@ -45,44 +47,39 @@ namespace Engine.Renderable
             Maxpoint = tempmax;
             Minpoint = tempmin;
         }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public override void GetMinMax(out Vector3 minPoint, out Vector3 maxpoint)
+        
+        
+        
+        public override void GetMinMax(out Vector3 minPoint, out Vector3 maxPoint)
         {
             minPoint = Minpoint;
-            maxpoint = Maxpoint;
+            maxPoint = Maxpoint;
         }
 
         /// <summary>
         /// Updates the Vertex Array, this allows for the mesh to be updated with the supplied data from the MeshData.
         /// </summary>
-        public void GenerateMesh(Span<Vector3> _vertices, Span<Vector3> _uvs, Span<uint> _indices)
+        public void GenerateMesh(Span<Vector3> vertices, Span<Vector3> uvs, Span<uint> indices)
         {
-            Span<float> vertsTest = new float[_vertices.Length * 6];
-            CreateVertexArray(_vertices, _uvs, ref vertsTest);
+            Span<GenericVertex> vertsTest = new GenericVertex[vertices.Length];
+            CreateVertexArray(vertices, uvs, ref vertsTest);
 
             UpdatingMesh = true;
-            VertexElements = (uint) _vertices.Length;
-            if (_indices.Length > 0)
+            VertexElements = (uint) vertices.Length;
+            if (indices.Length > 0)
             {
-                ebo = new IndexBuffer<uint>(WindowClass.Renderer.Device, _indices);
-                VertexElements = (uint)_indices.Length;
+                ebo.ModifyBuffer(indices, WindowClass.Renderer.Device);
+                UseIndexedDrawing = true;
+                VertexElements = (uint)indices.Length;
             }
-            
-            vbo = new VertexBuffer<float>(WindowClass.Renderer.Device, vertsTest);
+
+            vbo.ModifyBuffer(vertsTest, WindowClass.Renderer.Device);
             UpdatingMesh = false;
         }
 
         public void GenerateMesh(MeshData meshData)
         {
             GenerateMesh(meshData._vertices, meshData._uvs, meshData._indices);
-        }
-        
-        public void Dispose()
-        {
-            ebo?.Dispose();
-            vbo?.Dispose();
-            Meshes.Remove(this);
         }
 
         public uint GetMeshSize()

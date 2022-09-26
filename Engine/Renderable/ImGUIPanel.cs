@@ -12,19 +12,19 @@ namespace Engine.Renderable
         public Vector2 Position = new Vector2();
         internal bool Draggable = true;
 
-        internal static readonly List<ImGUIPanel> panels = new List<ImGUIPanel>();
+        internal static readonly List<ImGUIPanel> Panels = new List<ImGUIPanel>();
         public bool Show = true;
         internal ImGuiWindowFlags Flags = ImGuiWindowFlags.None;
 
 
         public ImGUIPanel()
         {
-            panels.Add(this);
+            Panels.Add(this);
         }
 
         void RemovePanel()
         {
-            panels.Remove(this);
+            Panels.Remove(this);
         }
 
         public void AddFlag(ImGuiWindowFlags FlagToEnable)

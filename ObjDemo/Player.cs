@@ -24,15 +24,16 @@ namespace ObjDemo
 		public override void _Ready()
 		{
 			Rotation = Quaternion.Identity;
-			_fpCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
-			{
-				Position = Position,
-				Rotation = Rotation
-			};
+			_fpCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY, 1600f / 900f, true);
+			
+			
 			InputHandler.SetMouseMode(0, CursorMode.Raw);
 			MoveMouse = true;
 			_controller = new DemoController(this);
 			AddChild(Camera.MainCamera);
+
+			Ticks = true;
+			PhysicsTick = true;
 		}
 
 		protected override void _Process(double delta)
@@ -55,7 +56,7 @@ namespace ObjDemo
 
 			if (MoveMouse)
 			{
-				Freelook();				
+				FreeLook();				
 			}
 
 		}
@@ -69,7 +70,7 @@ namespace ObjDemo
 		
 		
 
-		public void Freelook()
+		public static void FreeLook()
 		{
 			if (Camera.MainCamera != null)
 			{

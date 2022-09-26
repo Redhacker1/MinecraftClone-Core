@@ -12,7 +12,7 @@ namespace MCClone_Core.Physics
     {
         public bool OnGround;
         public float EyeOffset = 1.6f;
-        public bool Noclip = true;
+        public bool Noclip = false;
         
 
         public virtual void Move(Vector3 accel)

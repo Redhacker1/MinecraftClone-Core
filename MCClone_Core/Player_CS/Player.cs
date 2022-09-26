@@ -50,7 +50,7 @@ namespace MCClone_Core.Player_CS
 
 		public Player(Vector3 pos, Vector2 dir) : base(pos, dir)
 		{
-			ConsoleLibrary.BindCommand("Noclip", "Enables or Disables noclip", "Noclip", arguments =>
+			ConsoleLibrary.BindCommand("Noclip", "Enables or Disables noclip", "Noclip", _ =>
 			{
 				ToggleNoclip();
 				return "";
@@ -111,7 +111,10 @@ namespace MCClone_Core.Player_CS
 			
 			
 			FPCam.Position = new Vector3(Position.X, Position.Y + 0, Position.Z);
-			Freelook();
+			if (MoveMouse)
+			{
+				Freelook();
+			}
 
 			Vector3 Location = Position;
 			HitResult result = Raycast.CastInDirection(Location,FPCam.Front, -1, 5);
@@ -128,7 +131,9 @@ namespace MCClone_Core.Player_CS
 
 				if (InputHandler.KeyboardJustKeyPressed(0, Key.C))
 				{
-					ConsoleLibrary.SendCommand("Noclip");
+					var test = Noclip ? "Enabled" : "Disabled";
+					Console.WriteLine($"Noclip {test}");
+					ConsoleLibrary.SendCommand($"Noclip");
 				}
 			}
 

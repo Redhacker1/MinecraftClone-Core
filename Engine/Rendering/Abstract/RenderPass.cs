@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using Engine.Rendering.Veldrid;
+using Engine.Utilities.Concurrency;
 using Veldrid;
 
 namespace Engine.Rendering.Abstract
@@ -15,7 +17,7 @@ namespace Engine.Rendering.Abstract
         protected Renderer backingRenderer;
         public string Name;
         
-        List<WeakReference<Instance3D>> Instances = new List<WeakReference<Instance3D>>();
+        ThreadSafeList<WeakReference<Instance3D>> Instances = new ThreadSafeList<WeakReference<Instance3D>>();
 
         protected RenderPass(CommandList _list, Renderer renderer, string name = null )
         {
@@ -54,7 +56,7 @@ namespace Engine.Rendering.Abstract
         /// </summary>
         /// <param name="list">The target command list to execute</param>
         /// <param name="instances">The sorted list of Instances to draw</param>
-        /// <param name="camera">"The view the pass comes from!"</param>
+        /// <param name="camera">"Information about the camera being used"</param>
         protected abstract void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera);
 
         internal void RunPass()
@@ -92,7 +94,8 @@ namespace Engine.Rendering.Abstract
             }
         }
         
-        protected virtual List<Instance3D> Cull(List<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        protected virtual List<Instance3D> Cull(ThreadSafeList<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo) 
         {
             List<Instance3D> instance3Ds = new List<Instance3D>(instances.Count);
             for (int i = 0; i < instances.Count; i++)
@@ -125,8 +128,8 @@ namespace Engine.Rendering.Abstract
         {
             instances.Sort((instance3D, instance3D1) => GreaterThan(instance3D.Position, instance3D1.Position, ref cameraInfo));
         }
-        
-        int GreaterThan(Vector3 first, Vector3 second, ref CameraInfo cameraInfo)
+
+        static int GreaterThan(Vector3 first, Vector3 second, ref CameraInfo cameraInfo)
         {
             if (Vector3.Distance(cameraInfo.CameraTransform.Position, first) > Vector3.Distance(cameraInfo.CameraTransform.Position, second))
             {
@@ -140,13 +143,12 @@ namespace Engine.Rendering.Abstract
             {
                 return -1;
             }
-            // Only should happen if a value does not possibly equal itself, IE, pretty much only NAN
+            // Only should happen if a value does not possibly equal itself, IE, pretty much only NaN
             throw new ArithmeticException("Input was probably NAN, check your code");
         }
         
         public void AddInstance(Instance3D instance)
         {
-            Console.WriteLine("Instance loaded!");
             lock (Instances)
             {
                 Instances.Add(new WeakReference<Instance3D>(instance));   

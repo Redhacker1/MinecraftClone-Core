@@ -3,6 +3,7 @@ using System.Numerics;
 using Engine;
 using Engine.Initialization;
 using Engine.Input;
+using Engine.MathLib;
 using Engine.Objects;
 
 namespace InputTest
@@ -26,7 +27,7 @@ namespace InputTest
         }
     }
 
-    internal class InputObject : GameObject
+    internal class InputObject : EngineObject
     {
         internal InputObject()
         {

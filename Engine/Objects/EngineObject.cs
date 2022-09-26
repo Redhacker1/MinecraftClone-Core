@@ -1,51 +1,35 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Numerics;
+﻿using System.Numerics;
 using Engine.MathLib;
 using Engine.Rendering.Abstract;
+using Engine.Utilities.Concurrency;
 
 namespace Engine.Objects
 {
     /// <summary>
-    /// Has a position, Location and Rotation, is used as the base for all entities in engine, and is cheap to create
-    /// Not to mention, is decoupled from the engine, so almost no bookkeeping is necessary. The downside however is it
-    /// it has no tick or update methods, which in some circumstances the trade off may be worth it.
+    /// Has a position, Location and Rotation, is used as the base for all entities in engine
     /// </summary>
     public class EngineObject
     {
-
-
-#region Game loop properties
-
-        internal bool Started = false;
+        
         public bool PhysicsTick = false;
         public bool Ticks = false;
 
-        internal void OnTick(float delta)
-        {
-            _Process(delta);
-            TickChildren(delta);
-        }
-        
-        internal void OnPhysicsTick(float delta)
-        {
-            _PhysicsProcess(delta);
-            PhysicsTickChildren(delta);
-        }
-
-
-        #endregion
 
 
 #region Creation and Cleanup
 
-        protected EngineObject(EngineObject parent = null, Transform transform = new Transform())
+        protected EngineObject(Transform transform, EngineObject parent = null) 
         {
             _parent = parent;
             lock (_locker)
             {
                 LocalTransform = transform;
             }
+        }
+        
+        protected EngineObject() : this(new Transform()) 
+        {
+            
         }
     
         public bool Freed;
@@ -54,17 +38,7 @@ namespace Engine.Objects
             Freed = true;
             OnFree();
         }
-        
-        /// <summary>
-        ///  Removes the object from the world on the next available update on the main thread.
-        /// </summary>
-        public void FreeSynchronous()
-        {
-            _parent?.RemoveChild(this);
-            EngineFree = true;
-        }
 
-        public bool EngineFree { get; set; }
 
         ~EngineObject()
         {
@@ -170,21 +144,21 @@ namespace Engine.Objects
 
 #region Parent Child Hierarchy
 
-        object childLock = new object();
+public ILevelContract BaseLevel;
+
         public void AddChild(EngineObject engineObject)
         {
-            lock (childLock)
-            {
-                Children.Add(engineObject);   
-            }
+            BaseLevel?.AddEntityToLevel(engineObject);
+            OnChildAdded(engineObject);
+            Children.Add(engineObject);   
         }
+        
 
         public void RemoveChild(EngineObject engineObject)
         {
-            lock (childLock)
-            {
-                Children.Remove(engineObject);
-            }
+            BaseLevel?.RemoveEntityFromLevel(engineObject);
+            Children.Remove(engineObject);
+            OnChildRemoved(engineObject);
         }
         
         EngineObject _parent;
@@ -201,35 +175,7 @@ namespace Engine.Objects
             }
         }
         
-        internal void TickChildren(float delta)
-        {
-            ImmutableArray<EngineObject> child;
-            lock (childLock)
-            {
-                child = Children.ToImmutableArray();
-            }
-
-            foreach (EngineObject engineObject in child)
-            {
-                engineObject.OnTick(delta);
-            }
-        }
-        
-        internal void PhysicsTickChildren(float delta)
-        {
-            ImmutableArray<EngineObject> child;
-            lock (childLock)
-            {
-                child = Children.ToImmutableArray();
-            }
-            foreach (EngineObject engineObject in child)
-            {
-                engineObject.OnTick(delta);
-            }
-        }
-        
-        protected readonly List<EngineObject> Children = new List<EngineObject>();
-
+        protected internal readonly ThreadSafeList<EngineObject> Children = new ThreadSafeList<EngineObject>();
 #endregion
 
 
@@ -249,6 +195,11 @@ namespace Engine.Objects
         /// </summary>
         /// <param name="removedChild"></param>
         protected virtual void OnChildRemoved(EngineObject removedChild) 
+        {
+            
+        }
+        
+        protected virtual void OnChildAdded(EngineObject engineObject)
         {
             
         }
@@ -287,10 +238,10 @@ namespace Engine.Objects
         /// <summary>
         /// Called just before freeing an object
         /// </summary>
-        protected internal virtual void OnFree()
+        protected virtual void OnFree()
         {
         }
-        #endregion
+#endregion
 
 
     }

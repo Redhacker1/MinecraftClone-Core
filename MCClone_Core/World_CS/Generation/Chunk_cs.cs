@@ -85,7 +85,6 @@ namespace MCClone_Core.World_CS.Generation
 			
 			_instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
 			AddChild(_instance3D);
-			_instance3D._Ready();
 			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
 		}
 
@@ -314,6 +313,7 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			return x + y * MaxZ + z * MaxY * MaxX;
 		}
+		
 		
 		bool is_block_transparent(int x, int y, int z, bool discardAir = false)
 		{

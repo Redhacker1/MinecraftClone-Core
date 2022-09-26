@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Numerics;
 using Engine;
@@ -16,6 +17,7 @@ using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using Silk.NET.Input;
+using Silk.NET.SDL;
 using Veldrid;
 using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
@@ -43,7 +45,6 @@ namespace ObjDemo
 
 
 			PinnedObject = thing;
-			thing._Ready();
 
 		}
 	}
@@ -56,28 +57,27 @@ namespace ObjDemo
 		}
 	}
 
-	internal class MeshSpawner : EngineLevel
+	internal class MeshSpawner : BaseLevel
 	{
 		Player player;
 		Mesh[] _meshes;
 		Material[] Materials;
 		Material baseMaterial;
 		Texture atlas;
+		RotationPanel panel;
 
 		AssimpNodeTree Node;
-
-		List<GameObject> Nodes = new List<GameObject>();
 
 
 		unsafe void CreateBaseMaterial()
 		{
 			ShaderSet set = new ShaderSet(
-				new Shader(File.ReadAllBytes("./Assets/vert.spv").ToImmutableArray(), ShaderType.Vertex, "main"),
+				ShaderExtensions.CreateShaderFromFile(ShaderType.Vertex, "./Assets/shader.vert", "main", ShaderExtensions.ShadingLanguage.GLSL),
 				new Shader(File.ReadAllBytes("./Assets/frag.spv").ToImmutableArray(), ShaderType.Fragment, "main"));
 			
 			MaterialDescription materialDescription = new MaterialDescription
 			{
-				BlendState = BlendStateDescription.SingleOverrideBlend,
+				BlendState = BlendStateDescription.SingleDisabled,
 				ComparisonKind = ComparisonKind.LessEqual,
 				CullMode = FaceCullMode.Back,
 				Topology = PrimitiveTopology.TriangleList,
@@ -91,9 +91,6 @@ namespace ObjDemo
 
 			ResourceLayoutDescription ProjectionLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer,
-					ShaderStages.Vertex));
-			ResourceLayoutDescription ModelLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ModelProjBuffer", ResourceKind.UniformBuffer,
 					ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
@@ -122,23 +119,27 @@ namespace ObjDemo
 				new []
 				{
 					ProjectionLayout,
-					ModelLayout,
 					fragmentLayout	
 				}
 
 			);
 
-			atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
-			baseMaterial.ResourceSet(2, new TextureSampler(WindowClass.Renderer.Device.Aniso4xSampler), atlas);
+			atlas = new Texture(WindowClass.Renderer.Device, "Assets/TextureAtlas.tga");
+			baseMaterial.ResourceSet(1, new TextureSampler(WindowClass.Renderer.Device.Aniso4xSampler), atlas);
 		}
 
 		public override void _Ready()
 		{
-			Rotation = Quaternion.CreateFromYawPitchRoll(MathHelper.DegreesToRadians(0),
-				MathHelper.DegreesToRadians(0), MathHelper.DegreesToRadians(0));
-
-			RotationPanel panel = new RotationPanel(this);
 			base._Ready();
+			Ticks = true;
+			LocalTransform = new Transform();
+
+
+			AssimpScene? Scene = AssimpLoader.AssimpImport("Assets/Bistro/BistroExterior.fbx");
+			
+			Console.WriteLine("Setting up level");
+
+			panel = new RotationPanel(this);
 			CreateBaseMaterial();
 
 			if (atlas._Texture == null)
@@ -148,25 +149,23 @@ namespace ObjDemo
 
 			player = new Player();
 
-			this.AddChild(player);
+			AddChild(player);
 			player._Ready();
 			
-			
+			Node = new AssimpNodeTree(Scene, Scene.RootNode, new Transform(), baseMaterial);
+			AddChild(Node);
+			Node._Ready();
 
-			var Scene = AssimpLoader.AssimpImport(@"Assets/Wheel.fbx");
-
-			Node = new AssimpNodeTree(Scene, Scene.RootNode, Matrix4x4.Identity, baseMaterial);
 		}
 	}
 
-	class AssimpNodeTree : GameObject
+	class AssimpNodeTree : EngineObject
 	{
 		string Name;
-		AssimpNodeTree[] Children;
 		Mesh[] Meshes;
 		Instance3D[] _instance3Ds;
 
-		public AssimpNodeTree(AssimpScene scene, AssimpNode nodeDescription, Matrix4x4 nodeOffset, Material material)
+		public AssimpNodeTree(AssimpScene scene, AssimpNode nodeDescription, Transform nodeOffset, Material material)
 		{
 			
 			Console.WriteLine("Assembling node!");
@@ -175,42 +174,41 @@ namespace ObjDemo
 			Meshes = new Mesh[nodeDescription.MeshIndices.Length];
 			_instance3Ds = new Instance3D[nodeDescription.MeshIndices.Length];
 
-			Matrix4x4 nodeTransform = nodeOffset * nodeDescription.Transform;
-
-			Matrix4x4.Decompose(nodeTransform, out Vector3 nodeScale, out Quaternion nodeRotation, out Vector3 nodePos);
-			SetTransform(new Transform(nodePos, nodeRotation, nodeScale));
+			SetTransform(nodeOffset);
 
 
 			if (nodeDescription.MeshIndices != Array.Empty<uint>())
 			{
-				int location = 0;
-				foreach (uint indices in nodeDescription.MeshIndices)
+				for (int location = 0; location < nodeDescription.MeshIndices.Length; location++)
 				{
+					uint index = nodeDescription.MeshIndices[location];
+					
+					
 					Console.WriteLine("building meshes...");
-					AssimpMesh Mesh = scene.Meshes[indices];
+					AssimpMesh mesh = scene.Meshes[index];
+					
 					Meshes[location] = new Mesh();
-					List<uint> MeshIndices = new List<uint>();
+					List<uint> meshIndices = new List<uint>();
 
-					for (int FaceIndex = 0; FaceIndex < Mesh.Indices.Length; FaceIndex++)
+					foreach (uint[] t in mesh.Indices)
 					{
-						MeshIndices.AddRange(Mesh.Indices[FaceIndex]);
+						meshIndices.AddRange(t);
 					}
 
-					Meshes[location].GenerateMesh(Mesh.Vertices, Mesh.TextureCoords[0], MeshIndices.ToArray());
+					Meshes[location].GenerateMesh(mesh.Vertices, mesh.TextureCoords[0], meshIndices.ToArray());
 					_instance3Ds[location] = new Instance3D(Meshes[location], material);
-					_instance3Ds[location].SetTransform(this);
+
+
+					AddChild(_instance3Ds[location]);
 					WindowClass.Renderer.Passes[0].AddInstance(_instance3Ds[location]);
-					location++;
 				}
 			}
-			if (nodeDescription.Children.Length > 0)
+			
+			Console.WriteLine(" Creating children");
+			foreach (AssimpNode child in nodeDescription.Children)
 			{
-				Children = new AssimpNodeTree[nodeDescription.Children.Length];
-				for (int childIndex = 0; childIndex < nodeDescription.Children.Length; childIndex++)
-				{
-					Children[childIndex] = new AssimpNodeTree(scene, nodeDescription.Children[childIndex], LocalTransform.AsMatrix4X4(),
-						material);
-				}
+
+				AddChild(new AssimpNodeTree(scene, child, child.Transform, material));
 			}
 
 		}

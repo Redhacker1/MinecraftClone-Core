@@ -69,7 +69,7 @@ namespace Engine.Rendering.Veldrid
             layouts = parent.layouts;
         }
         
-        public void ResourceSet(uint slot, params IGraphicsResource[] resources)
+        public void ResourceSet(uint slot, params GraphicsResource[] resources)
         {
             BindableResource[] bindableResources = new BindableResource[resources.Length];
             for (int resource = 0; resource < resources.Length; resource++)

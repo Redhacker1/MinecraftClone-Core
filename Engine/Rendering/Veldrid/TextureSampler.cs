@@ -2,7 +2,7 @@
 
 namespace Engine.Rendering.Veldrid
 {
-    public class TextureSampler : IGraphicsResource
+    public class TextureSampler : GraphicsResource
     {
 
         Sampler _sampler;
@@ -12,7 +12,7 @@ namespace Engine.Rendering.Veldrid
             _sampler = samplertype;
         }
 
-        internal override (ResourceKind, BindableResource) GetUnderlyingResource()
+        public override (ResourceKind, BindableResource) GetUnderlyingResource()
         {
             return (ResourceKind.Sampler, _sampler);
         }

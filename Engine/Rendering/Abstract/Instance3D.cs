@@ -52,4 +52,8 @@ public sealed class Instance3D : EngineObject
         Boundingbox = boundingBox;
     }
 
+    public void SetAABB(AABB boundingBox)
+    {
+        Boundingbox = boundingBox;
+    }
 }

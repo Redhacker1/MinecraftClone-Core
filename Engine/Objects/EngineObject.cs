@@ -1,4 +1,7 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Diagnostics;
+using System.Numerics;
+using Engine.Collision.BEPUPhysics.Implementation;
 using Engine.MathLib;
 using Engine.Rendering.Abstract;
 using Engine.Utilities.Concurrency;
@@ -14,7 +17,7 @@ namespace Engine.Objects
         public bool PhysicsTick = false;
         public bool Ticks = false;
 
-
+        public PhysicsBody Body { get; set; }
 
 #region Creation and Cleanup
 
@@ -179,10 +182,23 @@ public ILevelContract BaseLevel;
 #endregion
 
 
+        internal virtual void OnLevelTick(double deltaT)
+        {
+            if (Body?.IsValidBody == true)
+            {
+                SetTransform(Body._transform);
+                Console.WriteLine(Body._transform.Position);
+            }
+            else if (Body != null)
+            {
+                Console.WriteLine("Body is not registered, but also not null!");
+            }
+            _Process(deltaT);
+        }
 
 
 
-    #region User Overridable Functions
+#region User Overridable Functions
         /// <summary>
         /// Is called when the transform is updated
         /// </summary>

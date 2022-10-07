@@ -1,18 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using Veldrid;
 
 namespace Engine.Rendering.Veldrid
 {
-    public abstract class IGraphicsResource : IDisposable
+    public abstract class GraphicsResource  : IDisposable
     {
-        internal abstract (ResourceKind, BindableResource) GetUnderlyingResource();
+        public abstract (ResourceKind, BindableResource) GetUnderlyingResource();
 
         protected abstract void OnDispose();
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             OnDispose();
             GC.SuppressFinalize(this);
         }
+
+        protected GraphicsResource()
+        {
+            
+        }
+        
+
     }
 }

@@ -26,7 +26,14 @@ public static class ShaderExtensions
         byte[] fileBytes = File.ReadAllBytes(path);
         return CreateShaderFromBytes(type, fileBytes, path, entryPoint, shadingLanguage);
     }
-    
+
+
+    public static unsafe Shader CreateShaderFromText(ShaderType type, string shaderChars, string name,
+        string entryPoint, ShadingLanguage shadingLanguage)
+    {
+        byte[] bytes = Encoding.UTF8.GetBytes(shaderChars);
+        return CreateShaderFromBytes(type, bytes, name, entryPoint, shadingLanguage);
+    }
     public static unsafe Shader CreateShaderFromBytes(ShaderType type, ReadOnlySpan<byte> shaderBytes, string name, string entryPoint, ShadingLanguage shadingLanguage  )
     {
         Shader shaderObject;
@@ -74,7 +81,9 @@ public static class ShaderExtensions
             sbyte* shaderCode = Shaderc.shaderc_result_get_bytes(result);
             
             string errors = Marshal.PtrToStringAnsi((IntPtr) errormessage);
+#if DEBUG
             Console.WriteLine($"Compiled with {warningCount} Warnings:\n{errors}");
+#endif
             
             if (status != shaderc_compilation_status.shaderc_compilation_status_success || errorCount > 0)
             {

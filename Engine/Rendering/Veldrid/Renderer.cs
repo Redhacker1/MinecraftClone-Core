@@ -77,11 +77,20 @@ namespace Engine.Rendering.Veldrid
                 return;
             }
             _stopwatch.Restart();
+            
+            // Clear the screen, 
             _list.Begin();
+            _list.PushDebugGroup("Clear Screen");
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
             _list.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
             _list.ClearDepthStencil(1f);
+            _list.PopDebugGroup();
+            _list.End();
+            Device.SubmitCommands(_list);
             
+            
+            _list.Begin();
+            _list.SetFramebuffer(Device.SwapchainFramebuffer);
             lock (Passes)
             {
                 foreach (RenderPass pass in Passes)
@@ -104,8 +113,7 @@ namespace Engine.Rendering.Veldrid
                 ImGui.End();
             }
             _imGuiHandler.Render(Device, _list);
-
-            _list.End();
+            
             Device.SubmitCommands(_list);
             Device.SwapBuffers();
             

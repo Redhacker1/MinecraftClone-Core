@@ -6,7 +6,7 @@ namespace Engine.Rendering.Veldrid
 
     public abstract class BaseUnifomrBuffer
     {
-        internal abstract DeviceBuffer GetBuffer();
+        public abstract DeviceBuffer GetBuffer();
     }
     public unsafe class UniformBuffer<TDataType> : BaseUnifomrBuffer where TDataType : unmanaged
     {
@@ -23,8 +23,12 @@ namespace Engine.Rendering.Veldrid
         
         public UniformBuffer(GraphicsDevice gDevice, uint Length)
         {
+
+            var size = sizeof(TDataType);
+            size = size > 16 ? size : 16;
+            
             bufferObject =
-                gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(TDataType) *  Length),
+                gDevice.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( size * Length),
                     BufferUsage.UniformBuffer | BufferUsage.Dynamic));
             _device = gDevice;
         }
@@ -38,7 +42,7 @@ namespace Engine.Rendering.Veldrid
             bufferObject.Dispose();
         }
         
-        public void ModifyBuffer(Span<TDataType> data, GraphicsDevice device)
+        public void ModifyBuffer(ReadOnlySpan<TDataType> data, GraphicsDevice device)
         {
             if (data.Length > Length)
             {
@@ -50,7 +54,19 @@ namespace Engine.Rendering.Veldrid
             device.UpdateBuffer(bufferObject, 0, data);
         }
         
-        public void ModifyBuffer(Span<TDataType> data, CommandList list, GraphicsDevice device)
+        public void ModifyBuffer(TDataType data, GraphicsDevice device)
+        {
+            if (1 > Length)
+            {
+                bufferObject.Dispose();
+                
+                BufferDescription bufferDescription = new BufferDescription((uint)(1 * sizeof(TDataType)), BufferUsage.UniformBuffer | BufferUsage.Dynamic);
+                bufferObject = device.ResourceFactory.CreateBuffer(bufferDescription);;
+            }
+            device.UpdateBuffer(bufferObject, 0, data);
+        }
+        
+        public void ModifyBuffer(ReadOnlySpan<TDataType> data, CommandList list, GraphicsDevice device)
         {
             if (data.Length > Length)
             {
@@ -63,17 +79,17 @@ namespace Engine.Rendering.Veldrid
             list.UpdateBuffer(bufferObject, 0, data);
         }
         
-        public void ModifyBuffer(Span<TDataType> data, CommandList list)
+        public void ModifyBuffer(ReadOnlySpan<TDataType> data, CommandList list)
         {
             ModifyBuffer(data, list, _device);
         }
         
-        public void ModifyBuffer(Span<TDataType> updateMatrix)
+        public void ModifyBuffer(ReadOnlySpan<TDataType> updateMatrix)
         {
             ModifyBuffer(updateMatrix, _device);
         }
 
-        internal override DeviceBuffer GetBuffer()
+        public override DeviceBuffer GetBuffer()
         {
             return bufferObject;
         }

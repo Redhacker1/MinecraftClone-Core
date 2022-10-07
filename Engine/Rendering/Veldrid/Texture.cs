@@ -22,7 +22,7 @@ namespace Engine.Rendering.Veldrid
     
     
     //TODO: Expose options in constructor for materials (eg, flip-mode, texture filtering, clamp mode, etc)
-    public class Texture : IGraphicsResource
+    public class Texture : GraphicsResource
     {
 
         public global::Veldrid.Texture _Texture;
@@ -159,7 +159,7 @@ namespace Engine.Rendering.Veldrid
             _Texture = device.ResourceFactory.CreateTexture(textureDescription);
         }
 
-        public static Texture CreateFromBytes(GraphicsDevice device, uint width, uint height, Span<byte> data)
+        public static Texture CreateFromBytes(GraphicsDevice device, uint width, uint height, ReadOnlySpan<byte> data)
         {
             Texture tex = new Texture();
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
@@ -192,7 +192,7 @@ namespace Engine.Rendering.Veldrid
         }
 
 
-        public void UpdateTextureBytes(GraphicsDevice device, Span<byte> bytes, uint width, uint height)
+        public void UpdateTextureBytes(GraphicsDevice device, ReadOnlySpan<byte> bytes, uint width, uint height)
         {
 
             if (width == _Texture.Width && height == _Texture.Height)
@@ -240,9 +240,15 @@ namespace Engine.Rendering.Veldrid
                 _Texture.Dispose();
             }
 
-        internal override (ResourceKind, BindableResource) GetUnderlyingResource()
+        public override (ResourceKind, BindableResource) GetUnderlyingResource()
         {
             return (ResourceKind.TextureReadOnly, _Texture);
         }
+        
+        ~Texture()
+        {
+            _Texture.Dispose();
+        }
     }
+    
 }

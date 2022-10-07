@@ -36,7 +36,7 @@ namespace Engine.Rendering.Veldrid
             list.SetIndexBuffer(BufferObject, IndexFormat.UInt32);
         }
 
-        internal override (ResourceKind, BindableResource) GetUnderlyingResource()
+        public override (ResourceKind, BindableResource) GetUnderlyingResource()
         {
             throw new NotSupportedException("Not usable on uniform buffers!");
         }

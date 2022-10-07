@@ -1,37 +1,49 @@
 ﻿using System;
 using BepuPhysics;
 using BepuUtilities.Memory;
+using Engine.Collision.BEPUPhysics.Implementation;
 
 namespace Engine.Collision.BEPUPhysics;
 
 public class PhysicsWorld : IDisposable
 {
-    BepuPhysics.Simulation _simulation;
+    internal Simulation Simulation;
     BufferPool MemoryPool;
 
 
-    public void Create<TEngineNarrowPhase, TEnginePoseCallbacks>(TEngineNarrowPhase narrowPhase, TEnginePoseCallbacks poseIntegrator) where TEngineNarrowPhase : struct, IEngineNarrowPhase where TEnginePoseCallbacks : struct, IEnginePoseIntegrator
+    public static PhysicsWorld Create<TEngineNarrowPhase, TEnginePoseCallbacks>(TEngineNarrowPhase narrowPhase, TEnginePoseCallbacks poseIntegrator) where TEngineNarrowPhase : struct, IEngineNarrowPhase where TEnginePoseCallbacks : struct, IEnginePoseIntegrator
     {
-        MemoryPool = new BufferPool();
-        _simulation = Simulation.Create(MemoryPool, narrowPhase, poseIntegrator, new SolveDescription(8, 1));
+        PhysicsWorld world = new PhysicsWorld();
+        world.MemoryPool = new BufferPool();
+        world.Simulation = Simulation.Create(world.MemoryPool, narrowPhase, poseIntegrator, new SolveDescription(8, 1));
+        return world;
+
     }
 
-    internal void RegisterBody(bool isStatic)
+    public void RegisterBody(bool isStatic, PhysicsBody body)
+    {
+        if (body.GetBody(Simulation, out BodyDescription desc))
+        {
+            body.handle = Simulation.Bodies.Add(desc);   
+        }
+    }
+
+    protected PhysicsWorld()
     {
         
     }
 
     /// <summary>
-    /// Runs on the level in a fixed timestep.
+    /// Runs on the level in a fixed time-step.
     /// </summary>
     /// <param name="delta"></param>
     public void Simulate(float delta)
     {
         PreSimulate(delta);
         // Engine simulation loop here. 
-        _simulation.Timestep(delta);
+        Simulation.Timestep(delta);
         PostSimulate(delta);
-        
+
     }
 
     /// <summary>

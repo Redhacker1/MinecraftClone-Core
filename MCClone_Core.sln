@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LineTest", "LineTest\LineTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BepuPhysicsDemo", "BepuPhysicsDemo\BepuPhysicsDemo.csproj", "{ADECC6A2-E69D-4CC7-B4EE-36EB6C986F62}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NVGRenderer", "NVGRenderer\NVGRenderer.csproj", "{9463902B-7FE8-49D3-A026-37929BB4F917}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{ADECC6A2-E69D-4CC7-B4EE-36EB6C986F62}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADECC6A2-E69D-4CC7-B4EE-36EB6C986F62}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADECC6A2-E69D-4CC7-B4EE-36EB6C986F62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9463902B-7FE8-49D3-A026-37929BB4F917}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9463902B-7FE8-49D3-A026-37929BB4F917}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9463902B-7FE8-49D3-A026-37929BB4F917}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9463902B-7FE8-49D3-A026-37929BB4F917}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -5,10 +5,10 @@ namespace Engine.Rendering.Veldrid;
 
 
 // TODO: When implementing other RHI/Backends, reuse this code and break Veldrid types out and move to engine replacements
-public abstract class BaseBufferUntyped : IGraphicsResource
+public abstract class BaseBufferUntyped : GraphicsResource
 {
     
-    internal override (ResourceKind, BindableResource) GetUnderlyingResource()
+    public override (ResourceKind, BindableResource) GetUnderlyingResource()
     {
         if (BufferType == BufferUsage.UniformBuffer)
         {

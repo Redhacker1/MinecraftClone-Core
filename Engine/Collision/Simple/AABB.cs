@@ -6,7 +6,7 @@ namespace Engine.Collision.Simple;
 public struct AABB
 {
     public Vector3 Origin;
-    public Vector3 Extents { get; private set; }
+    public Vector3 Extents { get; set; }
     
     public AABB(Vector3 origin, Vector3 extents)
     {

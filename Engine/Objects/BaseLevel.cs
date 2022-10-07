@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Engine.Collision.BEPUPhysics;
+using Engine.Collision.BEPUPhysics.Implementation;
 using Engine.Collision.Simple;
 using Engine.Rendering.Abstract;
 using Engine.Utilities.Concurrency;
@@ -14,14 +15,24 @@ namespace Engine.Objects;
 /// </summary>
 public class BaseLevel : EngineObject,  ILevelContract
 {
-    PhysicsWorld PhysicsWorld;
+    public PhysicsWorld PhysicsWorld;
     
-    public const double FixedStepTime = 0.0166666;
+    public const double FixedStepTime = 0.01666666;
 
     readonly ThreadSafeList<EngineObject> _levelObjects = new ThreadSafeList<EngineObject>();
     void ILevelContract.EntityTransformUpdated(EngineObject engineObject)
     {
         
+    }
+
+
+    internal override void OnLevelTick(double deltaT)
+    {
+        if (BaseLevel != null)
+        {
+            base.OnLevelTick(deltaT);
+            ((ILevelContract) this).OnTick(deltaT);   
+        }
     }
 
     double physicsDelta;
@@ -36,8 +47,9 @@ public class BaseLevel : EngineObject,  ILevelContract
         FrameUpdate(deltaT, objectSnapshot);
         if (physicsProcess)
         {
-            FixedUpdate(physicsDelta, objectSnapshot);
-            physicsDelta = 0;
+            PhysicsWorld.Simulate((float)physicsDelta);
+            FixedUpdate(FixedStepTime, objectSnapshot);
+            physicsDelta -= FixedStepTime;
             //Clean up empty objects
             Task.Run(Clean);
         }
@@ -71,12 +83,12 @@ public class BaseLevel : EngineObject,  ILevelContract
 
     protected void FrameUpdate(double delta, ImmutableArray<EngineObject> objectSnapshot)
     {
-        _Process(delta);   
+        OnLevelTick(delta);   
         foreach (EngineObject engineObject in objectSnapshot)
         {
             if (engineObject?.Ticks == true)
             {
-                engineObject._Process(delta);   
+                engineObject.OnLevelTick(delta);   
             }
         }
     }
@@ -101,10 +113,10 @@ public class BaseLevel : EngineObject,  ILevelContract
             _levelObjects.Add(entity);
             entity.BaseLevel = this;
 
-            for (int index = 0; index < entity.Children.Count ; index++)
+            foreach (EngineObject child in entity.Children)
             {
-                AddEntityToLevel(Children[index]);
-                Children[index].BaseLevel = this;
+                AddEntityToLevel(child);
+                child.BaseLevel = this;
             }
         }
     }
@@ -135,7 +147,7 @@ public class BaseLevel : EngineObject,  ILevelContract
 
     void ILevelContract.OnLevelLoad()
     {
-        PhysicsWorld = new PhysicsWorld();
+        PhysicsWorld = PhysicsWorld.Create(new DefaultNarrowPhase(), new DefaultPoseIntegrator());
         _Ready();
     }
 

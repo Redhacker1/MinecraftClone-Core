@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Collections.Generic;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using NVGRenderer.Rendering.Calls;
@@ -17,7 +19,7 @@ using Texture = SilkyNvg.Rendering.Texture;
 
 namespace NVGRenderer.Rendering;
 
-public class NvgRenderer : INvgRenderer
+public class NvgRenderer : INvgRenderer, IDisposable
 {
     private readonly RenderFlags _flags;
     public GraphicsDevice _device;
@@ -31,7 +33,6 @@ public class NvgRenderer : INvgRenderer
     internal bool StencilStrokes => _flags.HasFlag(RenderFlags.StencilStrokes);
     
     private VertexCollection _vertexCollection;
-    internal bool TriangleListFill => true;
 
     CallQueue _queue = new CallQueue();
     readonly Frame[] _frames;
@@ -54,7 +55,13 @@ public class NvgRenderer : INvgRenderer
 
     public void Dispose()
     {
-        //throw new NotImplementedException();
+        TextureManager.Dispose();
+        foreach (var frame in _frames)
+        {
+            frame.Dispose();
+        }
+
+        PipelineCache.Dispose();
     }
 
     public bool Create()
@@ -139,7 +146,7 @@ public class NvgRenderer : INvgRenderer
     public void Flush()
     {
         CurrentCommandBuffer.Begin();
-        
+        CurrentCommandBuffer.SetFramebuffer(_device.SwapchainFramebuffer);
         if (_queue.HasCalls)
         {
             Frame frame = _frames[CurrentFrameIndex];
@@ -152,9 +159,8 @@ public class NvgRenderer : INvgRenderer
             };
             
             frame.VertexUniformBuffer.ModifyBuffer(vertUniforms, _device);
-            
-            CurrentCommandBuffer.SetViewport(0, new Viewport(0,0, _viewSize.X, _viewSize.Y, 0, float.MaxValue));
-            //CurrentCommandBuffer.SetScissorRect(0, 0,0, (uint)_viewSize.X, (uint)_viewSize.Y);
+            CurrentCommandBuffer.SetViewport(0, new Viewport(0 ,0, _viewSize.X, _viewSize.Y, 0, 1));
+            CurrentCommandBuffer.SetScissorRect(0, 0,0, (uint)_viewSize.X, (uint)_viewSize.Y);
 
             //frame.DescriptorSetManager.Reset(_requireredDescriptorSetCount);
             frame.FragmentUniformBuffer.ModifyBuffer(Shader.UniformManager.Uniforms, _device);
@@ -184,24 +190,14 @@ public class NvgRenderer : INvgRenderer
         {
             Path path = paths[i];
             int verticesPresentCount = _vertexCollection.CurrentsOffset;
-            int fillCount;
-            if (TriangleListFill)
+            for (int j = 0; j < path.Fill.Count - 2; j++)
             {
-                for (int j = 0; j < path.Fill.Count - 2; j++)
-                {
-                    _vertexCollection.AddVertex(path.Fill[0]);
-                    _vertexCollection.AddVertex(path.Fill[j + 1]);
-                    _vertexCollection.AddVertex(path.Fill[j + 2]);
-                    offset += 3;
-                }
-                fillCount = (path.Fill.Count - 2) * 3;
+                _vertexCollection.AddVertex(path.Fill[0]);
+                _vertexCollection.AddVertex(path.Fill[j + 1]);
+                _vertexCollection.AddVertex(path.Fill[j + 2]);
+                offset += 3;
             }
-            else
-            {
-                _vertexCollection.AddVertices(path.Fill);
-                fillCount = path.Fill.Count;
-                offset += fillCount;
-            }
+            int fillCount = (path.Fill.Count - 2) * 3;
             renderPaths[i] = new StrokePath(
                 verticesPresentCount, fillCount,
                 verticesPresentCount + fillCount, path.Stroke.Count
@@ -300,5 +296,4 @@ public class NvgRenderer : INvgRenderer
             CurrentFrameIndex = 0;
         }
     }
-
 }

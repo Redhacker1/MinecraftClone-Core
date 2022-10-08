@@ -1,4 +1,5 @@
-﻿using Engine.Rendering.Veldrid;
+﻿using System;
+using Engine.Rendering.Veldrid;
 using NVGRenderer.Rendering.Shaders;
 using Vertex = SilkyNvg.Rendering.Vertex;
 
@@ -15,8 +16,7 @@ namespace NVGRenderer.Rendering
 
         public UniformBuffer<byte> FragmentUniformBuffer { get; }
 
-
-        public DescriptorSetManager DescriptorSetManager { get; }
+        
 
         public unsafe Frame(NvgRenderer renderer)
         {
@@ -27,8 +27,7 @@ namespace NVGRenderer.Rendering
             VertexUniformBuffer = new UniformBuffer<VertUniforms>(_renderer._device, 1u);
 
             FragmentUniformBuffer = new UniformBuffer<byte>(_renderer._device, 1u);
-
-            DescriptorSetManager = new DescriptorSetManager(_renderer);
+            
         }
 
         public unsafe void Dispose()
@@ -36,7 +35,6 @@ namespace NVGRenderer.Rendering
             VertexBuffer.Dispose();
             VertexUniformBuffer.Dispose();
             FragmentUniformBuffer.Dispose();
-            DescriptorSetManager.Dispose();
         }
 
     }

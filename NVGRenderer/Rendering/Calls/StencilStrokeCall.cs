@@ -17,6 +17,7 @@ namespace NVGRenderer.Rendering.Calls
 
             Pipeline sPipeline = PipelineCache.GetPipeLine(stencilPipeline, renderer);
             cmd.SetPipeline(sPipeline);
+            cmd.SetFramebuffer(renderer._device.SwapchainFramebuffer);
             
             
             renderer.Shader.SetUniforms(frame, out ResourceSet descriptorSet, uniformOffset + renderer.Shader.FragSize, image);

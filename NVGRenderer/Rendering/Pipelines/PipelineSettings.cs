@@ -1,4 +1,5 @@
-﻿using Veldrid;
+﻿using System;
+using Veldrid;
 
 namespace NVGRenderer.Rendering.Pipelines
 {
@@ -95,23 +96,23 @@ namespace NVGRenderer.Rendering.Pipelines
             };
         }
 
-        public static PipelineSettings ConvexFill(SilkyNvg.Blending.CompositeOperationState compositeOperation, bool dontUseFan)
+        public static PipelineSettings ConvexFill(SilkyNvg.Blending.CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
             settings.CompositeOperation = compositeOperation;
             settings.StencilTestEnable = false;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
             return settings;
         }
 
         public static PipelineSettings ConvexFillEdgeAa(SilkyNvg.Blending.CompositeOperationState compositeOperation)
         {
-            PipelineSettings settings = ConvexFill(compositeOperation, true);
-            settings.Topology = PrimitiveTopology.TriangleList;
+            PipelineSettings settings = ConvexFill(compositeOperation);
+            settings.Topology = PrimitiveTopology.TriangleStrip;
             return settings;
         }
 
-        public static PipelineSettings FillStencil(SilkyNvg.Blending.CompositeOperationState compositeOperation, bool dontUseFan)
+        public static PipelineSettings FillStencil(SilkyNvg.Blending.CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
 
@@ -136,14 +137,14 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.CullMode = FaceCullMode.Back;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
 
         public static PipelineSettings FillEdgeAa(SilkyNvg.Blending.CompositeOperationState compositeOperation)
         {
-            PipelineSettings settings = FillStencil(compositeOperation, true);
+            PipelineSettings settings = FillStencil(compositeOperation);
 
             settings.CullMode = FaceCullMode.Back;
             settings.ColourMask = ColorWriteMask.All;
@@ -157,7 +158,7 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.StencilPassOp = StencilOperation.Keep;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
@@ -175,7 +176,7 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.StencilPassOp = StencilOperation.Zero;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
@@ -185,7 +186,7 @@ namespace NVGRenderer.Rendering.Pipelines
             PipelineSettings settings = Default();
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
@@ -207,7 +208,7 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.StencilPassOp = StencilOperation.IncrementAndClamp;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
@@ -225,7 +226,7 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.StencilPassOp = StencilOperation.Keep;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
@@ -244,7 +245,7 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.StencilPassOp = StencilOperation.Zero;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }
@@ -254,7 +255,7 @@ namespace NVGRenderer.Rendering.Pipelines
             PipelineSettings settings = Default();
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleList;
+            settings.Topology = PrimitiveTopology.TriangleStrip;
 
             return settings;
         }

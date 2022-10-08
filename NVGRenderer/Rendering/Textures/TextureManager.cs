@@ -1,4 +1,7 @@
-﻿namespace NVGRenderer.Rendering.Textures
+﻿using System;
+using System.Collections.Generic;
+
+namespace NVGRenderer.Rendering.Textures
 {
     public sealed class TextureManager : IDisposable
     {

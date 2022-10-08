@@ -56,7 +56,7 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
 
@@ -65,11 +65,11 @@ namespace Engine.Rendering.Veldrid
             Passes[0] = new DefaultRenderPass(this);
 
         }
-        
-        CommandList _list; 
-        Stopwatch _stopwatch = new Stopwatch();
-        public uint FPS;
-        public GraphicsDevice Device;
+
+        readonly CommandList _list;
+        readonly Stopwatch _stopwatch = new Stopwatch();
+        public uint Fps;
+        public readonly GraphicsDevice Device;
         internal void OnRender(double time)
         {
             if (_disposing)
@@ -98,6 +98,7 @@ namespace Engine.Rendering.Veldrid
                     pass?.RunPass(_list);
                 }
             }
+            _list.End();
 
             _imGuiHandler.Update((float) time);
             foreach (ImGUIPanel uiPanel in ImGUIPanel.Panels)
@@ -119,7 +120,7 @@ namespace Engine.Rendering.Veldrid
             
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                FPS = (uint) (1 / time);   
+                Fps = (uint) (1 / time);   
             }
 
         }

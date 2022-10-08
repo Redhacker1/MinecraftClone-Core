@@ -1,4 +1,7 @@
-﻿using System.Text;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using Engine.Rendering.Abstract;
 using NVGRenderer.Rendering.Shaders;
 using SilkyNvg.Rendering;
@@ -8,7 +11,7 @@ using Shader = Veldrid.Shader;
 
 namespace NVGRenderer.Rendering.Pipelines;
 
-public class PipelineCache
+public static class PipelineCache
 {
     static GraphicsDevice _device;
     
@@ -45,8 +48,6 @@ public class PipelineCache
         {
             ColorWriteMask = settings.ColourMask
         };
-
-        Pipeline pipeline;
 
         Shader vs;
         Shader fs;
@@ -101,8 +102,11 @@ public class PipelineCache
             }
             case GraphicsBackend.Vulkan:
                 vs = _device.ResourceFactory.CreateShader(new ShaderDescription(ShaderStages.Vertex ,renderer.Shader.VertexShaderStage.Shaderbytes.ToArray(), "main"));
-                fs = _device.ResourceFactory.CreateShader(new ShaderDescription(ShaderStages.Vertex ,renderer.Shader.FragmentShaderStage.Shaderbytes.ToArray(), "main"));
-                vertexElementDescription = new[] { new VertexElementDescription("data",  VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate)};
+                fs = _device.ResourceFactory.CreateShader(new ShaderDescription(ShaderStages.Fragment ,renderer.Shader.FragmentShaderStage.Shaderbytes.ToArray(), "main"));
+                vertexElementDescription = new[] {
+                    new VertexElementDescription("vertex",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                    new VertexElementDescription("tcoord",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                };
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -116,9 +120,19 @@ public class PipelineCache
         BlendStateDescription blendState = BlendStateDescription.SingleDisabled;
         blendState.AttachmentStates = new[] {blendAttachment};
 
-        pipeline = _device.ResourceFactory.CreateGraphicsPipeline(
+        Pipeline pipeline = _device.ResourceFactory.CreateGraphicsPipeline(
             new GraphicsPipelineDescription(blendState, depthStencil, rasterizerState, settings.Topology, shaderSet, new []{renderer.Shader.DescriptorSetLayout}, _device.MainSwapchain.Framebuffer.OutputDescription, ResourceBindingModel.Default));
 
+        _pipelines[settings] = pipeline;
+
         return pipeline;
+    }
+
+    public static void Dispose()
+    {
+        foreach (KeyValuePair<PipelineSettings, Pipeline> pipelineSet in _pipelines)
+        {
+            pipelineSet.Value.Dispose();
+        }
     }
 }

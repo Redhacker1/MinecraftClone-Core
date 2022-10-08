@@ -1,4 +1,6 @@
-﻿namespace NVGRenderer.Rendering
+﻿using System;
+
+namespace NVGRenderer.Rendering
 {
 
     [Flags]

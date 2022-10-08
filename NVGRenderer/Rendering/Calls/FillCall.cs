@@ -9,13 +9,14 @@ namespace NVGRenderer.Rendering.Calls
     {
 
         public FillCall(int image, StrokePath[] paths, uint triangleOffset, ulong uniformOffset, CompositeOperationState compositeOperation, NvgRenderer renderer)
-            : base(image, paths, triangleOffset, 4, uniformOffset, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation, renderer.TriangleListFill), PipelineSettings.FillEdgeAa(compositeOperation), renderer) { }
+            : base(image, paths, triangleOffset, 4, uniformOffset, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation), PipelineSettings.FillEdgeAa(compositeOperation), renderer) { }
 
         public override void Run(Frame frame, CommandList cmd)
         {
 
             Pipeline sPipeline = PipelineCache.GetPipeLine(stencilPipeline, renderer); 
             cmd.SetPipeline(sPipeline);
+            cmd.SetFramebuffer(renderer._device.SwapchainFramebuffer);
             
             renderer.Shader.SetUniforms(frame, out ResourceSet descriptorSet, uniformOffset, 0);
             cmd.SetGraphicsResourceSet(0, descriptorSet);

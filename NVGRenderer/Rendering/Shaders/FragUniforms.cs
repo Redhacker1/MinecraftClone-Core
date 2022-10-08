@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using NVGRenderer.Rendering.Textures;
 using Silk.NET.Maths;
 using SilkyNvg;

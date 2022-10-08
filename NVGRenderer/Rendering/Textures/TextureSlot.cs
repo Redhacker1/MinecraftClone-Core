@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.Runtime.CompilerServices;
 using SilkyNvg.Images;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
@@ -14,7 +15,7 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
 
     public void Dispose()
     {
-        _texture.Dispose();
+        _texture?.Dispose();
     }
 
     public bool HasFlag(ImageFlags flag)
@@ -27,7 +28,7 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
         return _flags == other._flags && _texture.Equals(other._texture) && Id == other.Id;
     }
 
-    public override bool Equals(object? obj)
+    public override bool Equals(object obj)
     {
         return obj is TextureSlot other && Equals(other);
     }

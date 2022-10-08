@@ -8,7 +8,7 @@ namespace NVGRenderer.Rendering.Calls
     {
 
         public ConvexFillCall(int image, StrokePath[] paths, ulong uniformOffset, CompositeOperationState op, NvgRenderer renderer)
-            : base(image, paths, 0, 0, uniformOffset, PipelineSettings.ConvexFill(op, renderer.TriangleListFill), default, PipelineSettings.ConvexFillEdgeAa(op), renderer) { }
+            : base(image, paths, 0, 0, uniformOffset, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAa(op), renderer) { }
 
         public override unsafe void Run(Frame frame, CommandList cmd)
         {

@@ -37,7 +37,7 @@ namespace MCClone_Core.Debug_and_Logging
             float MemUsage = CurrentProcess.WorkingSet64 / 1048576f;
 
             //ImGui.Text($"Memory: {CurrentProcess.WorkingSet64 / 1048576f}MB");
-            ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
+            ImGui.Text($"FPS Estimate: {WindowClass.Renderer.Fps}");
             //ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Count}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");

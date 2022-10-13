@@ -65,11 +65,11 @@ namespace Engine.Rendering.Veldrid
             Passes[0] = new DefaultRenderPass(this);
 
         }
-
-        readonly CommandList _list;
-        readonly Stopwatch _stopwatch = new Stopwatch();
-        public uint Fps;
-        public readonly GraphicsDevice Device;
+        
+        CommandList _list; 
+        Stopwatch _stopwatch = new Stopwatch();
+        public uint FPS;
+        public GraphicsDevice Device;
         internal void OnRender(double time)
         {
             if (_disposing)
@@ -98,7 +98,6 @@ namespace Engine.Rendering.Veldrid
                     pass?.RunPass(_list);
                 }
             }
-            _list.End();
 
             _imGuiHandler.Update((float) time);
             foreach (ImGUIPanel uiPanel in ImGUIPanel.Panels)
@@ -114,13 +113,14 @@ namespace Engine.Rendering.Veldrid
                 ImGui.End();
             }
             _imGuiHandler.Render(Device, _list);
+            _list.End();
             
             Device.SubmitCommands(_list);
             Device.SwapBuffers();
             
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                Fps = (uint) (1 / time);   
+                FPS = (uint) (1 / time);   
             }
 
         }
@@ -144,6 +144,7 @@ namespace Engine.Rendering.Veldrid
             // Stop rendering frames and let the GPU flush it's current work, then dispose of the GraphicsDevice
             _disposing = true;
             Device.WaitForIdle();
+            ;
             Device.Dispose();
         }
     }

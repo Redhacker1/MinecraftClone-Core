@@ -4,7 +4,7 @@ using Silk.NET.Maths;
 namespace NVGRenderer.Rendering.Shaders;
 
 [StructLayout(LayoutKind.Explicit)]
-internal struct VertUniforms
+public struct VertUniforms
 {
 
     [FieldOffset(0)]

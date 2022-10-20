@@ -48,6 +48,8 @@ namespace Engine
         protected internal virtual void GameEnded()
         {
             PinnedObject?.OnLevelUnload();
+            
+            Environment.ExitCode = 0;
         }
 
         /// <summary>

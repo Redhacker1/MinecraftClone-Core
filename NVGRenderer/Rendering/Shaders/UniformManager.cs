@@ -1,53 +1,59 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
+using Engine.Utilities.LowLevel.Memory;
 
 namespace NVGRenderer.Rendering.Shaders
 {
-    internal class UniformManager
+    public class UniformManager
     {
 
-        private readonly ulong _fragSize;
+        public readonly uint FragSize;
 
-        private byte[] _uniforms;
+        private readonly ByteStore<FragUniforms> _uniforms;
         private int _count;
         private int _capacity;
 
         public int CurrentsOffset => _count;
 
-        public ReadOnlySpan<byte> Uniforms => _uniforms;
+        public ReadOnlySpan<FragUniforms> Uniforms => _uniforms.Span;
 
-        public UniformManager(ulong fragSize)
+        public UniformManager(uint fragSize)
         {
-            _fragSize = fragSize;
-            _uniforms = Array.Empty<byte>();
+            FragSize = fragSize;
+            _uniforms = ByteStore<FragUniforms>.Create(NativeMemoryHeap.Instance, 10);
             _count = 0;
             _capacity = 0;
         }
 
-        private ulong AllocUniforms(int n)
+        private int AllocUniforms(int n)
         {
             if (_count + n > _capacity)
             {
-                int uniforms = Math.Max(_count + n, 128) + _uniforms.Length / 2;
-                Array.Resize(ref _uniforms, uniforms * (int)_fragSize);
-                _capacity = uniforms;
+                uint cuniforms = (uint)(Math.Max(_count + n, 128) + (int)(_uniforms.Count / 2));
+                _uniforms.EnsureCapacity(cuniforms * FragSize);
+                _capacity = (int)cuniforms;
             }
-            return (ulong)_count * _fragSize;
+            return (int)(_count * FragSize);
         }
 
-        public unsafe ulong AddUniform(FragUniforms uniforms)
+        public unsafe int AddUniform(FragUniforms uniforms)
         {
-            ulong ret = AllocUniforms(1);
-            ReadOnlySpan<byte> bytes = new ReadOnlySpan<byte>(&uniforms, Marshal.SizeOf(typeof(FragUniforms)));
-            Buffer.BlockCopy(bytes.ToArray(), 0, _uniforms, (int)ret, bytes.Length);
+            int ret = AllocUniforms(1);
+
+            ReadOnlySpan<FragUniforms> bytes = new ReadOnlySpan<FragUniforms>(&uniforms, 1);
+            _uniforms.AppendRange(bytes);
             _count += 1;
             return ret;
         }
 
         public void Clear()
         {
+            _uniforms.Clear();
             _count = 0;
         }
 
+        ~UniformManager()
+        {
+            _uniforms.Dispose();
+        }
     }
 }

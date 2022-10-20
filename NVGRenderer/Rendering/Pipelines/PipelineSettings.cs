@@ -1,5 +1,6 @@
-﻿using System;
+﻿using SilkyNvg.Blending;
 using Veldrid;
+using BlendFactor = Veldrid.BlendFactor;
 
 namespace NVGRenderer.Rendering.Pipelines
 {
@@ -48,7 +49,7 @@ namespace NVGRenderer.Rendering.Pipelines
 
         public PrimitiveTopology Topology;
 
-        public SilkyNvg.Blending.CompositeOperationState CompositeOperation;
+        public CompositeOperationState CompositeOperation;
 
         public BlendFactor SrcRgb => ConvertBlend(CompositeOperation.SrcRgb);
 
@@ -96,7 +97,7 @@ namespace NVGRenderer.Rendering.Pipelines
             };
         }
 
-        public static PipelineSettings ConvexFill(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings ConvexFill(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
             settings.CompositeOperation = compositeOperation;
@@ -105,14 +106,14 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings ConvexFillEdgeAa(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings ConvexFillEdgeAa(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = ConvexFill(compositeOperation);
             settings.Topology = PrimitiveTopology.TriangleStrip;
             return settings;
         }
 
-        public static PipelineSettings FillStencil(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings FillStencil(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
 
@@ -142,7 +143,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings FillEdgeAa(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings FillEdgeAa(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = FillStencil(compositeOperation);
 
@@ -163,7 +164,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings Fill(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings Fill(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = FillEdgeAa(compositeOperation);
 
@@ -181,7 +182,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings Stroke(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings Stroke(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
 
@@ -191,7 +192,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings StencilStrokeStencil(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings StencilStrokeStencil(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
 
@@ -213,7 +214,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings StencilStrokeEdgeAA(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings StencilStrokeEdgeAA(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = StencilStrokeStencil(compositeOperation);
 
@@ -231,7 +232,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings StencilStroke(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings StencilStroke(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = StencilStrokeEdgeAA(compositeOperation);
             settings.ColourMask = ColorWriteMask.All;
@@ -250,7 +251,7 @@ namespace NVGRenderer.Rendering.Pipelines
             return settings;
         }
 
-        public static PipelineSettings Triangles(SilkyNvg.Blending.CompositeOperationState compositeOperation)
+        public static PipelineSettings Triangles(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = Default();
 
@@ -281,7 +282,10 @@ namespace NVGRenderer.Rendering.Pipelines
                    && StencilMask == other.StencilMask
                    && StencilTestEnable == other.StencilTestEnable
                    && Topology == other.Topology
-                   && CompositeOperation.Equals(other.CompositeOperation);
+                   && CompositeOperation.DstAlpha == other.CompositeOperation.DstAlpha
+                   && CompositeOperation.DstRgb == other.CompositeOperation.DstRgb
+                   && CompositeOperation.SrcAlpha == other.CompositeOperation.SrcAlpha
+                   && CompositeOperation.SrcRgb == other.CompositeOperation.SrcRgb;
         }
 
         public override bool Equals(object obj)

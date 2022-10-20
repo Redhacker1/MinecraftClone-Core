@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MCClone_Core.Temp
+namespace Engine.Utilities.LowLevel.Memory
 {
     // TODO: Not shamelessly rip from people
     // Shamelessly ripped from: https://github.com/TechnologicalPizza/VoxelPizza/tree/0faa11d474d861bc60d6dc523f66deb4688be709
@@ -85,19 +85,23 @@ namespace MCClone_Core.Temp
         public override IntPtr Alloc(nuint byteCapacity, out nuint actualByteCapacity)
         {
             Segment? segment = GetSegment(byteCapacity);
-            if (segment == null)
+            if (segment.HasValue != true)
             {
                 return Heap.Alloc(byteCapacity, out actualByteCapacity);
             }
-            return segment.Rent(Heap, out actualByteCapacity);
+            else
+            {
+                return segment.Value.Rent(Heap, out actualByteCapacity);    
+            }
+            
         }
 
         public override void Free(nuint byteCapacity, IntPtr buffer)
         {
             Segment? segment = GetSegment(byteCapacity);
-            if (segment != null && segment.BlockSize == byteCapacity)
+            if (segment.HasValue && segment.Value.BlockSize == byteCapacity)
             {
-                segment.Return(Heap, buffer);
+                segment.Value.Return(Heap, buffer);
                 return;
             }
             Heap.Free(byteCapacity, buffer);

@@ -1,5 +1,7 @@
-﻿using NVGRenderer.Rendering.Pipelines;
+﻿using NVGRenderer.Rendering.Draw;
+using NVGRenderer.Rendering.Pipelines;
 using SilkyNvg.Blending;
+using SilkyNvg.Rendering;
 using Veldrid;
 using Path = NVGRenderer.Rendering.StrokePath;
 
@@ -8,41 +10,76 @@ namespace NVGRenderer.Rendering.Calls
     internal class StencilStrokeCall : Call
     {
 
-        public StencilStrokeCall(int image, Path[] paths, ulong uniformOffset, CompositeOperationState compositeOperation, NvgRenderer renderer)
-            : base(image, paths, 0, 0, uniformOffset, PipelineSettings.StencilStroke(compositeOperation), PipelineSettings.StencilStrokeStencil(compositeOperation), PipelineSettings.StencilStrokeEdgeAA(compositeOperation), renderer) { }
+        public StencilStrokeCall(int image, Path[] paths, int uniformOffset, CompositeOperationState compositeOperation, NvgRenderer renderer)
+            : base(image, paths, 0, 0, uniformOffset, default,  PipelineSettings.StencilStroke(compositeOperation), PipelineSettings.StencilStrokeStencil(compositeOperation), PipelineSettings.StencilStrokeEdgeAA(compositeOperation), renderer) { }
 
-        public override void Run(Frame frame, CommandList cmd)
+        public override void Run(NvgFrame frame, List<DrawCall> drawCalls)
         {
 
 
-            Pipeline sPipeline = PipelineCache.GetPipeLine(stencilPipeline, renderer);
-            cmd.SetPipeline(sPipeline);
-            cmd.SetFramebuffer(renderer._device.SwapchainFramebuffer);
+            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, renderer);
+            //cmd.SetPipeline(sPipeline);
+            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
+
+            ResourceSet descriptorSet = frame.ResourceSetCache.GetResourceSet(new ResourceSetData
+            {
+                image = image,
+                uniformOffset = uniformOffset + (int)renderer.Shader.FragSize //???
+
+            });
+            
+            DrawCall call = new DrawCall
+            {
+                Pipeline = sPipeline,
+                Set = descriptorSet
+            };
             
             
-            renderer.Shader.SetUniforms(frame, out ResourceSet descriptorSet, uniformOffset + renderer.Shader.FragSize, image);
-            cmd.SetGraphicsResourceSet(0,descriptorSet);
+            
+            //cmd.SetGraphicsResourceSet(0,descriptorSet);
             foreach (Path path in paths)
             {
-                cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                call.Offset = path.StrokeOffset;
+                call.Count = path.StrokeCount;
+                drawCalls.Add(call);
             }
 
-            Pipeline aaPipeline = PipelineCache.GetPipeLine(antiAliasPipeline, renderer);
-            cmd.SetPipeline(aaPipeline);
+            Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, renderer);
+            //cmd.SetPipeline(aaPipeline);
+            call.Pipeline = aaPipeline;
+
             
-            renderer.Shader.SetUniforms(frame, out descriptorSet, uniformOffset, image);
-            cmd.SetGraphicsResourceSet(0, descriptorSet);
+            descriptorSet = frame.ResourceSetCache.GetResourceSet(new ResourceSetData
+            {
+                image = image,
+                uniformOffset = uniformOffset
+
+            });
+            call.Set = descriptorSet;
+            
+            //cmd.SetGraphicsResourceSet(0, descriptorSet);
             foreach (Path path in paths)
             {
-                cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                
+                call.Offset = path.StrokeOffset;
+                call.Count = path.StrokeCount;
+                drawCalls.Add(call);
             }
 
-            Pipeline stPipeline = PipelineCache.GetPipeLine(renderPipeline, renderer);
-            cmd.SetPipeline(stPipeline);
+            Pipeline stPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer);
+            //cmd.SetPipeline(stPipeline);
+            call.Pipeline = stPipeline;
+            
             foreach (Path path in paths)
             {
-                cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                call.Offset = path.StrokeOffset;
+                call.Count = path.StrokeCount;
+                drawCalls.Add(call);
             }
+            
         }
 
     }

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 
-namespace MCClone_Core.Temp;
+namespace Engine.Utilities.LowLevel.Memory;
 
 public class ManagedMemoryHeap : MemoryHeap
 {

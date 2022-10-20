@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Numerics;
 using Engine.Input;
 using NvgExample;
-using NVGRenderer.Rendering;
 using Silk.NET.Maths;
 using SilkyNvg;
 using SilkyNvg.Graphics;
@@ -59,10 +56,7 @@ public class DemoTest : NvgItem
     Demo testDemo;
     double PrevTime;
     Stopwatch watch;
-    public DemoTest()
-    {
-        
-    }
+
     public override void OnDraw(Nvg nvg)
     {
         watch ??= Stopwatch.StartNew();

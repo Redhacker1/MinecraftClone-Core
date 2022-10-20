@@ -78,6 +78,7 @@ namespace MCClone_Core
             Console.WriteLine("Shutting down SteamAPI");
             SteamClient.Shutdown();
             world.SaveAndQuit();
+            Console.WriteLine($"Gamemode: {world.GetType().Name} Ended");
         }
         
         

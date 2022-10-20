@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using static System.Runtime.CompilerServices.Unsafe;
 
-namespace MCClone_Core.Temp
+namespace Engine.Utilities.LowLevel.Memory
 {
     // TODO: Not shamelessly rip from people
     // Shamelessly ripped from: https://github.com/TechnologicalPizza/VoxelPizza/tree/0faa11d474d861bc60d6dc523f66deb4688be709
@@ -11,22 +11,22 @@ namespace MCClone_Core.Temp
     public unsafe class ByteStore<T>
         where T : unmanaged
     {
-        private T* _head;
+        T* _head;
 
         public MemoryHeap Heap { get; }
         public T* Buffer { get; private set; }
         public T* Head => _head;
 
         public nuint ByteCapacity { get; private set; }
-        public nuint ByteCount => (nuint)((byte*)_head - (byte*)Buffer);
+        public uint ByteCount => (uint)((byte*)_head - (byte*)Buffer);
 
-        public nuint Count => ByteCount / (nuint)SizeOf<T>();
+        public uint Count => ByteCount / (uint)SizeOf<T>();
         public nuint Capacity => ByteCapacity / (nuint)SizeOf<T>();
 
-        public Span<T> Span => new(Buffer, (int)Count);
-        public Span<T> FullSpan => new(Buffer, (int)Capacity);
+        public Span<T> Span => new Span<T>(Buffer, (int) Count);
+        public Span<T> FullSpan => new Span<T>(Buffer, (int) Capacity);
 
-        public ByteStore(MemoryHeap heap, T* buffer, nuint byteCapacity)
+        public ByteStore(MemoryHeap heap, T* buffer = null, nuint byteCapacity = 0)
         {
             Heap = heap ?? throw new ArgumentNullException(nameof(heap));
             ByteCapacity = byteCapacity;
@@ -34,11 +34,7 @@ namespace MCClone_Core.Temp
             _head = Buffer;
         }
 
-        public ByteStore(MemoryHeap heap) : this(heap, null, 0)
-        {
-        }
-
-        public ByteStore(MemoryHeap heap, nuint capacity) : this(heap, null, 0)
+        public ByteStore(MemoryHeap heap, nuint capacity) : this(heap)
         {
             Resize(capacity);
         }
@@ -111,7 +107,7 @@ namespace MCClone_Core.Temp
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void EnsureCapacity(nuint capacity)
+        public void EnsureCapacity(uint capacity)   
         {
             if (ByteCapacity < capacity * (nuint)SizeOf<T>())
             {
@@ -135,7 +131,7 @@ namespace MCClone_Core.Temp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Span<T> GetAppendSpan(uint count)
         {
-            Span<T> slice = new(_head, (int)count);
+            Span<T> slice = new Span<T>(_head, (int) count);
             _head += count;
             return slice;
         }
@@ -143,7 +139,7 @@ namespace MCClone_Core.Temp
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AppendRange(ReadOnlySpan<T> values)
         {
-            values.CopyTo(new(_head, values.Length));
+            values.CopyTo(new Span<T>(_head, values.Length));
             _head += values.Length;
         }
 

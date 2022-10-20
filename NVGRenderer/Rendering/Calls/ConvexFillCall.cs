@@ -1,5 +1,7 @@
-﻿using NVGRenderer.Rendering.Pipelines;
+﻿using NVGRenderer.Rendering.Draw;
+using NVGRenderer.Rendering.Pipelines;
 using SilkyNvg.Blending;
+using SilkyNvg.Rendering;
 using Veldrid;
 
 namespace NVGRenderer.Rendering.Calls
@@ -7,34 +9,51 @@ namespace NVGRenderer.Rendering.Calls
     internal class ConvexFillCall : Call
     {
 
-        public ConvexFillCall(int image, StrokePath[] paths, ulong uniformOffset, CompositeOperationState op, NvgRenderer renderer)
-            : base(image, paths, 0, 0, uniformOffset, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAa(op), renderer) { }
+        public ConvexFillCall(int image, StrokePath[] paths, int uniformOffset, CompositeOperationState op, NvgRenderer renderer)
+            : base(image, paths, 0, 0, uniformOffset, default, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAa(op), renderer) { }
 
-        public override unsafe void Run(Frame frame, CommandList cmd)
+        public override void Run(NvgFrame frame, List<DrawCall> drawCalls)
         {
             
-            Pipeline fPipeline = PipelineCache.GetPipeLine(renderPipeline, renderer);
-            cmd.SetPipeline(fPipeline);
-            cmd.SetFramebuffer(renderer._device.SwapchainFramebuffer);
+            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer);
+            ResourceSet descriptorSet =  frame.ResourceSetCache.GetResourceSet(new ResourceSetData
+            {
+                uniformOffset = uniformOffset,
+                image = image
+            });
+
+            DrawCall call = new DrawCall
+            {
+                Pipeline = fPipeline,
+                Set = descriptorSet
+            };
             
-            renderer.Shader.SetUniforms(frame, out ResourceSet descriptorSet, uniformOffset, image);
-            cmd.SetGraphicsResourceSet(0, descriptorSet);
+            
+            
+            //cmd.SetPipeline(fPipeline);
+            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
+            //cmd.SetGraphicsResourceSet(0, descriptorSet);
 
             foreach (StrokePath path in paths)
             {
-                cmd.Draw(path.FillCount, 1, path.FillOffset, 0);
+                call.Count = path.FillCount;
+                call.Offset = path.FillOffset;
+                drawCalls.Add(call);
             }
 
             if (renderer.EdgeAntiAlias)
             {
-                Pipeline aaPipeline = PipelineCache.GetPipeLine(renderPipeline, renderer); 
-                cmd.SetPipeline(aaPipeline);
-
+                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer); 
+                //cmd.SetPipeline(aaPipeline);
+                call.Pipeline = aaPipeline;
                 foreach (StrokePath path in paths)
                 {
-                    cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                    //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
+                    call.Count = path.StrokeCount;
+                    call.Offset = path.StrokeOffset;
                 }
             }
+            
         }
 
     }

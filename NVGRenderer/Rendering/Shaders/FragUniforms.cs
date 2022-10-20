@@ -9,8 +9,8 @@ using Veldrid;
 
 namespace NVGRenderer.Rendering.Shaders
 {
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct FragUniforms
+    //[StructLayout(LayoutKind.Sequential)]
+    public struct FragUniforms
     {
 
         private readonly Matrix3X4<float> _scissorMat;
@@ -92,7 +92,7 @@ namespace NVGRenderer.Rendering.Shaders
                     }
                     _type = (int)ShaderType.FillImg;
 
-                    if (tex._texture._Texture.Format == PixelFormat.R8_G8_B8_A8_UNorm)
+                    if (tex._Texture._Texture.Format == PixelFormat.R8_G8_B8_A8_UNorm)
                     {
                         _texType = tex.HasFlag(ImageFlags.Premultiplied) ? 0 : 1;
                     }

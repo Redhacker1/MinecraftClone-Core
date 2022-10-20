@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Engine;
 using Engine.Initialization;
 using Engine.MathLib;
@@ -46,31 +44,36 @@ namespace NVGRenderer
     class NvgRenderPass : RenderPass, IDisposable
     {
         public static Nvg thing;
-        NvgRenderer Renderer;
+        NvgRenderer nvgRenderer;
+        NvgFrame _frame;
+        
         public NvgRenderPass(CommandList list, Renderer renderer, string name = null) : base(list, renderer, name)
         {
-            NvgRendererParams rendererParams = new NvgRendererParams()
+            NvgRendererParams rendererParams = new NvgRendererParams
             {
                 AdvanceFrameIndexAutomatically = true,
                 Device = renderer.Device,
                 FrameCount = 10u,
                 InitialCommandBuffer = list
             };
-            Renderer = new NvgRenderer(rendererParams, 0);
-            Nvg.Create(Renderer);
+            nvgRenderer = new NvgRenderer(rendererParams, 0);
+            Nvg.Create(nvgRenderer);
         }
 
         public NvgRenderPass(Renderer renderer, string name = null) : base(renderer, name)
         {
-            NvgRendererParams rendererParams = new NvgRendererParams()
+            NvgRendererParams rendererParams = new NvgRendererParams
             {
                 AdvanceFrameIndexAutomatically = true,
                 Device = renderer.Device,
                 FrameCount = 10u,
                 InitialCommandBuffer = renderer.Device.ResourceFactory.CreateCommandList()
             };
-            Renderer = new NvgRenderer(rendererParams, RenderFlags.Antialias | RenderFlags.StencilStrokes);
-            thing = Nvg.Create(Renderer);
+            nvgRenderer = new NvgRenderer(rendererParams,  RenderFlags.StencilStrokes);
+            thing = Nvg.Create(nvgRenderer);
+            _frame = new NvgFrame(nvgRenderer, new NvgFrameBufferParams());
+            
+            
         }
 
         protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera)
@@ -84,13 +87,13 @@ namespace NVGRenderer
                 }
             }
             thing.EndFrame();
-            backingRenderer.Device.SubmitCommands(Renderer.CurrentCommandBuffer);
+            backingRenderer.Device.SubmitCommands(nvgRenderer.CurrentCommandBuffer);
         }
 
         public void Dispose()
         {
             thing.Dispose();
-            Renderer?.Dispose();
+            nvgRenderer?.Dispose();
         }
     }
 }

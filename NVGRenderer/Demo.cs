@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using System.Text;
+using Silk.NET.Maths;
 using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Images;
@@ -6,26 +7,24 @@ using SilkyNvg.Paths;
 using SilkyNvg.Scissoring;
 using SilkyNvg.Text;
 using SilkyNvg.Transforms;
-using System;
 
 namespace NvgExample
 {
     public class Demo : IDisposable
     {
+        const int ICON_SEARCH = 0x1F50D;
+        const int ICON_CIRCLED_CROSS = 0x2716;
+        const int ICON_CHEVRON_RIGHT = 0xE75E;
+        const int ICON_CHECK = 0x2713;
+        const int ICON_LOGIN = 0xE740;
+        const int ICON_TRASH = 0xE729;
 
-        private const int ICON_SEARCH = 0x1F50D;
-        private const int ICON_CIRCLED_CROSS = 0x2716;
-        private const int ICON_CHEVRON_RIGHT = 0xE75E;
-        private const int ICON_CHECK = 0x2713;
-        private const int ICON_LOGIN = 0xE740;
-        private const int ICON_TRASH = 0xE729;
+        readonly int _fontNormal, _fontBold, _fontIcons, _fontEmoji;
+        readonly int[] _images = new int[12];
 
-        private readonly int _fontNormal, _fontBold, _fontIcons, _fontEmoji;
-        private readonly int[] _images = new int[12];
+        readonly Nvg _nvg;
 
-        private readonly Nvg _nvg;
-
-        private void DrawWindow(string title, float x, float y, float w, float h)
+        void DrawWindow(string title, float x, float y, float w, float h)
         {
             const float cornerRadius = 3.0f;
 
@@ -70,7 +69,7 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawSearchBox(string text, float x, float y, float w, float h)
+        void DrawSearchBox(string text, float x, float y, float w, float h)
         {
             float cornerRadius = h / 2.0f - 1.0f;
 
@@ -106,7 +105,7 @@ namespace NvgExample
             _ = _nvg.Text(x + w - h * 0.55f, y + h * 0.55f, CpToUTF8(ICON_CIRCLED_CROSS));
         }
 
-        private void DrawDropDown(string text, float x, float y, float w, float h)
+        void DrawDropDown(string text, float x, float y, float w, float h)
         {
             const float cornerRadius = 4.0f;
 
@@ -134,7 +133,7 @@ namespace NvgExample
             _nvg.Text(x + w - h * 0.5f, y + h * 0.5f, CpToUTF8(ICON_CHEVRON_RIGHT));
         }
 
-        private void DrawLable(string text, float x, float y, float h)
+        void DrawLable(string text, float x, float y, float h)
         {
             _nvg.FontSize(15.0f);
             _nvg.FontFace("sans");
@@ -144,7 +143,7 @@ namespace NvgExample
             _ = _nvg.Text(x, y + h * 0.5f, text);
         }
 
-        private void DrawEditBoxBase(float x, float y, float w, float h)
+        void DrawEditBoxBase(float x, float y, float w, float h)
         {
             Paint bg = _nvg.BoxGradient(x + 1.0f, y + 1.0f + 1.5f, w - 2.0f, h - 2.0f, 3.0f, 4.0f, _nvg.Rgba(255, 255, 255, 32), _nvg.Rgba(32, 32, 32, 32));
             _nvg.BeginPath();
@@ -158,7 +157,7 @@ namespace NvgExample
             _nvg.Stroke();
         }
 
-        private void DrawEditBox(string text, float x, float y, float w, float h)
+        void DrawEditBox(string text, float x, float y, float w, float h)
         {
             DrawEditBoxBase(x, y, w, h);
 
@@ -169,7 +168,7 @@ namespace NvgExample
             _nvg.Text(x + h * 0.3f, y + h * 0.5f, text);
         }
 
-        private void DrawEditBoxNum(string text, string units, float x, float y, float w, float h)
+        void DrawEditBoxNum(string text, string units, float x, float y, float w, float h)
         {
             DrawEditBoxBase(x, y, w, h);
 
@@ -188,7 +187,7 @@ namespace NvgExample
             _ = _nvg.Text(x + w - uw - h * 0.5f, y + h * 0.5f, text);
         }
 
-        private void DrawCheckBox(string text, float x, float y, float _, float h)
+        void DrawCheckBox(string text, float x, float y, float _, float h)
         {
             _nvg.FontSize(15.0f);
             _nvg.FontFace("sans");
@@ -210,7 +209,7 @@ namespace NvgExample
             _nvg.Text(x + 9.0f + 2.0f, y + h * 0.5f, CpToUTF8(ICON_CHECK));
         }
 
-        private void DrawButton(int preIcon, string text, float x, float y, float w, float h, Colour col)
+        void DrawButton(int preIcon, string text, float x, float y, float w, float h, Colour col)
         {
             const float cornerRadius = 4.0f;
             float iw = 0.0f;
@@ -260,7 +259,7 @@ namespace NvgExample
             _nvg.Text(x + w * 0.5f - tw * 0.5f + iw * 0.25f, y + h * 0.5f, text);
         }
 
-        private void DrawSlider(float pos, float x, float y, float w, float h)
+        void DrawSlider(float pos, float x, float y, float w, float h)
         {
             float cy = y + (int)(h * 0.5f);
             float kr = (int)(h * 0.25f);
@@ -297,7 +296,7 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawEyes(float x, float y, float w, float h, float mx, float my, float t)
+        void DrawEyes(float x, float y, float w, float h, float mx, float my, float t)
         {
             float ex = w * 0.23f;
             float ey = h * 0.5f;
@@ -365,7 +364,7 @@ namespace NvgExample
             _nvg.Fill();
         }
 
-        private void DrawGraph(float x, float y, float w, float h, float t)
+        void DrawGraph(float x, float y, float w, float h, float t)
         {
             float dx = w / 5.0f;
 
@@ -445,7 +444,7 @@ namespace NvgExample
             _nvg.Fill();
         }
 
-        private void DrawSpinner(float cx, float cy, float r, float t)
+        void DrawSpinner(float cx, float cy, float r, float t)
         {
             float a0 = 0.0f + t * 6.0f;
             float a1 = MathF.PI + t * 6.0f;
@@ -469,12 +468,12 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawThumbnails(float x, float y, float w, float h, int[] images, float t)
+        void DrawThumbnails(float x, float y, float w, float h, int[] images, float t)
         {
             const float cornerRadius = 3.0f;
             const float thumb = 60.0f;
             const float arry = 30.5f;
-            float stackh = (images.Length / 2) * (thumb + 10.0f) + 10.0f;
+            float stackh = (images.Length / 2f) * (thumb + 10.0f) + 10.0f;
             float u = (1.0f + MathF.Cos(t * 0.5f)) * 0.5f;
             float u2 = (1.0f - MathF.Cos(t * 0.2f)) * 0.5f;
 
@@ -500,7 +499,7 @@ namespace NvgExample
             _nvg.Scissor(x, y, w, h);
             _nvg.Translate(0, -(stackh - h) * u);
 
-            float dv = 1.0f / (float)(images.Length - 1);
+            float dv = 1.0f / (images.Length - 1);
 
             for (uint i = 0; i < images.Length; i++)
             {
@@ -509,19 +508,19 @@ namespace NvgExample
                 float tx = x + 10.0f;
                 float ty = y + 10.0f;
                 tx += (i % 2) * (thumb + 10.0f);
-                ty += (i / 2) * (thumb + 10.0f);
+                ty += (i / 2f) * (thumb + 10.0f);
                 _nvg.ImageSize(images[i], out uint imgW, out uint imgH);
                 if (imgW < imgH)
                 {
                     iw = thumb;
-                    ih = iw * (float)imgH / (float)imgW;
+                    ih = iw * imgH / imgW;
                     ix = 0.0f;
                     iy = -(ih - thumb) * 0.5f;
                 }
                 else
                 {
                     ih = thumb;
-                    iw = ih * (float)imgW / (float)imgH;
+                    iw = ih * imgW / imgH;
                     ix = -(iw - thumb) * 0.5f;
                     iy = 0.0f;
                 }
@@ -584,7 +583,7 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawColourwheel(float x, float y, float w, float h, float t)
+        void DrawColourwheel(float x, float y, float w, float h, float t)
         {
             float hue = MathF.Sin(t * 0.12f);
 
@@ -601,8 +600,8 @@ namespace NvgExample
 
             for (int i = 0; i < 6; i++)
             {
-                float a0 = (float)i / 6.0f * MathF.PI * 2.0f - aeps;
-                float a1 = (float)(i + 1.0f) / 6.0f * MathF.PI * 2.0f + aeps;
+                float a0 = i / 6.0f * MathF.PI * 2.0f - aeps;
+                float a1 = (i + 1.0f) / 6.0f * MathF.PI * 2.0f + aeps;
                 _nvg.BeginPath();
                 _nvg.Arc(cx, cy, r0, a0, a1, Winding.Cw);
                 _nvg.Arc(cx, cy, r1, a1, a0, Winding.Ccw);
@@ -680,13 +679,13 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private unsafe void DrawLines(float x, float y, float w, float h, float t)
+        unsafe void DrawLines(float x, float y, float w, float h, float t)
         {
             float pad = 5.0f;
             float s = w / 9.0f - pad * 2;
             float* pts = stackalloc float[4 * 2];
-            LineCap[] joins = { LineCap.Miter, LineCap.Round, LineCap.Bevel };
-            LineCap[] caps = { LineCap.Butt, LineCap.Round, LineCap.Square };
+            Span<LineCap> joins = stackalloc LineCap[] { LineCap.Miter, LineCap.Round, LineCap.Bevel };
+            Span<LineCap> caps = stackalloc LineCap[] { LineCap.Butt, LineCap.Round, LineCap.Square };
 
             _nvg.Save();
             pts[0] = -s * 0.25f + MathF.Cos(t * 0.3f) * s * 0.5f;
@@ -786,7 +785,7 @@ namespace NvgExample
             }
         }
 
-        private void DrawParagraph(float x, float y, float width, float mx, float my)
+        void DrawParagraph(float x, float y, float width, float mx, float my)
         {
             string text = "This is a longer chunk of text.\n  \n"
                 + "  Would have used lorem ipsum but she    was busy jumping over the lazy dog with the fox and all the men who came to the aid of the party.";
@@ -805,9 +804,8 @@ namespace NvgExample
             _nvg.TextMetrics(out _, out _, out float lineh);
 
             string start = text;
-            string end = null;
             int nrows;
-            while ((nrows = _nvg.TextBreakLines(start, end, width, out TextRow[] rows, 3)) != 0)
+            while ((nrows = _nvg.TextBreakLines(start, null, width, out TextRow[] rows, 3)) != 0)
             {
                 for (uint i = 0; i < nrows; i++)
                 {
@@ -900,7 +898,7 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawWidths(float x, float y, float width)
+        void DrawWidths(float x, float y, float width)
         {
             _nvg.Save();
 
@@ -920,11 +918,11 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawCaps(float x, float y, float width)
+        void DrawCaps(float x, float y, float width)
         {
             const float lineWidth = 8.0f;
 
-            LineCap[] caps =
+            Span<LineCap> caps = stackalloc LineCap[]
             {
                 LineCap.Butt,
                 LineCap.Round,
@@ -944,7 +942,7 @@ namespace NvgExample
             _nvg.Fill();
 
             _nvg.StrokeWidth(lineWidth);
-            for (uint i = 0; i < 3; i++)
+            for (int i = 0; i < 3; i++)
             {
                 _nvg.LineCap(caps[i]);
                 _nvg.StrokeColour(Colour.Black);
@@ -957,7 +955,7 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private void DrawScissor(float x, float y, float t)
+        void DrawScissor(float x, float y, float t)
         {
             _nvg.Save();
 
@@ -1043,12 +1041,12 @@ namespace NvgExample
             _nvg.Restore();
         }
 
-        private static float Clamp(float a, float min, float max)
+        static float Clamp(float a, float min, float max)
         {
             return (a > min) ? ((a < max) ? a : max) : min;
         }
 
-        private static string CpToUTF8(int cp)
+        static string CpToUTF8(int cp)
         {
             int n = 0;
             if (cp < 0x80)
@@ -1071,12 +1069,12 @@ namespace NvgExample
             {
                 n = 5;
             }
-            else if (cp <= 0x7fffffff)
+            else
             {
                 n = 6;
             }
 
-            char[] str = new char[8];
+            Span<char> str = stackalloc char[8];
             str[n] = '\0';
 
             switch (n)
@@ -1111,15 +1109,15 @@ namespace NvgExample
                     break;
             }
 
-            string result = "";
+            StringBuilder result = new StringBuilder();
             for (ushort i = 0; str[i] != '\0'; i++)
             {
-                result += str[i];
+                result.Append(str[i]);
             }
-            return result;
+            return result.ToString();
         }
 
-        private static bool IsBlack(Colour col)
+        static bool IsBlack(Colour col)
         {
             return col.R == 0.0f && col.G == 0.0f && col.B == 0.0f && col.A == 0.0f;
         }

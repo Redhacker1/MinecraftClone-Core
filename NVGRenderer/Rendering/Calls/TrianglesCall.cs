@@ -1,4 +1,7 @@
-﻿using NVGRenderer.Rendering.Pipelines;
+﻿using NVGRenderer.Rendering.Draw;
+using NVGRenderer.Rendering.Pipelines;
+using SilkyNvg.Blending;
+using SilkyNvg.Rendering;
 using Veldrid;
 
 namespace NVGRenderer.Rendering.Calls
@@ -6,20 +9,35 @@ namespace NVGRenderer.Rendering.Calls
     internal class TrianglesCall : Call
     {
 
-        public TrianglesCall(int image, SilkyNvg.Blending.CompositeOperationState compositeOperation, uint triangleOffset, uint triangleCount, ulong uniformOffset, NvgRenderer renderer)
-            : base(image, null, triangleOffset, triangleCount, uniformOffset, PipelineSettings.Triangles(compositeOperation), default, default, renderer) { }
+        public TrianglesCall(int image, CompositeOperationState compositeOperation, uint triangleOffset, uint triangleCount, int uniformOffset, NvgRenderer renderer)
+            : base(image, null, triangleOffset, triangleCount, uniformOffset, default, PipelineSettings.Triangles(compositeOperation), default, default, renderer) { }
 
-        public override void Run(Frame frame, CommandList cmd)
+        public override void Run(NvgFrame frame, List<DrawCall> drawCalls)
         {
+            
+            Pipeline pipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer);
+            ResourceSet descriptorSet = frame.ResourceSetCache.GetResourceSet(new ResourceSetData
+            {
+                image = image,
+                uniformOffset = uniformOffset
 
-            Pipeline pipeline = PipelineCache.GetPipeLine(renderPipeline, renderer);
-            cmd.SetPipeline(pipeline);
-            cmd.SetFramebuffer(renderer._device.SwapchainFramebuffer);
+            });
+            
+            DrawCall call = new DrawCall
+            {
+                Pipeline = pipeline,
+                Set = descriptorSet,
+                Count = triangleCount,
+                Offset = triangleOffset,
+            };
+            
+            drawCalls.Add(call);
+            
+            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
+            //cmd.SetPipeline(pipeline);
+            //cmd.SetGraphicsResourceSet(0, descriptorSet);
+            //cmd.Draw(triangleCount, 1, triangleOffset, 0);
 
-            renderer.Shader.SetUniforms(frame, out ResourceSet descriptorSet, uniformOffset, image);
-            cmd.SetGraphicsResourceSet(0, descriptorSet);
-
-            cmd.Draw(triangleCount, 1, triangleOffset, 0);
         }
 
     }

@@ -1,4 +1,5 @@
-﻿using Engine.Input;
+﻿using System;
+using Engine.Input;
 using Engine.Rendering.Veldrid;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
@@ -51,8 +52,10 @@ namespace Engine.Windowing
 
         void OnClose()
         {
-            _gameInstance.GameEnded();
             Renderer.Dispose();
+            _gameInstance.GameEnded();
+            Console.WriteLine("Closed!");
+            Environment.ExitCode = 0;
         }
     }
 }

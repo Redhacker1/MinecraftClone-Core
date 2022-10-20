@@ -1,1 +1,0 @@
-﻿Currently in here for reference, the text atlas generator might be ported if StbTrueTypeSharp or NVGSharp does not work out.

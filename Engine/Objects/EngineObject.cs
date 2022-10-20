@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Numerics;
 using Engine.Collision.BEPUPhysics.Implementation;
 using Engine.MathLib;
@@ -18,8 +17,7 @@ namespace Engine.Objects
         public bool Ticks = false;
 
         public PhysicsBody Body { get; set; }
-
-#region Creation and Cleanup
+        
 
         protected EngineObject(Transform transform, EngineObject parent = null) 
         {
@@ -29,12 +27,11 @@ namespace Engine.Objects
                 LocalTransform = transform;
             }
         }
-        
-        protected EngineObject() : this(new Transform()) 
+
+        protected EngineObject(EngineObject parent = null) : this(new Transform(), parent)
         {
-            
         }
-    
+
         public bool Freed;
         internal void Free()
         {
@@ -50,17 +47,13 @@ namespace Engine.Objects
                 OnFree();
             }
         }
-        
-        
-
-#endregion
-        
-
-        
-#region Engine Transform Properties and Methods
 
         readonly object _locker = new object();
         public Transform LocalTransform;
+        
+        /// <summary>
+        /// The position, location rotation of the object in World space.
+        /// </summary>
         public Transform WorldTransform
         {
             get
@@ -142,12 +135,10 @@ namespace Engine.Objects
             return cameraSpaceMatrix;
         }
         
-#endregion
 
+        
 
-#region Parent Child Hierarchy
-
-public ILevelContract BaseLevel;
+        public ILevelContract BaseLevel;
 
         public void AddChild(EngineObject engineObject)
         {
@@ -179,7 +170,7 @@ public ILevelContract BaseLevel;
         }
         
         protected internal readonly ThreadSafeList<EngineObject> Children = new ThreadSafeList<EngineObject>();
-#endregion
+
 
 
         internal virtual void OnLevelTick(double deltaT)
@@ -197,8 +188,7 @@ public ILevelContract BaseLevel;
         }
 
 
-
-#region User Overridable Functions
+        
         /// <summary>
         /// Is called when the transform is updated
         /// </summary>
@@ -232,6 +222,7 @@ public ILevelContract BaseLevel;
         /// <summary>
         /// To be run after you run the constructor, when you want the entity to be recreated.
         /// </summary>
+        [Obsolete("(For now and for the forseeable future) This is no longer called automatically, it might find a use in networking, but for the moment, it is practically useless call manually when ready")]
         public virtual void _Ready()
         {
         }
@@ -257,7 +248,6 @@ public ILevelContract BaseLevel;
         protected virtual void OnFree()
         {
         }
-#endregion
 
 
     }

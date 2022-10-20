@@ -110,12 +110,12 @@ namespace MCClone_Core.Utility.Threading
         /// </summary>
         public void ShutDownHandler()
         {
-            foreach (PooledThreadClass PooledThreadClass in _pooledThreadClasses)
+            foreach (PooledThreadClass pooledThreadClass in _pooledThreadClasses)
             {
-                PooledThreadClass.DestroyThread();
-                lock (PooledThreadClass.ThreadLocker)
+                pooledThreadClass.DestroyThread();
+                lock (pooledThreadClass.ThreadLocker)
                 {
-                    Monitor.Pulse(PooledThreadClass.ThreadLocker);
+                    Monitor.Pulse(pooledThreadClass.ThreadLocker);
                 }
             }
             Started = false;

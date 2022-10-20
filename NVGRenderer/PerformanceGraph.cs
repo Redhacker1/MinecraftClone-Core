@@ -2,7 +2,6 @@
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Text;
-using System;
 
 namespace NvgExample
 {
@@ -34,7 +33,7 @@ namespace NvgExample
                 {
                     avg += _values[i];
                 }
-                return avg / (float)GRAPH_HISTORY_COUNT;
+                return avg / GRAPH_HISTORY_COUNT;
             }
         }
 

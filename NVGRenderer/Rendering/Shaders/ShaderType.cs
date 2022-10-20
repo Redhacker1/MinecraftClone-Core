@@ -1,6 +1,6 @@
 ﻿namespace NVGRenderer.Rendering.Shaders
 {
-    internal enum ShaderType
+    public enum ShaderType
     {
 
         Fillgrad,

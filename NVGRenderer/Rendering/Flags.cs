@@ -1,10 +1,8 @@
-﻿using System;
-
-namespace NVGRenderer.Rendering
+﻿namespace NVGRenderer.Rendering
 {
 
     [Flags]
-    public enum RenderFlags
+    public enum RenderFlags : byte
     {
 
         Antialias = 1 << 0,

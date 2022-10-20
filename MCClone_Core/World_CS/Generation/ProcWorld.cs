@@ -448,6 +448,7 @@ namespace MCClone_Core.World_CS.Generation
 			_bKillThread = true;
 			
 			_threads.ShutDownHandler();
+			Console.WriteLine("Threads shut down!");
 		}
 
 		string Restart(params string[] parameters)
@@ -488,6 +489,8 @@ namespace MCClone_Core.World_CS.Generation
 					});	
 				}
 			}
+			
+			Console.WriteLine("All chunks saved!");
 	            
 	            
 			// Hack: this needs to be corrected, probably doable with a monitor.Lock() and then a callback to evaluate the END
@@ -495,6 +498,8 @@ namespace MCClone_Core.World_CS.Generation
 			{
 		            
 			}
+			
+			Console.WriteLine("All threads are idle!");
 			kill_thread();
 		}
 		

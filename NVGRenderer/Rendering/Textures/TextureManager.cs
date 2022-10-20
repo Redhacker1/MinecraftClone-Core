@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace NVGRenderer.Rendering.Textures
+﻿namespace NVGRenderer.Rendering.Textures
 {
     public sealed class TextureManager : IDisposable
     {
@@ -10,7 +7,7 @@ namespace NVGRenderer.Rendering.Textures
 
         private int _count;
 
-        private TextureSlot _default;
+        private readonly TextureSlot _default = new TextureSlot();
 
         public TextureManager(NvgRenderer renderer)
         {
@@ -32,11 +29,11 @@ namespace NVGRenderer.Rendering.Textures
             }
             else
             {
-                id = ++_count;
+                id = _count++;
                 slot.Id = id;
                 _textures.Add(slot);
             }
-            
+
             return id;
 
         }
@@ -51,6 +48,7 @@ namespace NVGRenderer.Rendering.Textures
                     return _textures[i];
                 }
             }
+            Console.WriteLine("Error finding Texture!");
 
             success = false;
             return _default;

@@ -1,24 +1,27 @@
-﻿using NVGRenderer.Rendering.Pipelines;
-using Veldrid;
+﻿using NVGRenderer.Rendering.Draw;
+using NVGRenderer.Rendering.Pipelines;
+using SilkyNvg.Rendering;
 
 namespace NVGRenderer.Rendering.Calls
 {
-    internal abstract class Call
+    public abstract class Call
     {
 
         protected readonly int image;
         protected readonly StrokePath[] paths;
         protected readonly uint triangleOffset;
         protected readonly uint triangleCount;
-        protected readonly ulong uniformOffset;
-
+        protected readonly int uniformOffset;
+        
         protected readonly PipelineSettings renderPipeline;
         protected readonly PipelineSettings stencilPipeline;
         protected readonly PipelineSettings antiAliasPipeline;
 
+        protected readonly Scissor _scissor;
+
         protected readonly NvgRenderer renderer;
 
-        protected Call(int image, StrokePath[] paths, uint triangleOffset, uint triangleCount, ulong uniformOffset,
+        protected Call(int image, StrokePath[] paths, uint triangleOffset, uint triangleCount, int uniformOffset, Scissor scissoring,
             PipelineSettings renderPipeline, PipelineSettings stencilPipeline, PipelineSettings antiAliasPipeline, NvgRenderer renderer)
         {
             this.image = image;
@@ -32,7 +35,6 @@ namespace NVGRenderer.Rendering.Calls
             this.renderer = renderer;
         }
 
-        public abstract unsafe void Run(Frame frame, CommandList cmd);
-
+        public abstract void Run(NvgFrame frame, List<DrawCall> drawCalls);
     }
 }

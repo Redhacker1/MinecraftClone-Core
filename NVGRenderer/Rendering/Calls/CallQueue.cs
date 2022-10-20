@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
-using Veldrid;
+﻿using NVGRenderer.Rendering.Draw;
 
 namespace NVGRenderer.Rendering.Calls
 {
-    internal class CallQueue
+    public class CallQueue
     {
+        NvgFrame _frame;
+        public CallQueue(NvgFrame frame)
+        {
+            _frame = frame;
+        }
 
-        private readonly Queue<Call> _calls = new();
+        private readonly Queue<Call> _calls = new Queue<Call>();
 
         public bool HasCalls => _calls.Count > 0;
         public int CallCount => _calls.Count;
@@ -16,12 +20,15 @@ namespace NVGRenderer.Rendering.Calls
             _calls.Enqueue(call);
         }
 
-        public void Run(Frame frame, CommandList commandBuffer)
+        public List<DrawCall> CreateDrawCalls()
         {
+            List<DrawCall> draws = new List<DrawCall>();
             foreach (Call call in _calls)
             {
-                call.Run(frame, commandBuffer);
+                call.Run(_frame, draws);
             }
+
+            return draws;
         }
 
         public void Clear()

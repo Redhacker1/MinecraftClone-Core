@@ -56,7 +56,7 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(true, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
 
@@ -65,11 +65,11 @@ namespace Engine.Rendering.Veldrid
             Passes[0] = new DefaultRenderPass(this);
 
         }
-        
-        CommandList _list; 
-        Stopwatch _stopwatch = new Stopwatch();
+
+        readonly CommandList _list;
+        readonly Stopwatch _stopwatch = new Stopwatch();
         public uint FPS;
-        public GraphicsDevice Device;
+        public readonly GraphicsDevice Device;
         internal void OnRender(double time)
         {
             if (_disposing)
@@ -82,10 +82,11 @@ namespace Engine.Rendering.Veldrid
             _list.Begin();
             _list.PushDebugGroup("Clear Screen");
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            _list.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
+            _list.ClearColorTarget(0, RgbaFloat.Grey);
             _list.ClearDepthStencil(1f);
             _list.PopDebugGroup();
             _list.End();
+            
             Device.SubmitCommands(_list);
             
             

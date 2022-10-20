@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace MCClone_Core.Temp;
+namespace Engine.Utilities.LowLevel.Memory;
 
 public sealed unsafe class NativeMemoryHeap : MemoryHeap
 {

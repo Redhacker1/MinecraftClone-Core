@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MCClone_Core.Temp
+namespace Engine.Utilities.LowLevel.Memory
 {
     // TODO: Not shamelessly rip from people
     // Shamelessly ripped from: https://github.com/TechnologicalPizza/VoxelPizza/tree/0faa11d474d861bc60d6dc523f66deb4688be709
     // Author: Technopizza
     public partial class HeapPool
     {
-        public unsafe class Segment
+        public readonly struct Segment
         {
-            private Stack<IntPtr> _pooled = new();
+            private readonly Stack<IntPtr> _pooled = new Stack<IntPtr>();
 
             public nuint BlockSize { get; }
             public uint MaxCount { get; }
@@ -43,7 +43,7 @@ namespace MCClone_Core.Temp
                 {
                     if ((uint)_pooled.Count < MaxCount)
                     {
-                        _pooled.Push((IntPtr)buffer);
+                        _pooled.Push(buffer);
                         return;
                     }
                 }

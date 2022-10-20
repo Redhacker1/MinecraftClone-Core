@@ -1,9 +1,7 @@
-﻿
-
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
 
-namespace MCClone_Core.Temp
+namespace Engine.Utilities.LowLevel.Memory
 {
     public abstract unsafe class MemoryHeap
     {

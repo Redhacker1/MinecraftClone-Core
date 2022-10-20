@@ -1,31 +1,30 @@
-﻿using System;
-using System.Runtime.CompilerServices;
-using SilkyNvg.Images;
+﻿using SilkyNvg.Images;
+using Veldrid;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace NVGRenderer.Rendering.Textures;
 
 public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
 {
-
-    static Random _random = new Random();
-    public ImageFlags _flags;
-    public Texture _texture;
+    
+    public ImageFlags Flags;
+    public Sampler TextureSampler;
+    public Texture _Texture;
     public int Id { get; internal set; }
 
     public void Dispose()
     {
-        _texture?.Dispose();
+        _Texture?.Dispose();
     }
 
     public bool HasFlag(ImageFlags flag)
     {
-        return _flags.HasFlag(flag);
+        return Flags.HasFlag(flag);
     }
 
     public bool Equals(TextureSlot other)
     {
-        return _flags == other._flags && _texture.Equals(other._texture) && Id == other.Id;
+        return Flags == other.Flags && _Texture.Equals(other._Texture) && Id == other.Id;
     }
 
     public override bool Equals(object obj)
@@ -35,6 +34,6 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int) _flags, _texture, Id);
+        return HashCode.Combine((int) Flags, _Texture, Id);
     }
 }

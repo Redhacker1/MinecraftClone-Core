@@ -22,7 +22,7 @@ namespace Engine.Rendering.Abstract
         {
             backingRenderer = _backingRenderer;
             ViewProjBuffer = new UniformBuffer<Matrix4x4>(_backingRenderer.Device, 2);
-            ViewProjBuffer.bufferObject.Name = "ViewProjBuffer";
+            ViewProjBuffer.BufferObject.Name = "ViewProjBuffer";
 
             Transforms = new VertexBuffer<Matrix4x4>(backingRenderer.Device, Span<Matrix4x4>.Empty);
 
@@ -32,7 +32,7 @@ namespace Engine.Rendering.Abstract
                     ShaderStages.Vertex));
             ResourceLayout layout = _backingRenderer.Device.ResourceFactory.CreateResourceLayout(resourceLayoutDescription);
             ResourceSetDescription resourceSetDescription =
-                new ResourceSetDescription(layout, ViewProjBuffer.bufferObject);
+                new ResourceSetDescription(layout, ViewProjBuffer.BufferObject);
 
             CameraResourceSet = backingRenderer.Device.ResourceFactory.CreateResourceSet(resourceSetDescription);
 

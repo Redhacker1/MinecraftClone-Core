@@ -30,8 +30,7 @@ public class PipelineCache
 
     public Pipeline AddPipeline(PipelineSettings settings, NvgRenderer renderer)
     {
-        DepthStencilStateDescription depthStencil = new DepthStencilStateDescription(settings.DepthTestEnabled, settings.DepthWrite,
-            settings.DepthWriteMode,
+        DepthStencilStateDescription depthStencil = new DepthStencilStateDescription(settings.DepthTestEnabled, settings.DepthTestEnabled, ComparisonKind.LessEqual,
             settings.StencilTestEnable, new StencilBehaviorDescription(settings.FrontStencilFailOp,
                 settings.FrontStencilPassOp, settings.FrontStencilDepthFailOp, settings.StencilFunc
             ),

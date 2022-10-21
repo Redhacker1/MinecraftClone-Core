@@ -6,6 +6,7 @@ using Engine.Utilities.LowLevel.EnumLib;
 using Engine.Windowing;
 using NVGRenderer.Rendering.Calls;
 using NVGRenderer.Rendering.Draw;
+using NVGRenderer.Rendering.Pipelines;
 using NVGRenderer.Rendering.Shaders;
 using NVGRenderer.Rendering.Textures;
 using Silk.NET.Maths;
@@ -179,7 +180,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
         }
 
         CurrentCommandBuffer.End();
-        //Device.SubmitCommands(CurrentCommandBuffer);
+        Device.SubmitCommands(CurrentCommandBuffer);
         _vertexCollection.Clear();
 
 
@@ -313,6 +314,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     internal void AdvanceFrame()
     {
+        _vertexCollection.Clear();
         _frame.Clear();
         _frame.ResourceSetCache.Clear();
     }

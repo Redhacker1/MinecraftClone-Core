@@ -10,7 +10,7 @@ namespace NVGRenderer.Rendering.Calls
     {
 
         public FillCall(int image, StrokePath[] paths, uint triangleOffset, int uniformOffset, CompositeOperationState compositeOperation, NvgRenderer renderer)
-            : base(image, paths, triangleOffset, 4, uniformOffset, default, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation), PipelineSettings.FillEdgeAa(compositeOperation), renderer) { }
+            : base(image, paths, triangleOffset, 4, uniformOffset, default, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation), PipelineSettings.FillEdgeAA(compositeOperation), renderer) { }
 
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls) 
         {

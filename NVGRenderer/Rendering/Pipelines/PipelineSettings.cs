@@ -1,6 +1,8 @@
 ﻿using SilkyNvg.Blending;
 using Veldrid;
+using Vortice.Direct3D11;
 using BlendFactor = Veldrid.BlendFactor;
+using StencilOperation = Veldrid.StencilOperation;
 
 namespace NVGRenderer.Rendering.Pipelines
 {
@@ -11,9 +13,6 @@ namespace NVGRenderer.Rendering.Pipelines
         public FrontFace FrontFace;
 
         public bool DepthTestEnabled;
-        public bool DepthWrite;
-        public ComparisonKind DepthWriteMode;
-
 
         public ColorWriteMask ColourMask;
 
@@ -68,20 +67,19 @@ namespace NVGRenderer.Rendering.Pipelines
                 SilkyNvg.Blending.BlendFactor.SrcColour => BlendFactor.SourceColor,
                 SilkyNvg.Blending.BlendFactor.OneMinusSrcColour => BlendFactor.InverseSourceColor,
                 SilkyNvg.Blending.BlendFactor.DstColour => BlendFactor.DestinationColor,
-                SilkyNvg.Blending.BlendFactor.OneMinusDstColour => BlendFactor.InverseSourceColor,
+                SilkyNvg.Blending.BlendFactor.OneMinusDstColour => BlendFactor.InverseDestinationColor,
                 SilkyNvg.Blending.BlendFactor.SrcAlpha => BlendFactor.SourceAlpha,
                 SilkyNvg.Blending.BlendFactor.OneMinusSrcAlpha => BlendFactor.InverseSourceAlpha,
                 SilkyNvg.Blending.BlendFactor.DstAlpha => BlendFactor.DestinationAlpha,
                 SilkyNvg.Blending.BlendFactor.OneMinusDstAlpha => BlendFactor.InverseDestinationAlpha,
-                SilkyNvg.Blending.BlendFactor.SrcAlphaSaturate => BlendFactor.InverseSourceAlpha,
-                _ => BlendFactor.BlendFactor
+                SilkyNvg.Blending.BlendFactor.SrcAlphaSaturate => BlendFactor.BlendFactor,
+                _ => BlendFactor.DestinationColor
             };
         }
 
         private static PipelineSettings Default()
         {
-            
-            return new PipelineSettings
+            return new()
             {
                 CullMode = FaceCullMode.Back,
                 FrontFace = FrontFace.CounterClockwise,
@@ -102,11 +100,11 @@ namespace NVGRenderer.Rendering.Pipelines
             PipelineSettings settings = Default();
             settings.CompositeOperation = compositeOperation;
             settings.StencilTestEnable = false;
-            settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.Topology = PrimitiveTopology.TriangleList;
             return settings;
         }
 
-        public static PipelineSettings ConvexFillEdgeAa(CompositeOperationState compositeOperation)
+        public static PipelineSettings ConvexFillEdgeAA(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = ConvexFill(compositeOperation);
             settings.Topology = PrimitiveTopology.TriangleStrip;
@@ -135,19 +133,20 @@ namespace NVGRenderer.Rendering.Pipelines
             settings.BackStencilDepthFailOp = StencilOperation.Keep;
             settings.BackStencilPassOp = StencilOperation.DecrementAndWrap;
 
-            settings.CullMode = FaceCullMode.Back;
+            settings.CullMode = FaceCullMode.None;
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.Topology = PrimitiveTopology.TriangleList;
 
             return settings;
         }
 
-        public static PipelineSettings FillEdgeAa(CompositeOperationState compositeOperation)
+        public static PipelineSettings FillEdgeAA(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = FillStencil(compositeOperation);
 
             settings.CullMode = FaceCullMode.Back;
+
             settings.ColourMask = ColorWriteMask.All;
 
             settings.StencilFunc = ComparisonKind.Equal;
@@ -166,7 +165,7 @@ namespace NVGRenderer.Rendering.Pipelines
 
         public static PipelineSettings Fill(CompositeOperationState compositeOperation)
         {
-            PipelineSettings settings = FillEdgeAa(compositeOperation);
+            PipelineSettings settings = FillEdgeAA(compositeOperation);
 
             settings.StencilFunc = ComparisonKind.NotEqual;
             settings.StencilRef = 0x0;
@@ -235,6 +234,7 @@ namespace NVGRenderer.Rendering.Pipelines
         public static PipelineSettings StencilStroke(CompositeOperationState compositeOperation)
         {
             PipelineSettings settings = StencilStrokeEdgeAA(compositeOperation);
+
             settings.ColourMask = ColorWriteMask.All;
 
             settings.StencilFunc = ComparisonKind.Always;
@@ -256,51 +256,17 @@ namespace NVGRenderer.Rendering.Pipelines
             PipelineSettings settings = Default();
 
             settings.CompositeOperation = compositeOperation;
-            settings.Topology = PrimitiveTopology.TriangleStrip;
+            settings.Topology = PrimitiveTopology.TriangleList;
 
             return settings;
         }
-
-        public bool Equals(PipelineSettings other)
-        {
-            // TODO: need to write a bitmask containing this information in maybe a couple of longs.
-            return CullMode == other.CullMode
-                   && FrontFace == other.FrontFace
-                   && DepthTestEnabled == other.DepthTestEnabled
-                   && DepthWrite == other.DepthWrite
-                   && DepthWriteMode == other.DepthWriteMode
-                   && ColourMask == other.ColourMask
-                   && StencilWriteMask == other.StencilWriteMask
-                   && FrontStencilFailOp == other.FrontStencilFailOp
-                   && FrontStencilDepthFailOp == other.FrontStencilDepthFailOp
-                   && FrontStencilPassOp == other.FrontStencilPassOp
-                   && BackStencilFailOp == other.BackStencilFailOp
-                   && BackStencilDepthFailOp == other.BackStencilDepthFailOp
-                   && BackStencilPassOp == other.BackStencilPassOp
-                   && StencilFunc == other.StencilFunc
-                   && StencilRef == other.StencilRef
-                   && StencilMask == other.StencilMask
-                   && StencilTestEnable == other.StencilTestEnable
-                   && Topology == other.Topology
-                   && CompositeOperation.DstAlpha == other.CompositeOperation.DstAlpha
-                   && CompositeOperation.DstRgb == other.CompositeOperation.DstRgb
-                   && CompositeOperation.SrcAlpha == other.CompositeOperation.SrcAlpha
-                   && CompositeOperation.SrcRgb == other.CompositeOperation.SrcRgb;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is PipelineSettings other && Equals(other);
-        }
-
+        
         public override int GetHashCode()
         {
             HashCode hashCode = new HashCode();
             hashCode.Add((int) CullMode);
             hashCode.Add((int) FrontFace);
             hashCode.Add(DepthTestEnabled);
-            hashCode.Add(DepthWrite);
-            hashCode.Add((int) DepthWriteMode);
             hashCode.Add((int) ColourMask);
             hashCode.Add(StencilWriteMask);
             hashCode.Add((int) FrontStencilFailOp);
@@ -316,6 +282,32 @@ namespace NVGRenderer.Rendering.Pipelines
             hashCode.Add((int) Topology);
             hashCode.Add(CompositeOperation);
             return hashCode.ToHashCode();
+        }
+
+        public bool Equals(PipelineSettings other)
+        {
+            return CullMode == other.CullMode
+                   && FrontFace == other.FrontFace
+                   && DepthTestEnabled == other.DepthTestEnabled
+                   && ColourMask == other.ColourMask
+                   && StencilWriteMask == other.StencilWriteMask
+                   && FrontStencilFailOp == other.FrontStencilFailOp
+                   && FrontStencilDepthFailOp == other.FrontStencilDepthFailOp
+                   && FrontStencilPassOp == other.FrontStencilPassOp
+                   && BackStencilFailOp == other.BackStencilFailOp
+                   && BackStencilDepthFailOp == other.BackStencilDepthFailOp
+                   && BackStencilPassOp == other.BackStencilPassOp
+                   && StencilFunc == other.StencilFunc
+                   && StencilRef == other.StencilRef
+                   && StencilMask == other.StencilMask
+                   && StencilTestEnable == other.StencilTestEnable
+                   && Topology == other.Topology
+                   && CompositeOperation.Equals(other.CompositeOperation);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is PipelineSettings other && Equals(other);
         }
     }
 }

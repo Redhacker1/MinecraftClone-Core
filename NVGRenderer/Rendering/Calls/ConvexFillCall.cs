@@ -10,7 +10,7 @@ namespace NVGRenderer.Rendering.Calls
     {
 
         public ConvexFillCall(int image, StrokePath[] paths, int uniformOffset, CompositeOperationState op, NvgRenderer renderer)
-            : base(image, paths, 0, 0, uniformOffset, default, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAa(op), renderer) { }
+            : base(image, paths, 0, 0, uniformOffset, default, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAA(op), renderer) { }
 
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls)
         {

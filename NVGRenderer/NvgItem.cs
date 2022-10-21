@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using Engine.Input;
+using Engine.Windowing;
 using NvgExample;
 using Silk.NET.Maths;
 using SilkyNvg;
@@ -67,7 +68,7 @@ public class DemoTest : NvgItem
         PrevTime = t;
 
         Vector2 mouseInput = InputHandler.MousePos(0);
-        testDemo.Render(mouseInput.X, mouseInput.Y, 1920, 1080, (float)t, false);
+        testDemo.Render(mouseInput.X, mouseInput.Y, WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y, (float)t, false);
         //watch.Restart();
     }
         

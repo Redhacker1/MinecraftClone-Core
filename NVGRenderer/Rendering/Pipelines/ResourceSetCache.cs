@@ -35,7 +35,7 @@ public class ResourceSetCache
     {
         foreach (KeyValuePair<ResourceSetData, ResourceSet> set in _sets)
         {
-            _nvgFrame.Renderer.Device.DisposeWhenIdle(set.Value);
+            set.Value.Dispose();
         }
         _sets.Clear();
     }

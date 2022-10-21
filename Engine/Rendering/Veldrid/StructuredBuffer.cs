@@ -58,13 +58,15 @@ namespace Engine.Rendering.Veldrid
 
             uint capacity = bufferObject.SizeInBytes / _alignment;
 
-            if (count > capacity)
+            if (count > capacity || bufferObject.IsDisposed)
             {
                 Resize(count);
             }
 
             if (alignment == _alignment)
             {
+
+
                 if (list != null)
                     list.UpdateBuffer(bufferObject, 0, data);
                 else
@@ -72,13 +74,14 @@ namespace Engine.Rendering.Veldrid
             }
             else
             {
-                Span<byte> buffer = stackalloc byte[1024];
-                buffer = buffer.Slice(0, (int)((uint)buffer.Length / _alignment * _alignment));
-                
-                if (buffer.Length > capacity)
+
+
+                uint alignmentAmount = alignment / _alignment;
+                alignmentAmount += alignment % _alignment;
+
+                if (data.Length >= capacity)
                 {
-                    Console.WriteLine(buffer.Length);
-                    Resize(count * alignment);
+                    Resize(count * alignmentAmount * _alignment);
                 }
                 
                 if (list != null)

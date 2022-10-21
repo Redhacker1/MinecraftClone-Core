@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using NVGRenderer.Rendering.Shaders;
-using NVGRenderer.Rendering.Textures;
+﻿using NVGRenderer.Rendering.Textures;
 using Veldrid;
 
 namespace NVGRenderer.Rendering.Pipelines;
@@ -31,6 +29,17 @@ public class ResourceSetCache
     readonly NvgFrame _nvgFrame;
     readonly Dictionary<ResourceSetData, ResourceSet> _sets = new Dictionary<ResourceSetData, ResourceSet>();
 
+
+
+    public void Clear()
+    {
+        foreach (KeyValuePair<ResourceSetData, ResourceSet> set in _sets)
+        {
+            _nvgFrame.Renderer.Device.DisposeWhenIdle(set.Value);
+        }
+        _sets.Clear();
+    }
+
     public ResourceSetCache(NvgFrame nvgFrame)
     {
         _nvgFrame = nvgFrame;
@@ -43,11 +52,19 @@ public class ResourceSetCache
             return _sets[parameters];
         }
 
+        if (_nvgFrame.UniformAllocator.CurrentOffset > _nvgFrame.FragmentUniformBuffer.ByteLength)
+        {
+            _nvgFrame.FragmentUniformBuffer.Resize(_nvgFrame.UniformAllocator.CurrentOffset / _nvgFrame.UniformAllocator.Alignment);
+        }
+
+        uint size = _nvgFrame.FragmentUniformBuffer.ByteLength / _nvgFrame.FragmentUniformBuffer.Length;
+
         TextureSlot texSlot = _nvgFrame.Renderer.TextureManager.FindTexture(parameters.image, out _);
         _sets[parameters] = _nvgFrame.Renderer.Device.ResourceFactory.CreateResourceSet(
-            new ResourceSetDescription(_nvgFrame.Renderer.DescriptorSetLayout, 
-            _nvgFrame.VertexUniformBuffer.GetBuffer(), 
-            new DeviceBufferRange(_nvgFrame.FragmentUniformBuffer.GetBuffer(), (uint)parameters.uniformOffset, _nvgFrame.UniformAllocator.FragSize * 3),
+            new ResourceSetDescription(_nvgFrame.Renderer.DescriptorSetLayout,
+            _nvgFrame.VertexUniformBuffer.GetBuffer(),
+            new DeviceBufferRange(
+                _nvgFrame.FragmentUniformBuffer.GetBuffer(), (uint)parameters.uniformOffset, (uint)_nvgFrame.FragmentUniformBuffer.ByteLength - (uint)parameters.uniformOffset),
             texSlot.TextureSampler,
             texSlot._Texture._Texture
         ));

@@ -32,6 +32,12 @@ public sealed class ThreadSafeList<T> : IList<T>
     }
 
 
+    public List<T> GetListUnsafe()
+    {
+        return _list;
+    }
+
+
     public ImmutableArray<T> ToImmutableArray()
     {
         ImmutableArray<T>.Builder test = ImmutableArray.CreateBuilder<T>();

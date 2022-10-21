@@ -27,7 +27,7 @@ public sealed class Instance3D : EngineObject
     /// <returns>Whether the object should be rendered</returns>
     public bool ShouldRender(ref CameraInfo camera)
     {
-        return isVisible && IntersectionHandler.MeshInFrustrum(this, camera.CameraFrustum);
+        return isVisible && IntersectionHandler.MeshInFrustum(this, camera.CameraFrustum);
     }
 
     public void GetInstanceAabb(out AABB boundingBox, Vector3 frustumCamerapos = default)

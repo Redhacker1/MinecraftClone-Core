@@ -194,19 +194,19 @@ namespace Engine.Rendering.Veldrid
 
         public void UpdateTextureBytes(GraphicsDevice device, ReadOnlySpan<byte> bytes, uint width, uint height)
         {
-
-            if (width == _Texture.Width && height == _Texture.Height)
+            var oldTexture = _Texture;
+            if (width == oldTexture.Width && height == oldTexture.Height)
             {
-                device.UpdateTexture(_Texture, bytes, 0, 0, 0, width, height, 1, 0, 0);
+                device.UpdateTexture(oldTexture, bytes, 0, 0, 0, width, height, 1, 0, 0);
                 return;
             }
 
-            _Texture.Dispose();
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
                 PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
             _Texture = device.ResourceFactory.CreateTexture(textureDescription);
             device.UpdateTexture(_Texture, bytes, 0, 0, 0, width, height, 1, 0, 0);
 
+            device.DisposeWhenIdle(oldTexture);
         }
 
         void Load(GraphicsDevice graphicsDevice, ReadOnlySpan<Rgba32> data, uint width, uint height)

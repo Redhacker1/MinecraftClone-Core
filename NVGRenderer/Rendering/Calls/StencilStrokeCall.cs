@@ -21,17 +21,14 @@ namespace NVGRenderer.Rendering.Calls
             //cmd.SetPipeline(sPipeline);
             //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
 
-            ResourceSet descriptorSet = frame.ResourceSetCache.GetResourceSet(new ResourceSetData
-            {
-                image = image,
-                uniformOffset = uniformOffset + (int)renderer.Shader.FragSize //???
-
-            });
-            
             DrawCall call = new DrawCall
             {
                 Pipeline = sPipeline,
-                Set = descriptorSet
+                Set = new ResourceSetData
+                {
+                    uniformOffset = uniformOffset,
+                    image = image
+                }
             };
             
             
@@ -49,14 +46,12 @@ namespace NVGRenderer.Rendering.Calls
             //cmd.SetPipeline(aaPipeline);
             call.Pipeline = aaPipeline;
 
-            
-            descriptorSet = frame.ResourceSetCache.GetResourceSet(new ResourceSetData
-            {
-                image = image,
-                uniformOffset = uniformOffset
 
-            });
-            call.Set = descriptorSet;
+            call.Set = new ResourceSetData
+            {
+                uniformOffset = uniformOffset,
+                image = image
+            };
             
             //cmd.SetGraphicsResourceSet(0, descriptorSet);
             foreach (Path path in paths)

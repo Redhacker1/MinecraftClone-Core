@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Engine.Rendering.Veldrid;
 using NVGRenderer.Rendering.Calls;
 using NVGRenderer.Rendering.Pipelines;
@@ -24,7 +25,7 @@ public class NvgFrame : IDisposable
 
     public readonly UniformManager UniformAllocator;
 
-    public UniformBuffer<FragUniforms> FragmentUniformBuffer { get; }
+    public StructuredBuffer<FragUniforms> FragmentUniformBuffer { get; }
     public readonly CallQueue Queue;
 
     public Swapchain Swapchain;
@@ -40,8 +41,8 @@ public class NvgFrame : IDisposable
         
         ResourceSetCache = new ResourceSetCache(this);
 
-        uint alignment = renderer.Device.UniformBufferMinOffsetAlignment;
-        uint fragSize = (uint)(Marshal.SizeOf(typeof(FragUniforms)) + alignment- (Marshal.SizeOf(typeof(FragUniforms)) % alignment));
+        uint alignment = renderer.Device.StructuredBufferMinOffsetAlignment;
+        uint fragSize = (uint)(Unsafe.SizeOf<FragUniforms>() + alignment - (Unsafe.SizeOf<FragUniforms>() % alignment));
         UniformAllocator = new UniformManager(fragSize);
 
         Queue = new CallQueue(this);
@@ -54,11 +55,7 @@ public class NvgFrame : IDisposable
 
         VertexUniformBuffer = new UniformBuffer<VertUniforms>(Renderer.Device, 1u);
 
-        FragmentUniformBuffer = new UniformBuffer<FragUniforms>(Renderer.Device, 1u)
-        {
-            Name = "FragmentUniforms"
-        };
-
+        FragmentUniformBuffer = new StructuredBuffer<FragUniforms>(Renderer.Device, 1u, alignment, false);
         renderer.SetFrame(this);
             
     }

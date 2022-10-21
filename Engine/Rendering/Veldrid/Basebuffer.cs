@@ -3,10 +3,12 @@ using Veldrid;
 
 namespace Engine.Rendering.Veldrid;
 
-
+// TODO: Add uniform buffers backed by this.
 // TODO: When implementing other RHI/Backends, reuse this code and break Veldrid types out and move to engine replacements
 public abstract class BaseBufferUntyped : GraphicsResource
 {
+    
+    protected readonly uint _alignment;
     
     public override (ResourceKind, BindableResource) GetUnderlyingResource()
     {
@@ -28,7 +30,7 @@ public abstract class BaseBufferUntyped : GraphicsResource
 
 
     /// <summary>
-    /// Used for most buffers in Veldrid, with the exception of Uniform buffers 
+    /// Used for most buffers in Veldrid, with the exception of Uniform buffers and SSBOs
     /// </summary>
     /// <param name="list">The command list to bind to</param>
     /// <param name="slot">Only used for vertex buffers, index buffers will not respect this</param>
@@ -77,6 +79,11 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
 
     public void ModifyBuffer(ReadOnlySpan<T> readOnlySpan, GraphicsDevice device)
     {
+        if (readOnlySpan.IsEmpty)
+        {
+            return;
+        }
+        
         if (readOnlySpan.Length > Length)
         {
             BufferObject?.Dispose();

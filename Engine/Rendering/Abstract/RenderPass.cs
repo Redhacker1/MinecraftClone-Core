@@ -94,10 +94,11 @@ namespace Engine.Rendering.Abstract
             }
         }
         
+        List<Instance3D> instance3Ds = new List<Instance3D>(0);
         [MethodImpl(MethodImplOptions.NoInlining)]
         protected virtual List<Instance3D> Cull(ThreadSafeList<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo) 
         {
-            List<Instance3D> instance3Ds = new List<Instance3D>(instances.Count);
+            instance3Ds.Clear();
             for (int i = 0; i < instances.Count; i++)
             {
                 // Check if the WeakReference is valid and if the mesh it points to has not been disposed. 

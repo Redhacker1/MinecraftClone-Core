@@ -56,7 +56,8 @@ namespace Engine.Rendering.Veldrid
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(true, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
+                true, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
 
@@ -65,11 +66,11 @@ namespace Engine.Rendering.Veldrid
             Passes[0] = new DefaultRenderPass(this);
 
         }
-
-        readonly CommandList _list;
-        readonly Stopwatch _stopwatch = new Stopwatch();
+        
+        CommandList _list; 
+        Stopwatch _stopwatch = new Stopwatch();
         public uint FPS;
-        public readonly GraphicsDevice Device;
+        public GraphicsDevice Device;
         internal void OnRender(double time)
         {
             if (_disposing)
@@ -82,11 +83,10 @@ namespace Engine.Rendering.Veldrid
             _list.Begin();
             _list.PushDebugGroup("Clear Screen");
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            _list.ClearColorTarget(0, RgbaFloat.Grey);
+            _list.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
             _list.ClearDepthStencil(1f);
             _list.PopDebugGroup();
             _list.End();
-            
             Device.SubmitCommands(_list);
             
             
@@ -144,9 +144,10 @@ namespace Engine.Rendering.Veldrid
             
             // Stop rendering frames and let the GPU flush it's current work, then dispose of the GraphicsDevice
             _disposing = true;
-            Device.WaitForIdle();
-            ;
-            Device.Dispose();
+            
+            Device.DisposeWhenIdle(Device);
+            //Device.WaitForIdle();
+            //Device.Dispose();
         }
     }
 }

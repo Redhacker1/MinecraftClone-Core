@@ -1,15 +1,31 @@
 ﻿using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics;
 
 namespace Engine.Collision.Simple;
 
 public struct AABB
 {
-    public Vector3 Origin;
-    public Vector3 Extents { get; set; }
+    
+    internal Vector128<float> _origin;
+    public Vector3 Origin
+    {
+        get => _origin.AsVector3();
+        set => _origin = value.AsVector128();
+    }
+
+    internal Vector128<float> _extents;
+    public Vector3 Extents     
+    {
+        get => _extents.AsVector3();
+        set => _extents = value.AsVector128();
+    }
     
     public AABB(Vector3 origin, Vector3 extents)
     {
+        _origin = default;
+        _extents = default;
+        
         Origin = origin;
         Extents = extents;
     }

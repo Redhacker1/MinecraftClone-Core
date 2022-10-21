@@ -29,11 +29,11 @@ public class NvgRenderer : INvgRenderer, IDisposable
     internal NVGShader Shader { get; private set; }
 
     public bool EdgeAntiAlias => FastFlagCompare.HasFlag((int)_flags, (int)RenderFlags.Antialias);
-    
+
     internal bool StencilStrokes => FastFlagCompare.HasFlag((int)_flags, (int)RenderFlags.StencilStrokes);
-    
+
     private readonly VertexCollection _vertexCollection;
-    
+
     Vector2D<float> _viewSize;
     public uint CurrentFrameIndex { private get; set; }
     public CommandList CurrentCommandBuffer { get; set; }
@@ -45,7 +45,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
     {
         _frame = frame;
     }
-    
+
 
 
     public NvgRenderer(NvgRendererParams @params, RenderFlags flags)
@@ -55,15 +55,15 @@ public class NvgRenderer : INvgRenderer, IDisposable
         Device = Params.Device;
         CurrentFrameIndex = 0;
         CurrentCommandBuffer = Params.InitialCommandBuffer;
-        
+
         TextureManager = new TextureManager(this);
         _vertexCollection = new VertexCollection();
         Shader = new NVGShader("SilkyNvg-Vulkan-Shader", EdgeAntiAlias, this);
-        
-        Span<Vector4> empty = stackalloc Vector4[] {new Vector4(0)};
+
+        Span<Vector4> empty = stackalloc Vector4[] { new Vector4(0) };
         DummyTex = CreateTexture(Texture.Alpha, new Vector2D<uint>(1, 1), 0, MemoryMarshal.Cast<Vector4, byte>(empty));
         Shader.InitializeFragUniformBuffers();
-        
+
     }
 
     public void Dispose()
@@ -73,19 +73,19 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     public bool Create()
     {
-        
+
         if (!Shader.Status)
         {
             return false;
         }
-        
+
         CreateLayout();
 
 
         return true;
     }
-    
-    
+
+
     public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
     {
         Engine.Rendering.Veldrid.Texture texture = data.IsEmpty ?
@@ -97,10 +97,10 @@ public class NvgRenderer : INvgRenderer, IDisposable
             Flags = imageFlags,
             _Texture = texture
         };
-        slot.TextureSampler = Device.PointSampler;
+        slot.TextureSampler = (imageFlags & ImageFlags.Nearest) != 0 ? Device.PointSampler : Device.LinearSampler;
 
         int index = TextureManager.AddTexture(slot);
-        
+
         return index;
     }
 
@@ -141,42 +141,50 @@ public class NvgRenderer : INvgRenderer, IDisposable
             return;
         }
         
-        List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
         //Console.WriteLine($"{calls.Count} to run total!");
         CurrentCommandBuffer.Begin();
         CurrentCommandBuffer.SetFramebuffer(WindowClass.Renderer.Device.MainSwapchain.Framebuffer);
-        Viewport viewport = new Viewport(0,0,_viewSize.X, _viewSize.Y, 0, 1);
+        Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
         CurrentCommandBuffer.SetViewport(0, viewport);
-        CurrentCommandBuffer.SetScissorRect(0, 0,0, (uint)_viewSize.X, (uint)_viewSize.Y);
+        CurrentCommandBuffer.SetScissorRect(0, 0, 0, (uint)_viewSize.X, (uint)_viewSize.Y);
         
         
         
+        _frame.FragmentUniformBuffer.ModifyBuffer(_frame.UniformAllocator.AsSpan(), _frame.UniformAllocator.Alignment);
         _frame.VertexBuffer.ModifyBuffer(_vertexCollection.Vertices, Device);
         
-       VertUniforms vertUniforms = new VertUniforms
+        VertUniforms vertUniforms = new VertUniforms
         {
             ViewSize = _viewSize
         };
         
-        _frame.VertexUniformBuffer.ModifyBuffer(vertUniforms, Device );
-        _frame.FragmentUniformBuffer.ModifyBuffer(_frame.UniformAllocator.Uniforms, Device);
+        _frame.VertexUniformBuffer.ModifyBuffer(vertUniforms);
+        
+        List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
 
-        foreach (DrawCall drawCall in calls) 
+
+
+
+        //Console.WriteLine($"{_frame.UniformAllocator.Uniforms.Length / _frame.UniformAllocator.FragSize} Uploaded!");
+
+        foreach (DrawCall drawCall in calls)
         {
+            //if()
+            
             CurrentCommandBuffer.SetPipeline(drawCall.Pipeline);
-            CurrentCommandBuffer.SetGraphicsResourceSet(0, drawCall.Set);
+            CurrentCommandBuffer.SetGraphicsResourceSet(0, _frame.ResourceSetCache.GetResourceSet(drawCall.Set));
             CurrentCommandBuffer.SetVertexBuffer(0, _frame.VertexBuffer.BufferObject);
             CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, 0);
             //Console.WriteLine("Testing");
         }
 
         CurrentCommandBuffer.End();
-        Device.SubmitCommands(CurrentCommandBuffer);
+        //Device.SubmitCommands(CurrentCommandBuffer);
         _vertexCollection.Clear();
-        
-        
+
+
         // Drawcalls go here!
-        
+
         // Clear frame!
         AdvanceFrame();
 
@@ -245,7 +253,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
         {
             return;
         }
-        
+
         int offset = _vertexCollection.CurrentsOffset;
         StrokePath[] renderPaths = new StrokePath[paths.Count];
         for (int i = 0; i < paths.Count; i++)
@@ -269,7 +277,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
             //_requireredDescriptorSetCount += 2;
 
             FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
-            
+
             int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             _ = _frame.UniformAllocator.AddUniform(stencilUniforms);
             call = new StencilStrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
@@ -282,7 +290,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
         }
         _frame.Queue.Add(call);
 
-        
+
     }
 
     public void Triangles(Paint paint, CompositeOperationState compositeOperation, Scissor scissor, ICollection<Vertex> vertices, float fringe)
@@ -291,7 +299,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
         {
             return;
         }
-        
+
         uint offset = (uint)_vertexCollection.CurrentsOffset;
         _vertexCollection.AddVertices(vertices);
 
@@ -302,12 +310,13 @@ public class NvgRenderer : INvgRenderer, IDisposable
         Call call = new TrianglesCall(paint.Image, compositeOperation, offset, (uint)vertices.Count, uniformOffset, this);
         _frame.Queue.Add(call);
     }
-    
+
     internal void AdvanceFrame()
     {
         _frame.Clear();
+        _frame.ResourceSetCache.Clear();
     }
-    
+
     public void CreateLayout()
     {
         GraphicsDevice device = Device;
@@ -315,7 +324,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
         ResourceLayoutDescription descriptorSetLayoutBindings = new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("VertexUniforms", ResourceKind.UniformBuffer, ShaderStages.Vertex,
                 ResourceLayoutElementOptions.None),
-            new ResourceLayoutElementDescription("FragUniforms", ResourceKind.UniformBuffer, ShaderStages.Fragment,
+            new ResourceLayoutElementDescription("FragUniforms", ResourceKind.StructuredBufferReadOnly, ShaderStages.Fragment,
                 ResourceLayoutElementOptions.None),
             new ResourceLayoutElementDescription("texsampler", ResourceKind.Sampler, ShaderStages.Fragment,
                 ResourceLayoutElementOptions.None),
@@ -324,7 +333,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
 
         );
-        
+
         ResourceLayout layout = device.ResourceFactory.CreateResourceLayout(descriptorSetLayoutBindings);
         DescriptorSetLayout = layout;
     }

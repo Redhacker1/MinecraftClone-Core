@@ -7,28 +7,27 @@ using Veldrid;
 namespace Engine.Rendering.Veldrid
 {
 
-    public abstract class BaseUnifomrBuffer
+    public abstract class BaseStructuredBuffer
     {
         public abstract DeviceBuffer GetBuffer();
     }
-    public unsafe class UniformBuffer<TDataType> : BaseUnifomrBuffer where TDataType : unmanaged
+    public unsafe class StructuredBuffer<TDataType> : BaseUnifomrBuffer where TDataType : unmanaged
     {
         private readonly uint _alignment;
 
         internal DeviceBuffer bufferObject;
         GraphicsDevice _device;
+        readonly bool CanBeWritten;
 
-        public UniformBuffer(GraphicsDevice gDevice, uint length, uint alignment)
+        public StructuredBuffer(GraphicsDevice gDevice, uint length, uint alignment, bool writable)
         {
             _device = gDevice;
             _alignment = unchecked((alignment + (16u - 1u)) & (uint)(-16));
-
-            bufferObject = _device.ResourceFactory.CreateBuffer(new BufferDescription(
-                length * _alignment,
-                BufferUsage.UniformBuffer | BufferUsage.Dynamic));
+            CanBeWritten = writable;
+            Resize(length);
         }
 
-        public UniformBuffer(GraphicsDevice gDevice, uint length) : this(gDevice, length, (uint)Unsafe.SizeOf<TDataType>())
+        public StructuredBuffer(GraphicsDevice gDevice, uint length, bool writable = false) : this(gDevice, length, (uint)Unsafe.SizeOf<TDataType>(), writable)
         {
         }
 
@@ -42,11 +41,14 @@ namespace Engine.Rendering.Veldrid
 
         public void Resize(uint capacity)
         {
-            bufferObject.Dispose();
+            bufferObject?.Dispose();
 
-            bufferObject = _device.ResourceFactory.CreateBuffer(new BufferDescription(
-                capacity * _alignment,
-                BufferUsage.UniformBuffer| BufferUsage.Dynamic));
+            bufferObject = _device.ResourceFactory.CreateBuffer(
+                new BufferDescription(
+                    capacity * _alignment,
+                    CanBeWritten ? BufferUsage.StructuredBufferReadWrite : BufferUsage.StructuredBufferReadOnly | BufferUsage.StructuredBufferReadOnly,
+                    (uint)Unsafe.SizeOf<TDataType>(), true)
+                );
         }
 
         public void ModifyBuffer(ReadOnlySpan<byte> data, uint alignment, CommandList? list = null)
@@ -75,7 +77,8 @@ namespace Engine.Rendering.Veldrid
                 
                 if (buffer.Length > capacity)
                 {
-                    Resize(count);
+                    Console.WriteLine(buffer.Length);
+                    Resize(count * alignment);
                 }
                 
                 if (list != null)

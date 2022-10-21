@@ -69,7 +69,7 @@ namespace NVGRenderer
                 FrameCount = 10u,
                 InitialCommandBuffer = renderer.Device.ResourceFactory.CreateCommandList()
             };
-            nvgRenderer = new NvgRenderer(rendererParams,  RenderFlags.StencilStrokes);
+            nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.Antialias | RenderFlags.StencilStrokes);
             thing = Nvg.Create(nvgRenderer);
             _frame = new NvgFrame(nvgRenderer, new NvgFrameBufferParams());
             

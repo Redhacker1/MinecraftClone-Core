@@ -48,7 +48,6 @@
                     return _textures[i];
                 }
             }
-            Console.WriteLine("Error finding Texture!");
 
             success = false;
             return _default;

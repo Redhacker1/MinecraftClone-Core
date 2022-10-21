@@ -1,18 +1,19 @@
-﻿using System;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using NVGRenderer.Rendering.Textures;
 using Silk.NET.Maths;
 using SilkyNvg;
 using SilkyNvg.Images;
 using SilkyNvg.Rendering;
+using SilkyNvg.Transforms;
 using Veldrid;
 
 namespace NVGRenderer.Rendering.Shaders
 {
-    //[StructLayout(LayoutKind.Sequential)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct FragUniforms
     {
 
+        // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
         private readonly Matrix3X4<float> _scissorMat;
         private readonly Matrix3X4<float> _paintMat;
         private readonly Colour _innerCol;
@@ -26,7 +27,7 @@ namespace NVGRenderer.Rendering.Shaders
         private readonly float _strokeThr;
         private readonly int _texType;
         private readonly int _type;
-
+        // ReSharper enable PrivateFieldCanBeConvertedToLocalVariable
         public FragUniforms(float strokeThr, ShaderType type) : this()
         {
             _strokeThr = strokeThr;
@@ -79,11 +80,11 @@ namespace NVGRenderer.Rendering.Shaders
                     {
                         Matrix3X2<float> m1, m2;
                         m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, _extent.Y * 0.5f));
-                        m1 = SilkyNvg.Transforms.NvgTransforms.Multiply(m1, paint.Transform);
+                        m1 = NvgTransforms.Multiply(m1, paint.Transform);
                         m2 = Matrix3X2.CreateScale(new Vector2D<float>(1.0f, -1.0f));
-                        m2 = SilkyNvg.Transforms.NvgTransforms.Multiply(m2, m1);
+                        m2 = NvgTransforms.Multiply(m2, m1);
                         m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, -_extent.Y * 0.5f));
-                        m1 = SilkyNvg.Transforms.NvgTransforms.Multiply(m1, m2);
+                        m1 = NvgTransforms.Multiply(m1, m2);
                         _ = Matrix3X2.Invert(m1, out invtransform);
                     }
                     else

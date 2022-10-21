@@ -16,17 +16,15 @@ namespace NVGRenderer.Rendering.Calls
         {
             
             Pipeline pipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer);
-            ResourceSet descriptorSet = frame.ResourceSetCache.GetResourceSet(new ResourceSetData
-            {
-                image = image,
-                uniformOffset = uniformOffset
 
-            });
-            
             DrawCall call = new DrawCall
             {
                 Pipeline = pipeline,
-                Set = descriptorSet,
+                Set = new ResourceSetData
+                {
+                    uniformOffset = uniformOffset,
+                    image = image
+                },
                 Count = triangleCount,
                 Offset = triangleOffset,
             };

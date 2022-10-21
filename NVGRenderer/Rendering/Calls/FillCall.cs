@@ -15,17 +15,16 @@ namespace NVGRenderer.Rendering.Calls
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls) 
         {
 
-            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, renderer); 
-            ResourceSet descriptorSet =  frame.ResourceSetCache.GetResourceSet(new ResourceSetData
-            {
-                uniformOffset = uniformOffset,
-                image = image
-            });
-            
+            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, renderer);
+
             DrawCall call = new DrawCall
             {
                 Pipeline = sPipeline,
-                Set = descriptorSet
+                Set = new ResourceSetData
+                {
+                    uniformOffset = uniformOffset,
+                    image = image
+                }
             };
             
             

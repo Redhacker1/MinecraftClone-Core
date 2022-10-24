@@ -57,8 +57,9 @@ namespace Engine.Rendering.Veldrid
         internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
-                true, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
+            
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
 
             // TODO: probably should implement some better systems for dealing with this shit!
@@ -83,8 +84,8 @@ namespace Engine.Rendering.Veldrid
             _list.Begin();
             _list.PushDebugGroup("Clear Screen");
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            _list.ClearColorTarget(0, RgbaFloat.CornflowerBlue);
-            _list.ClearDepthStencil(1f);
+            _list.ClearColorTarget(0, new RgbaFloat(.29804f,.29804f, .32157f, 1f));
+            _list.ClearDepthStencil(1, 0);
             _list.PopDebugGroup();
             _list.End();
             Device.SubmitCommands(_list);
@@ -146,8 +147,6 @@ namespace Engine.Rendering.Veldrid
             _disposing = true;
             
             Device.DisposeWhenIdle(Device);
-            //Device.WaitForIdle();
-            //Device.Dispose();
         }
     }
 }

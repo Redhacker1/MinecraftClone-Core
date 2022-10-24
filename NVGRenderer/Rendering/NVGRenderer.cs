@@ -29,9 +29,9 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     internal NVGShader Shader { get; private set; }
 
-    public bool EdgeAntiAlias => FastFlagCompare.HasFlag((int)_flags, (int)RenderFlags.Antialias);
+    public bool EdgeAntiAlias => true;
 
-    internal bool StencilStrokes => FastFlagCompare.HasFlag((int)_flags, (int)RenderFlags.StencilStrokes);
+    internal bool StencilStrokes => true;
 
     private readonly VertexCollection _vertexCollection;
 
@@ -89,14 +89,19 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
     {
+
+
+
+        var format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
+        
         Engine.Rendering.Veldrid.Texture texture = data.IsEmpty ?
             new Engine.Rendering.Veldrid.Texture(size.X, size.Y, 1, Device) :
-            Engine.Rendering.Veldrid.Texture.CreateFromBytes(Device, size.X, size.Y, data);
+            Engine.Rendering.Veldrid.Texture.CreateFromBytes(Device, size.X, size.Y, data, format);
 
         TextureSlot slot = new TextureSlot
         {
             Flags = imageFlags,
-            _Texture = texture
+            Texture = texture
         };
         slot.TextureSampler = (imageFlags & ImageFlags.Nearest) != 0 ? Device.PointSampler : Device.LinearSampler;
 
@@ -113,14 +118,15 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
     {
-        TextureManager.FindTexture(image, out _)._Texture.UpdateTextureBytes(Device, data, bounds.Size.X, bounds.Size.Y);
+        TextureManager.FindTexture(image, out TextureSlot Texture);
+        Texture.Texture.UpdateTextureBytes(Device, data, bounds.Size.X, bounds.Size.Y);
         return true;
     }
 
     public bool GetTextureSize(int image, out Vector2D<uint> size)
     {
-        TextureSlot imageSlot = TextureManager.FindTexture(image, out _);
-        size = new Vector2D<uint>(imageSlot._Texture._Texture.Width, imageSlot._Texture._Texture.Height);
+        _ = TextureManager.FindTexture(image, out TextureSlot imageSlot);
+        size = new Vector2D<uint>(imageSlot.Texture._Texture.Width, imageSlot.Texture._Texture.Height);
         return true;
     }
 
@@ -142,16 +148,13 @@ public class NvgRenderer : INvgRenderer, IDisposable
             return;
         }
         
-        //Console.WriteLine($"{calls.Count} to run total!");
         CurrentCommandBuffer.Begin();
-        CurrentCommandBuffer.SetFramebuffer(WindowClass.Renderer.Device.MainSwapchain.Framebuffer);
+        CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer);
         Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
         CurrentCommandBuffer.SetViewport(0, viewport);
         CurrentCommandBuffer.SetScissorRect(0, 0, 0, (uint)_viewSize.X, (uint)_viewSize.Y);
         
-        
-        
-        _frame.FragmentUniformBuffer.ModifyBuffer(_frame.UniformAllocator.AsSpan(), _frame.UniformAllocator.Alignment);
+        _frame.FragmentUniformBuffer.ModifyBuffer(_frame.UniformAllocator.AsSpan(), Device);
         _frame.VertexBuffer.ModifyBuffer(_vertexCollection.Vertices, Device);
         
         VertUniforms vertUniforms = new VertUniforms
@@ -164,19 +167,16 @@ public class NvgRenderer : INvgRenderer, IDisposable
         List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
 
 
-
-
-        //Console.WriteLine($"{_frame.UniformAllocator.Uniforms.Length / _frame.UniformAllocator.FragSize} Uploaded!");
+        
 
         foreach (DrawCall drawCall in calls)
         {
-            //if()
-            
+
             CurrentCommandBuffer.SetPipeline(drawCall.Pipeline);
             CurrentCommandBuffer.SetGraphicsResourceSet(0, _frame.ResourceSetCache.GetResourceSet(drawCall.Set));
             CurrentCommandBuffer.SetVertexBuffer(0, _frame.VertexBuffer.BufferObject);
-            CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, 0);
-            //Console.WriteLine("Testing");
+            CurrentCommandBuffer.SetVertexBuffer(1, _frame.FragmentUniformBuffer.BufferObject);
+            CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, drawCall.UniformOffset / (uint)Unsafe.SizeOf<FragUniforms>() );
         }
 
         CurrentCommandBuffer.End();
@@ -184,10 +184,11 @@ public class NvgRenderer : INvgRenderer, IDisposable
         _vertexCollection.Clear();
 
 
-        // Drawcalls go here!
-
-        // Clear frame!
-        AdvanceFrame();
+        if (Params.AdvanceFrameIndexAutomatically)
+        {
+            // Clear frame!
+            AdvanceFrame();   
+        }
 
     }
 
@@ -223,24 +224,22 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
         FragUniforms uniforms = new FragUniforms(paint, scissor, fringe, fringe, -1.0f, this);
         Call call;
-        if ((paths.Count == 1) && paths[0].Convex) // Convex
+        if (paths.Count == 1 && paths[0].Convex) // Convex
         {
-            //_requiredDescriptorSetCount++;
             int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             call = new ConvexFillCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
         }
         else
         {
-            //_requireredDescriptorSetCount += 2;
-
             _vertexCollection.AddVertex(new Vertex(bounds.Max, 0.5f, 1.0f));
             _vertexCollection.AddVertex(new Vertex(bounds.Max.X, bounds.Min.Y, 0.5f, 1.0f));
             _vertexCollection.AddVertex(new Vertex(bounds.Min.X, bounds.Max.Y, 0.5f, 1.0f));
             _vertexCollection.AddVertex(new Vertex(bounds.Min, 0.5f, 1.0f));
 
+            
+            int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             FragUniforms stencilUniforms = new FragUniforms(-1.0f, ShaderType.Simple);
-            int uniformOffset = _frame.UniformAllocator.AddUniform(stencilUniforms);
-            _ = _frame.UniformAllocator.AddUniform(uniforms);
+            _ = _frame.UniformAllocator.AddUniform(stencilUniforms);
 
             call = new FillCall(paint.Image, renderPaths, (uint)offset, uniformOffset, compositeOperation, this);
         }
@@ -275,9 +274,8 @@ public class NvgRenderer : INvgRenderer, IDisposable
         Call call;
         if (StencilStrokes)
         {
-            //_requireredDescriptorSetCount += 2;
 
-            FragUniforms stencilUniforms = new(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
+            FragUniforms stencilUniforms = new FragUniforms(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
 
             int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             _ = _frame.UniformAllocator.AddUniform(stencilUniforms);
@@ -285,7 +283,6 @@ public class NvgRenderer : INvgRenderer, IDisposable
         }
         else
         {
-            //_requireredDescriptorSetCount++;
             int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             call = new StrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
         }
@@ -304,8 +301,6 @@ public class NvgRenderer : INvgRenderer, IDisposable
         uint offset = (uint)_vertexCollection.CurrentsOffset;
         _vertexCollection.AddVertices(vertices);
 
-        //_requireredDescriptorSetCount++;
-
         FragUniforms uniforms = new FragUniforms(paint, scissor, fringe, this);
         int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
         Call call = new TrianglesCall(paint.Image, compositeOperation, offset, (uint)vertices.Count, uniformOffset, this);
@@ -316,7 +311,6 @@ public class NvgRenderer : INvgRenderer, IDisposable
     {
         _vertexCollection.Clear();
         _frame.Clear();
-        _frame.ResourceSetCache.Clear();
     }
 
     public void CreateLayout()
@@ -325,8 +319,6 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
         ResourceLayoutDescription descriptorSetLayoutBindings = new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("VertexUniforms", ResourceKind.UniformBuffer, ShaderStages.Vertex,
-                ResourceLayoutElementOptions.None),
-            new ResourceLayoutElementDescription("FragUniforms", ResourceKind.StructuredBufferReadOnly, ShaderStages.Fragment,
                 ResourceLayoutElementOptions.None),
             new ResourceLayoutElementDescription("texsampler", ResourceKind.Sampler, ShaderStages.Fragment,
                 ResourceLayoutElementOptions.None),

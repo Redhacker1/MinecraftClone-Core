@@ -27,7 +27,7 @@ namespace Engine.Rendering.Veldrid
 
         public global::Veldrid.Texture _Texture;
 
-        public Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false)
+        public Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false) : base(device)
         {
             var cfg = IS.Configuration.Default;
             cfg.PreferContiguousImageBuffers = true;
@@ -147,23 +147,23 @@ namespace Engine.Rendering.Veldrid
             img.Dispose();
         }
 
-        Texture()
+        Texture(GraphicsDevice device) : base(device)
         {
 
         }
 
-        public Texture(uint width, uint height, uint mips, GraphicsDevice device)
+        public Texture(uint width, uint height, uint mips, GraphicsDevice device, PixelFormat format = PixelFormat.R8_G8_B8_A8_UNorm) : base(device)
         {
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mips, 1,
-                PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
+                format, TextureUsage.Sampled);
             _Texture = device.ResourceFactory.CreateTexture(textureDescription);
         }
 
-        public static Texture CreateFromBytes(GraphicsDevice device, uint width, uint height, ReadOnlySpan<byte> data)
+        public static Texture CreateFromBytes(GraphicsDevice device, uint width, uint height, ReadOnlySpan<byte> data, PixelFormat format = PixelFormat.R8_G8_B8_A8_UNorm)
         {
-            Texture tex = new Texture();
+            Texture tex = new Texture(device);
             TextureDescription textureDescription = TextureDescription.Texture2D(width, height, mipLevels: 1, 1,
-                PixelFormat.R8_G8_B8_A8_UNorm, TextureUsage.Sampled);
+                format, TextureUsage.Sampled);
             tex._Texture = device.ResourceFactory.CreateTexture(textureDescription);
             device.UpdateTexture(tex._Texture, data, 0, 0, 0, width, height, 1, 0, 0);
             return tex;
@@ -171,13 +171,13 @@ namespace Engine.Rendering.Veldrid
 
 
 
-        public Texture(GraphicsDevice device, Span<byte> data)
+        public Texture(GraphicsDevice device, Span<byte> data) : base(device)
         {
 
             IS.Configuration cfg = IS.Configuration.Default;
             cfg.PreferContiguousImageBuffers = true;
             IS.Image<Rgba32> img = IS.Image.Load<Rgba32>(cfg, data);
-            Texture tex = new Texture();
+            Texture tex = new Texture(device);
 
             if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
             {

@@ -1,16 +1,16 @@
-﻿using NVGRenderer.Rendering.Textures;
+﻿using System.Diagnostics;
+using NVGRenderer.Rendering.Textures;
 using Veldrid;
 
 namespace NVGRenderer.Rendering.Pipelines;
 
 public struct ResourceSetData : IEquatable<ResourceSetData>
 {
-    public int uniformOffset;
     public int image;
 
     public bool Equals(ResourceSetData other)
     {
-        return uniformOffset == other.uniformOffset && image == other.image;
+        return image == other.image;
     }
 
     public override bool Equals(object obj)
@@ -20,7 +20,7 @@ public struct ResourceSetData : IEquatable<ResourceSetData>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine(uniformOffset, image);
+        return image;
     }
 }
 
@@ -47,28 +47,22 @@ public class ResourceSetCache
 
     public ResourceSet GetResourceSet(ResourceSetData parameters)
     {
-        if (_sets.ContainsKey(parameters))
+
+        if (!_sets.TryGetValue(parameters, out ResourceSet result))
         {
-            return _sets[parameters];
+            _ = _nvgFrame.Renderer.TextureManager.FindTexture(parameters.image, out TextureSlot texSlot);
+
+            result = _nvgFrame.Renderer.Device.ResourceFactory.CreateResourceSet(
+                new ResourceSetDescription(_nvgFrame.Renderer.DescriptorSetLayout,
+                    _nvgFrame.VertexUniformBuffer.GetBuffer(),
+                    texSlot.TextureSampler,
+                    texSlot.Texture._Texture
+                ));
+
+            _sets[parameters] = result;
         }
-
-        if (_nvgFrame.UniformAllocator.CurrentOffset > _nvgFrame.FragmentUniformBuffer.ByteLength)
-        {
-            _nvgFrame.FragmentUniformBuffer.Resize(_nvgFrame.UniformAllocator.CurrentOffset / _nvgFrame.UniformAllocator.Alignment);
-        }
-
-        uint size = _nvgFrame.FragmentUniformBuffer.ByteLength / _nvgFrame.FragmentUniformBuffer.Length;
-
-        TextureSlot texSlot = _nvgFrame.Renderer.TextureManager.FindTexture(parameters.image, out _);
-        _sets[parameters] = _nvgFrame.Renderer.Device.ResourceFactory.CreateResourceSet(
-            new ResourceSetDescription(_nvgFrame.Renderer.DescriptorSetLayout,
-            _nvgFrame.VertexUniformBuffer.GetBuffer(),
-            new DeviceBufferRange(
-                _nvgFrame.FragmentUniformBuffer.GetBuffer(), (uint)parameters.uniformOffset, (uint)_nvgFrame.FragmentUniformBuffer.ByteLength - (uint)parameters.uniformOffset),
-            texSlot.TextureSampler,
-            texSlot._Texture._Texture
-        ));
-
-        return _sets[parameters];
+        return result;
+        
+        
     }
 }

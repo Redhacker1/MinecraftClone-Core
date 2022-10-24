@@ -3,7 +3,7 @@
     public enum ShaderType
     {
 
-        Fillgrad,
+        FillGrad,
         FillImg,
         Simple,
         Img

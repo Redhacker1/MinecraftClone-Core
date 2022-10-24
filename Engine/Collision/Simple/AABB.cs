@@ -6,26 +6,13 @@ namespace Engine.Collision.Simple;
 
 public struct AABB
 {
-    
-    internal Vector128<float> _origin;
-    public Vector3 Origin
-    {
-        get => _origin.AsVector3();
-        set => _origin = value.AsVector128();
-    }
 
-    internal Vector128<float> _extents;
-    public Vector3 Extents     
-    {
-        get => _extents.AsVector3();
-        set => _extents = value.AsVector128();
-    }
-    
+    public Vector3 Origin;
+    public Vector3 Extents;
+
     public AABB(Vector3 origin, Vector3 extents)
     {
-        _origin = default;
-        _extents = default;
-        
+
         Origin = origin;
         Extents = extents;
     }

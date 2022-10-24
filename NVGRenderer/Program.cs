@@ -1,11 +1,15 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Engine;
 using Engine.Initialization;
+using Engine.Input;
 using Engine.MathLib;
+using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
+using Silk.NET.Input;
 using Silk.NET.Maths;
 using SilkyNvg;
 using Veldrid;
@@ -16,13 +20,14 @@ namespace NVGRenderer
     {
         public static void Main()
         {
-            Init.InitEngine(0,0, 1920, 1080, "NVG", new NvgRendererDemo());
+            Init.InitEngine(0,0, 1000, 600, "NVG", new NvgRendererDemo());
         }
     }
 
     class NvgRendererDemo : GameEntry
     {
-        NvgItem Item;
+        NvgItem DemoTest;
+        NvgItem PerfGraph;
         NvgRenderPass pass;
         protected override void GameStart()
         {
@@ -30,7 +35,10 @@ namespace NVGRenderer
             pass = new NvgRenderPass(WindowClass.Renderer, "Rendering NVG Stuff");
             WindowClass.Renderer.AddPass(1, pass);
 
-            Item = new DemoTest();
+            DemoTest = new DemoTest();
+            PerfGraph = new PerfMonitor();
+            this.PinnedObject = new BaseLevel();
+            this.PinnedObject.AddEntityToLevel(new GameObject());
 
         }
 
@@ -41,10 +49,28 @@ namespace NVGRenderer
         }
     }
 
+    class GameObject: EngineObject
+    {
+        public GameObject()
+        {
+            this.Ticks = true;
+        }
+        protected override void _Process(double delta)
+        {
+            base._Process(delta);
+            if (InputHandler.KeyboardJustKeyPressed(0, Key.D))
+            {
+                Console.WriteLine("Garbage collected!");
+                GC.Collect(0, GCCollectionMode.Forced, true, true);
+            }
+
+        }
+    }
+
     class NvgRenderPass : RenderPass, IDisposable
     {
-        public static Nvg thing;
-        NvgRenderer nvgRenderer;
+        public static Nvg Thing;
+        readonly NvgRenderer _nvgRenderer;
         NvgFrame _frame;
         
         public NvgRenderPass(CommandList list, Renderer renderer, string name = null) : base(list, renderer, name)
@@ -56,8 +82,8 @@ namespace NVGRenderer
                 FrameCount = 10u,
                 InitialCommandBuffer = list
             };
-            nvgRenderer = new NvgRenderer(rendererParams, 0);
-            Nvg.Create(nvgRenderer);
+            _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
+            Nvg.Create(_nvgRenderer);
         }
 
         public NvgRenderPass(Renderer renderer, string name = null) : base(renderer, name)
@@ -69,30 +95,45 @@ namespace NVGRenderer
                 FrameCount = 10u,
                 InitialCommandBuffer = renderer.Device.ResourceFactory.CreateCommandList()
             };
-            nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.Debug | RenderFlags.StencilStrokes | RenderFlags.TriangleListFill);
-            thing = Nvg.Create(nvgRenderer);
-            _frame = new NvgFrame(nvgRenderer, new NvgFrameBufferParams());
             
             
+            _nvgRenderer = new NvgRenderer(rendererParams, 0);
+            Thing = Nvg.Create(_nvgRenderer);
+            _frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
+            {
+                Framebuffer = renderer.Device.SwapchainFramebuffer
+            });
+
+            WindowClass.Handle.Resize += vector2D =>
+            {
+                _frame.Framebuffer = renderer.Device.SwapchainFramebuffer;
+            };
+
+
         }
 
+
+        Stopwatch stopwatch = Stopwatch.StartNew();
         protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera)
         {
-            thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1);
+
+            Thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1);
             foreach (WeakReference<NvgItem> panel in NvgItem.items)
             {
                 if (panel.TryGetTarget(out NvgItem item))
                 {
-                    item.OnDraw(thing);
+                    item.OnDraw(Thing, (float)stopwatch.Elapsed.TotalSeconds);
                 }
             }
-            thing.EndFrame();
+            
+            stopwatch.Restart();
+            Thing.EndFrame();
         }
 
         public void Dispose()
         {
-            thing.Dispose();
-            nvgRenderer?.Dispose();
+            Thing.Dispose();
+            _nvgRenderer?.Dispose();
         }
     }
 }

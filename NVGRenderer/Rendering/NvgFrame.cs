@@ -25,7 +25,9 @@ public class NvgFrame : IDisposable
 
     public readonly UniformManager UniformAllocator;
 
-    public StructuredBuffer<FragUniforms> FragmentUniformBuffer { get; }
+    public Framebuffer Framebuffer;
+
+    public VertexBuffer<byte> FragmentUniformBuffer { get; }
     public readonly CallQueue Queue;
 
     public Swapchain Swapchain;
@@ -42,7 +44,7 @@ public class NvgFrame : IDisposable
         ResourceSetCache = new ResourceSetCache(this);
 
         uint alignment = renderer.Device.StructuredBufferMinOffsetAlignment;
-        uint fragSize = (uint)(Unsafe.SizeOf<FragUniforms>() + alignment - (Unsafe.SizeOf<FragUniforms>() % alignment));
+        uint fragSize = (uint) (Unsafe.SizeOf<FragUniforms>());
         UniformAllocator = new UniformManager(fragSize);
 
         Queue = new CallQueue(this);
@@ -55,20 +57,29 @@ public class NvgFrame : IDisposable
 
         VertexUniformBuffer = new UniformBuffer<VertUniforms>(Renderer.Device, 1u);
 
-        FragmentUniformBuffer = new StructuredBuffer<FragUniforms>(Renderer.Device, 1u, alignment, false);
+        // This is an ugly hack, I will need to fix it later
+        FragmentUniformBuffer = new VertexBuffer<byte>(Renderer.Device, new byte[32]);
+
+        Framebuffer = parameters.Framebuffer;
+        
         renderer.SetFrame(this);
             
     }
 
     public void Dispose()
     {
+        
         VertexBuffer.Dispose();
         VertexUniformBuffer.Dispose();
         FragmentUniformBuffer.Dispose();
+        PipelineCache.Clear();
+        ResourceSetCache.Clear();
     }
 
     public void Clear()
     {
+        // This should not be needed, but it is alas :(
+        ResourceSetCache.Clear();
         UniformAllocator.Clear();
         Queue.Clear();
     }

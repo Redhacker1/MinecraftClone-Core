@@ -8,7 +8,7 @@ namespace Engine.Rendering.Veldrid
         where TDataType : unmanaged
     {
         
-        public unsafe VertexBuffer(GraphicsDevice gDevice, ReadOnlySpan<TDataType> data)
+        public unsafe VertexBuffer(GraphicsDevice gDevice, ReadOnlySpan<TDataType> data) : base(gDevice)
         {
             BufferType = BufferUsage.VertexBuffer;
             SafeCreateBuffer(gDevice, (uint)data.Length);
@@ -18,7 +18,7 @@ namespace Engine.Rendering.Veldrid
 
         protected override void OnDispose()
         {
-            BufferObject.Dispose();
+            _device.DisposeWhenIdle(BufferObject);
         }
 
         internal override void Bind(CommandList list, uint slot = 0)

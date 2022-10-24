@@ -7,7 +7,7 @@ namespace Engine.Rendering.Veldrid
 
         Sampler _sampler;
 
-        public TextureSampler(Sampler samplertype)
+        public TextureSampler(Sampler samplertype) : base(null)
         {
             _sampler = samplertype;
         }

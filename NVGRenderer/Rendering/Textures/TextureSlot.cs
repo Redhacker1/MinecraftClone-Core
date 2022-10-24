@@ -9,12 +9,12 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
     
     public ImageFlags Flags;
     public Sampler TextureSampler;
-    public Texture _Texture;
+    public Texture Texture;
     public int Id { get; internal set; }
 
     public void Dispose()
     {
-        _Texture?.Dispose();
+        Texture?.Dispose();
     }
 
     public bool HasFlag(ImageFlags flag)
@@ -24,7 +24,7 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
 
     public bool Equals(TextureSlot other)
     {
-        return Flags == other.Flags && _Texture.Equals(other._Texture) && Id == other.Id;
+        return Flags == other.Flags && Texture.Equals(other.Texture) && Id == other.Id;
     }
 
     public override bool Equals(object obj)
@@ -34,6 +34,6 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
 
     public override int GetHashCode()
     {
-        return HashCode.Combine((int) Flags, _Texture, Id);
+        return HashCode.Combine((int) Flags, Texture, Id);
     }
 }

@@ -13,4 +13,5 @@ public struct DrawCall
     public Vector2 Scissor;
     public uint Offset;
     public uint Count;
+    public uint UniformOffset;
 }

@@ -37,16 +37,16 @@ namespace Engine.Rendering.Veldrid
 
         public void Dispose()
         {
-            bufferObject.Dispose();
+            _device.DisposeWhenIdle(bufferObject);
         }
 
         public void Resize(uint capacity)
         {
-            bufferObject.Dispose();
+            _device.DisposeWhenIdle(bufferObject);
 
             bufferObject = _device.ResourceFactory.CreateBuffer(new BufferDescription(
                 capacity * _alignment,
-                BufferUsage.UniformBuffer| BufferUsage.Dynamic));
+                BufferUsage.UniformBuffer | BufferUsage.Dynamic));
         }
 
         public void ModifyBuffer(ReadOnlySpan<byte> data, uint alignment, CommandList? list = null)
@@ -70,18 +70,40 @@ namespace Engine.Rendering.Veldrid
             }
             else
             {
-                Span<byte> buffer = stackalloc byte[1024];
-                buffer = buffer.Slice(0, (int)((uint)buffer.Length / _alignment * _alignment));
+                Span<byte> buffer = stackalloc byte[2048];
+                uint maxLength = (uint)(buffer.Length + _alignment - 1) / _alignment;
+
                 
-                if (buffer.Length > capacity)
+                uint srcOffset = 0;
+                uint dstOffset = 0;
+                uint dstAlignment = _alignment;
+
+                while (count > 0)
                 {
-                    Resize(count);
+                    uint toUpload = count;
+                    if (toUpload > maxLength)
+                        toUpload = maxLength;
+
+                    uint srcLength = toUpload * alignment;
+                    uint dstLength = toUpload * dstAlignment;
+
+                    ReadOnlySpan<byte> src = data.Slice((int)srcOffset, (int)srcLength);
+                    Span<byte> dst = buffer.Slice(0, (int)dstLength);
+
+                    for (uint i = 0; i < toUpload; i++)
+                    {
+                        src.Slice((int)(i * alignment), (int)alignment).CopyTo(dst.Slice((int)(i * dstAlignment), (int)dstAlignment));
+                    }
+
+                    if (list != null)
+                        list.UpdateBuffer(bufferObject, dstOffset, dst);
+                    else
+                        _device.UpdateBuffer(bufferObject, dstOffset, dst);
+
+                    count -= toUpload;
+                    srcOffset += srcLength;
+                    dstOffset += dstLength;
                 }
-                
-                if (list != null)
-                    list.UpdateBuffer(bufferObject, 0, data);
-                else
-                    _device.UpdateBuffer(bufferObject, 0, data);
             }
         }
 

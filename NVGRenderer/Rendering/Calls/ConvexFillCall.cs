@@ -10,21 +10,21 @@ namespace NVGRenderer.Rendering.Calls
     {
 
         public ConvexFillCall(int image, StrokePath[] paths, int uniformOffset, CompositeOperationState op, NvgRenderer renderer)
-            : base(image, paths, 0, 0, uniformOffset, default, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAA(op), renderer) { }
+            : base(image, paths, 0, 0, uniformOffset, PipelineSettings.ConvexFill(op), default, PipelineSettings.ConvexFillEdgeAA(op), renderer) { }
 
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls)
         {
             
-            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer);
+            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
 
             DrawCall call = new DrawCall
             {
                 Pipeline = fPipeline,
                 Set = new ResourceSetData
                 {
-                    uniformOffset = uniformOffset,
                     image = image
-                }
+                },
+                UniformOffset = (uint)uniformOffset
             };
             
             
@@ -40,9 +40,9 @@ namespace NVGRenderer.Rendering.Calls
                 drawCalls.Add(call);
             }
 
-            if (renderer.EdgeAntiAlias)
+            if (_renderer.EdgeAntiAlias)
             {
-                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer); 
+                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer); 
                 //cmd.SetPipeline(aaPipeline);
                 call.Pipeline = aaPipeline;
                 foreach (StrokePath path in paths)

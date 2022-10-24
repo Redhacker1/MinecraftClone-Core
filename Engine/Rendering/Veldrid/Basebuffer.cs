@@ -7,6 +7,11 @@ namespace Engine.Rendering.Veldrid;
 // TODO: When implementing other RHI/Backends, reuse this code and break Veldrid types out and move to engine replacements
 public abstract class BaseBufferUntyped : GraphicsResource
 {
+
+    protected BaseBufferUntyped(GraphicsDevice device) : base(device)
+    {
+        
+    }
     
     protected readonly uint _alignment;
     
@@ -25,6 +30,7 @@ public abstract class BaseBufferUntyped : GraphicsResource
 
     public DeviceBuffer BufferObject { get; protected set; }
     public BufferUsage BufferType { protected init; get; }
+    
 
     public uint LengthInBytes => BufferObject.SizeInBytes;
 
@@ -84,9 +90,9 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
             return;
         }
         
-        if (readOnlySpan.Length > Length)
+        if (readOnlySpan.Length > Length || BufferObject == null)
         {
-            BufferObject?.Dispose();
+            _device.DisposeWhenIdle(BufferObject);
             SafeCreateBuffer(device, (uint)readOnlySpan.Length);
 
         }
@@ -104,5 +110,8 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
     {
         ModifyBuffer(readOnlySpan.Slice(0, count), device);
     }
-    
+
+    protected BaseBufferTyped(GraphicsDevice device) : base(device)
+    {
+    }
 }

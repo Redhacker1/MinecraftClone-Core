@@ -15,6 +15,7 @@ namespace Engine.Windowing
 
         public WindowClass(WindowOptions options, GameEntry GameClass)
         {
+            //options.TransparentFramebuffer = true;
             Handle = Window.Create(options);
             Handle.IsContextControlDisabled = true;
             Handle.Closing += OnClose;

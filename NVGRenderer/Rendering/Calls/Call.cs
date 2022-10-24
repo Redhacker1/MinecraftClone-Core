@@ -17,11 +17,9 @@ namespace NVGRenderer.Rendering.Calls
         protected readonly PipelineSettings stencilPipeline;
         protected readonly PipelineSettings antiAliasPipeline;
 
-        protected readonly Scissor _scissor;
+        protected readonly NvgRenderer _renderer;
 
-        protected readonly NvgRenderer renderer;
-
-        protected Call(int image, StrokePath[] paths, uint triangleOffset, uint triangleCount, int uniformOffset, Scissor scissoring,
+        protected Call(int image, StrokePath[] paths, uint triangleOffset, uint triangleCount, int uniformOffset,
             PipelineSettings renderPipeline, PipelineSettings stencilPipeline, PipelineSettings antiAliasPipeline, NvgRenderer renderer)
         {
             this.image = image;
@@ -32,7 +30,7 @@ namespace NVGRenderer.Rendering.Calls
             this.renderPipeline = renderPipeline;
             this.stencilPipeline = stencilPipeline;
             this.antiAliasPipeline = antiAliasPipeline;
-            this.renderer = renderer;
+            this._renderer = renderer;
         }
 
         public abstract void Run(NvgFrame frame, List<DrawCall> drawCalls);

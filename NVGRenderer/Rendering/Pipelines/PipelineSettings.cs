@@ -1,12 +1,10 @@
 ﻿using SilkyNvg.Blending;
 using Veldrid;
-using Vortice.Direct3D11;
 using BlendFactor = Veldrid.BlendFactor;
-using StencilOperation = Veldrid.StencilOperation;
 
 namespace NVGRenderer.Rendering.Pipelines
 {
-    public struct PipelineSettings : IEquatable<PipelineSettings>
+    public struct PipelineSettings
     {
 
         public FaceCullMode CullMode;
@@ -15,8 +13,7 @@ namespace NVGRenderer.Rendering.Pipelines
         public bool DepthTestEnabled;
 
         public ColorWriteMask ColourMask;
-
-        public uint StencilWriteMask;
+        
 
         public StencilOperation FrontStencilFailOp;
         public StencilOperation FrontStencilDepthFailOp;
@@ -41,8 +38,10 @@ namespace NVGRenderer.Rendering.Pipelines
         }
 
         public ComparisonKind StencilFunc;
-        public uint StencilRef;
-        public uint StencilMask;
+        
+        public byte StencilWriteMask;
+        public byte StencilRef;
+        public byte StencilMask;
 
         public bool StencilTestEnable;
 
@@ -72,8 +71,8 @@ namespace NVGRenderer.Rendering.Pipelines
                 SilkyNvg.Blending.BlendFactor.OneMinusSrcAlpha => BlendFactor.InverseSourceAlpha,
                 SilkyNvg.Blending.BlendFactor.DstAlpha => BlendFactor.DestinationAlpha,
                 SilkyNvg.Blending.BlendFactor.OneMinusDstAlpha => BlendFactor.InverseDestinationAlpha,
-                SilkyNvg.Blending.BlendFactor.SrcAlphaSaturate => BlendFactor.BlendFactor,
-                _ => BlendFactor.DestinationColor
+                SilkyNvg.Blending.BlendFactor.SrcAlphaSaturate => BlendFactor.SourceAlpha,
+                _ => BlendFactor.BlendFactor
             };
         }
 
@@ -85,13 +84,13 @@ namespace NVGRenderer.Rendering.Pipelines
                 FrontFace = FrontFace.CounterClockwise,
                 DepthTestEnabled = false,
                 ColourMask = ColorWriteMask.All,
-                StencilMask = 0xffffffff,
+                StencilMask = 0xff,
                 StencilFailOp = StencilOperation.Keep,
                 StencilDepthFailOp = StencilOperation.Keep,
                 StencilPassOp = StencilOperation.Keep,
                 StencilFunc = ComparisonKind.Always,
                 StencilRef = 0,
-                StencilWriteMask = 0xffffffff,
+                StencilWriteMask = 0xff,
             };
         }
 
@@ -235,7 +234,7 @@ namespace NVGRenderer.Rendering.Pipelines
         {
             PipelineSettings settings = StencilStrokeEdgeAA(compositeOperation);
 
-            settings.ColourMask = ColorWriteMask.All;
+            settings.ColourMask = ColorWriteMask.Red | ColorWriteMask.Green | ColorWriteMask.Green | ColorWriteMask.Alpha;
 
             settings.StencilFunc = ComparisonKind.Always;
             settings.StencilRef = 0x0;
@@ -305,9 +304,5 @@ namespace NVGRenderer.Rendering.Pipelines
                    && CompositeOperation.Equals(other.CompositeOperation);
         }
 
-        public override bool Equals(object obj)
-        {
-            return obj is PipelineSettings other && Equals(other);
-        }
     }
 }

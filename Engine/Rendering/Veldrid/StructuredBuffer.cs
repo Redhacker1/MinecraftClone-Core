@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Veldrid;
@@ -36,12 +35,15 @@ namespace Engine.Rendering.Veldrid
 
         public void Dispose()
         {
-            bufferObject.Dispose();
+            _device.DisposeWhenIdle(bufferObject);
         }
 
         public void Resize(uint capacity)
         {
-            bufferObject?.Dispose();
+            if (bufferObject != null)
+            {
+                _device.DisposeWhenIdle(bufferObject);   
+            }
 
             bufferObject = _device.ResourceFactory.CreateBuffer(
                 new BufferDescription(
@@ -54,19 +56,16 @@ namespace Engine.Rendering.Veldrid
         public void ModifyBuffer(ReadOnlySpan<byte> data, uint alignment, CommandList? list = null)
         {
             uint count = (uint)data.Length / alignment;
-            Debug.Assert(data.Length % alignment == 0);
 
             uint capacity = bufferObject.SizeInBytes / _alignment;
 
-            if (count > capacity || bufferObject.IsDisposed)
+            if (count > capacity)
             {
                 Resize(count);
             }
 
             if (alignment == _alignment)
             {
-
-
                 if (list != null)
                     list.UpdateBuffer(bufferObject, 0, data);
                 else
@@ -74,20 +73,44 @@ namespace Engine.Rendering.Veldrid
             }
             else
             {
+                Span<byte> buffer = stackalloc byte[2048];
+                uint maxLength = (uint)(buffer.Length + _alignment - 1) / _alignment;
 
-
-                uint alignmentAmount = alignment / _alignment;
-                alignmentAmount += alignment % _alignment;
-
-                if (data.Length >= capacity)
+                if (count > capacity)
                 {
-                    Resize(count * alignmentAmount * _alignment);
+                    Resize(count);
                 }
-                
-                if (list != null)
-                    list.UpdateBuffer(bufferObject, 0, data);
-                else
-                    _device.UpdateBuffer(bufferObject, 0, data);
+
+                uint srcOffset = 0;
+                uint dstOffset = 0;
+                uint dstAlignment = _alignment;
+
+                while (count > 0)
+                {
+                    uint toUpload = count;
+                    if (toUpload > maxLength)
+                        toUpload = maxLength;
+
+                    uint srcLength = toUpload * alignment;
+                    uint dstLength = toUpload * dstAlignment;
+
+                    ReadOnlySpan<byte> src = data.Slice((int)srcOffset, (int)srcLength);
+                    Span<byte> dst = buffer.Slice(0, (int)dstLength);
+
+                    for (uint i = 0; i < toUpload; i++)
+                    {
+                        src.Slice((int)(i * alignment), (int)alignment).CopyTo(dst.Slice((int)(i * dstAlignment), (int)dstAlignment));
+                    }
+
+                    if (list != null)
+                        list.UpdateBuffer(bufferObject, dstOffset, dst);
+                    else
+                        _device.UpdateBuffer(bufferObject, dstOffset, dst);
+
+                    count -= toUpload;
+                    srcOffset += srcLength;
+                    dstOffset += dstLength;
+                }
             }
         }
 

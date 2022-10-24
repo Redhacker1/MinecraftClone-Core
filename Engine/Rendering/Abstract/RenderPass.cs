@@ -2,9 +2,12 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Engine.Rendering.Veldrid;
 using Engine.Utilities.Concurrency;
+using Silk.NET.GLFW;
 using Veldrid;
+using Monitor = System.Threading.Monitor;
 
 namespace Engine.Rendering.Abstract
 {
@@ -94,11 +97,11 @@ namespace Engine.Rendering.Abstract
             }
         }
         
-        List<Instance3D> instance3Ds = new List<Instance3D>(0);
         [MethodImpl(MethodImplOptions.NoInlining)]
         protected virtual List<Instance3D> Cull(ThreadSafeList<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo) 
         {
-            instance3Ds.Clear();
+            List<Instance3D> instance3Ds = new List<Instance3D>(0);
+
             for (int i = 0; i < instances.Count; i++)
             {
                 // Check if the WeakReference is valid and if the mesh it points to has not been disposed. 

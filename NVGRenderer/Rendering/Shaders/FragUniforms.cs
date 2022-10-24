@@ -64,10 +64,10 @@ namespace NVGRenderer.Rendering.Shaders
 
             if (paint.Image != 0)
             {
-                TextureSlot tex = renderer.TextureManager.FindTexture(paint.Image, out _);
+                _ = renderer.TextureManager.FindTexture(paint.Image, out TextureSlot tex);
                 if (tex.Id == 0)
                 {
-                    _type = (int)ShaderType.Fillgrad;
+                    _type = (int)ShaderType.FillGrad;
                     _radius = paint.Radius;
                     _feather = paint.Feather;
                     _texType = 0;
@@ -93,7 +93,7 @@ namespace NVGRenderer.Rendering.Shaders
                     }
                     _type = (int)ShaderType.FillImg;
 
-                    if (tex._Texture._Texture.Format == PixelFormat.R8_G8_B8_A8_UNorm)
+                    if (tex.Texture._Texture.Format == PixelFormat.R8_G8_B8_A8_UNorm)
                     {
                         _texType = tex.HasFlag(ImageFlags.Premultiplied) ? 0 : 1;
                     }
@@ -107,7 +107,7 @@ namespace NVGRenderer.Rendering.Shaders
             }
             else
             {
-                _type = (int)ShaderType.Fillgrad;
+                _type = (int)ShaderType.FillGrad;
                 _radius = paint.Radius;
                 _feather = paint.Feather;
                 _texType = 0;

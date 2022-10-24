@@ -10,58 +10,55 @@ namespace NVGRenderer.Rendering.Calls
     {
 
         public FillCall(int image, StrokePath[] paths, uint triangleOffset, int uniformOffset, CompositeOperationState compositeOperation, NvgRenderer renderer)
-            : base(image, paths, triangleOffset, 4, uniformOffset, default, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation), PipelineSettings.FillEdgeAA(compositeOperation), renderer) { }
+            : base(image, paths, triangleOffset, 4, uniformOffset, PipelineSettings.Fill(compositeOperation), PipelineSettings.FillStencil(compositeOperation), PipelineSettings.FillEdgeAA(compositeOperation), renderer) { }
 
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls) 
         {
 
-            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, renderer);
+            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, _renderer);
 
             DrawCall call = new DrawCall
             {
                 Pipeline = sPipeline,
                 Set = new ResourceSetData
                 {
-                    uniformOffset = uniformOffset,
                     image = image
-                }
+                },
+                UniformOffset = (uint)uniformOffset
             };
             
             
-            //cmd.SetPipeline(sPipeline);
-            //cmd.SetGraphicsResourceSet(0, descriptorSet);
-            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
-            
-            //cmd.SetGraphicsResourceSet(0, descriptorSet);
             foreach (StrokePath path in paths)
             {
-                //cmd.Draw(path.FillCount, 1, path.FillOffset, 0);
                 call.Offset = path.FillOffset;
                 call.Count = path.FillCount;
                 drawCalls.Add(call);
             }
 
-            if (renderer.EdgeAntiAlias)
+            if (_renderer.EdgeAntiAlias)
             {
-                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, renderer);
+                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, _renderer);
                 call.Pipeline = aaPipeline;
-                //cmd.SetPipeline(aaPipeline);
                 foreach (StrokePath path in paths)
                 {
-                    //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
                     call.Offset = path.StrokeOffset;
                     call.Count = path.StrokeCount;
                     drawCalls.Add(call);
                 }
             }
 
-            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, renderer);
+            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
             call.Count = triangleCount;
             call.Offset = triangleOffset;
             call.Pipeline = fPipeline;
-            //cmd.SetPipeline(fPipeline);
-            //cmd.Draw(triangleCount, 1, triangleOffset, 0);
-            
+            call.Set = new ResourceSetData
+            {
+                image = image
+            };
+            call.UniformOffset = (uint) uniformOffset;
+
+            drawCalls.Add(call);
+
         }
 
     }

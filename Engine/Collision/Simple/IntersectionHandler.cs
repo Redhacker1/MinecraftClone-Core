@@ -12,37 +12,26 @@ namespace Engine.Collision.Simple;
         {
             
             
-            float num = DotProductSimd(sphere.PosSimd, plane.SIMDnormal) - plane.Offset;
+            float num = Vector3.Dot(sphere.Position, plane.Normal) - plane.Offset;
             if (num > sphere.Radius)
                 return 1;
             return num < - sphere.Radius ? -1 : 0;
         }
 
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        static float DotProductSimd(Vector128<float> one, Vector128<float> two)
-        {
-            Vector128<float> mulRes = Sse.Multiply(one, two);
-            Vector128<float> shufReg = Sse3.MoveHighAndDuplicate(mulRes);
-            Vector128<float> sumsReg = Sse.Add(mulRes, shufReg);
-            
-            shufReg = Sse.MoveHighToLow(shufReg, sumsReg);
-            sumsReg = Sse.Add(sumsReg, shufReg);
-            return sumsReg.ToScalar();
-        }
+        
 
         static Vector128<float> Abs(Vector128<float> vector128)
         {
             return Sse.Max(Sse.Subtract(Vector128<float>.Zero, vector128), vector128);
         }
 
-        public static int AabbToPlane(Plane plane, AABB aabb)
+        public static int AabbToPlane(ref Plane plane, ref AABB aabb)
         {
-            Vector128<float> abs = Abs(plane.SIMDnormal);
+            Vector3 abs = Vector3.Abs(plane.Normal);
 
-            float res = DotProductSimd(abs, aabb._extents);
+            float res = Vector3.Dot(abs, aabb.Extents);
 
-            Sphere sphere = new Sphere(aabb._origin.WithElement(3, res));
+            Sphere sphere = new Sphere(res, aabb.Origin);
             return SphereToPlane(plane, sphere);
         }
 
@@ -63,7 +52,7 @@ namespace Engine.Collision.Simple;
 
             for (int index = 0; index < frustum.Planes.Length; ++index)
             {
-                if (AabbToPlane(frustum.Planes[index], aabb) == 1)
+                if (AabbToPlane(ref frustum.Planes[index], ref aabb) == 1)
                     return false;
             } 
             return true;

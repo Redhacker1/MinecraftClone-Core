@@ -22,27 +22,40 @@ public class NvgItem
     {
         _itemWeakRef = new WeakReference<NvgItem>(this);
         items.Add(_itemWeakRef);
-        
-        NvgRenderPass.thing.CreateFont("icons", "./fonts/entypo.ttf");
     }
 
     ~NvgItem()
     {
         items.Remove(_itemWeakRef);
     }
-    public virtual void OnDraw(Nvg nvg)
-    {
-        nvg.BeginPath();
-        nvg.Ellipse(new Vector2D<float>(400, 300), 100, 300);
-        nvg.StrokeColour(Colour.Black);
-        nvg.StrokeWidth(1);
-        nvg.Stroke();
 
+    float TotalTime = 0;
+    public virtual void OnDraw(Nvg nvg, float timeElapsed)
+    {
+        
+        TotalTime += timeElapsed;
+        
+        float minVal = 0;
+        float maxVal = 1;
+        float freq = 1; // oscillations per second
+        float avgVal = (minVal + maxVal)/2;
+        float amp = (maxVal - minVal) / 2;
+        avgVal += amp * MathF.Cos(TotalTime * freq * 10 / MathF.PI);
+
+        Console.WriteLine(avgVal);
+        
+        
+
+        var lerpfunc = Vector2.Lerp(Vector2.Zero, new Vector2(300, 400), avgVal);
+
+        Vector2D<float> LerpedValue = new Vector2D<float>(lerpfunc.X, lerpfunc.Y);
         nvg.BeginPath();
-        nvg.FontSize(32);
-        nvg.FontFace("icons");
+        nvg.Ellipse(LerpedValue, 100, 300);
+        nvg.StrokeColour(Colour.Black);
+        nvg.StrokeWidth(3);
         nvg.FillColour(Colour.Indigo);
-        nvg.Text(new Vector2D<float>(400, 600), "Hello");
+        nvg.Fill();
+        nvg.Stroke();
 
 
 
@@ -58,7 +71,7 @@ public class DemoTest : NvgItem
     double PrevTime;
     Stopwatch watch;
 
-    public override void OnDraw(Nvg nvg)
+    public override void OnDraw(Nvg nvg, float timeElapsed)
     {
         watch ??= Stopwatch.StartNew();
         testDemo ??= new Demo(nvg);
@@ -70,6 +83,27 @@ public class DemoTest : NvgItem
         Vector2 mouseInput = InputHandler.MousePos(0);
         testDemo.Render(mouseInput.X, mouseInput.Y, WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y, (float)t, false);
         //watch.Restart();
+    }
+        
+}
+
+public class PerfMonitor : NvgItem
+{
+    PerformanceGraph Graph;
+    double PrevTime;
+    Stopwatch watch;
+
+    public override void OnDraw(Nvg nvg, float timeElapsed) 
+    {
+        watch ??= Stopwatch.StartNew();
+        Graph ??= new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "FPS");
+
+        double t = watch.Elapsed.TotalSeconds;
+        double dt = t - PrevTime;
+        PrevTime = t;
+        Graph.Update((float)dt);
+        Graph.Render(5.0f, 5.0f, nvg);
+        
     }
         
 }

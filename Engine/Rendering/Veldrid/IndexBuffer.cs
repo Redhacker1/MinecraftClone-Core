@@ -8,7 +8,7 @@ namespace Engine.Rendering.Veldrid
         where T : unmanaged
     {
         
-        public IndexBuffer(GraphicsDevice gDevice, Span<T> data)
+        public IndexBuffer(GraphicsDevice gDevice, Span<T> data) : base(gDevice)
         {
             BufferType = BufferUsage.IndexBuffer;
             unsafe
@@ -17,7 +17,7 @@ namespace Engine.Rendering.Veldrid
                 ModifyBuffer(data, gDevice);
             }
         }
-        public IndexBuffer(GraphicsDevice gDevice, int length)
+        public IndexBuffer(GraphicsDevice gDevice, int length) : base(gDevice)
         {
             BufferType = BufferUsage.IndexBuffer;
             unsafe
@@ -28,7 +28,7 @@ namespace Engine.Rendering.Veldrid
 
         protected override void OnDispose()
         {
-            BufferObject.Dispose();
+            _device.DisposeWhenIdle(BufferObject);
         }
 
         internal override void Bind(CommandList list, uint slot = 0)

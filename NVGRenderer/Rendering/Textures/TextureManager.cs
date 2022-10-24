@@ -38,19 +38,20 @@
 
         }
 
-        public TextureSlot FindTexture(int id, out bool success)
+        public bool FindTexture(int id, out TextureSlot slot)
         {
             for (int i = 0; i < _count; i++)
             {
                 if (_textures[i].Id == id)
                 {
-                    success = true;
-                    return _textures[i];
+                    
+                    slot = _textures[i];
+                    return true;
                 }
             }
 
-            success = false;
-            return _default;
+            slot = _default;
+            return false;
         }
 
         public bool DeleteTexture(int id)

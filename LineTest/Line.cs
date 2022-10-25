@@ -80,11 +80,6 @@ class LineRenderer : RenderPass
             
     }
 
-    protected override List<Instance3D> Cull(List<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo)
-    {
-        return base.Cull(instances, ref cameraInfo);
-    }
-
     protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo cameraInfo)
     {
     

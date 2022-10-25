@@ -1,7 +1,7 @@
 ﻿using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 
-namespace MCClone_Core.Utility
+namespace Engine.Utilities.MathLib
 {
     public struct Int3
     {

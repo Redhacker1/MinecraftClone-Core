@@ -2,7 +2,9 @@
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using DdsKtxSharp;
 using Engine.Utilities.LowLevel.EnumLib;
+using Engine.Utilities.MathLib;
 using Engine.Windowing;
 using NVGRenderer.Rendering.Calls;
 using NVGRenderer.Rendering.Draw;
@@ -89,13 +91,14 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
     {
-
-
-
+        Console.WriteLine($"Creating texture with size of {size}");
+        
         var format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
         
+        Console.WriteLine(format);
+        
         Engine.Rendering.Veldrid.Texture texture = data.IsEmpty ?
-            new Engine.Rendering.Veldrid.Texture(size.X, size.Y, 1, Device) :
+            new Engine.Rendering.Veldrid.Texture(size.X, size.Y, 1, Device, format) :
             Engine.Rendering.Veldrid.Texture.CreateFromBytes(Device, size.X, size.Y, data, format);
 
         TextureSlot slot = new TextureSlot
@@ -103,7 +106,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
             Flags = imageFlags,
             Texture = texture
         };
-        slot.TextureSampler = (imageFlags & ImageFlags.Nearest) != 0 ? Device.PointSampler : Device.LinearSampler;
+        slot.TextureSampler = imageFlags.HasFlag(ImageFlags.Nearest) ? Device.PointSampler : Device.LinearSampler;
 
         int index = TextureManager.AddTexture(slot);
 
@@ -118,16 +121,24 @@ public class NvgRenderer : INvgRenderer, IDisposable
 
     public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
     {
-        TextureManager.FindTexture(image, out TextureSlot Texture);
-        Texture.Texture.UpdateTextureBytes(Device, data, bounds.Size.X, bounds.Size.Y);
-        return true;
+        Console.WriteLine($"Update Texture {image} {bounds.Size}");
+        if (TextureManager.FindTexture(image, out TextureSlot Texture))
+        {
+            Texture.Texture.UpdateTextureBytes(Device, data, new Int2((int)bounds.Origin.X, (int)bounds.Origin.Y), new Int2((int)bounds.Size.X, (int)bounds.Size.Y) );
+            return true;
+        }
+        return false;
     }
 
     public bool GetTextureSize(int image, out Vector2D<uint> size)
     {
-        _ = TextureManager.FindTexture(image, out TextureSlot imageSlot);
-        size = new Vector2D<uint>(imageSlot.Texture._Texture.Width, imageSlot.Texture._Texture.Height);
-        return true;
+        bool result = TextureManager.FindTexture(image, out TextureSlot imageSlot);
+        size = Vector2D<uint>.Zero;
+        if (result)
+        {
+            size = new Vector2D<uint>(imageSlot.Texture._Texture.Width, imageSlot.Texture._Texture.Height);   
+        }
+        return result;
     }
 
     public void Viewport(Vector2D<float> size, float devicePixelRatio)
@@ -166,9 +177,6 @@ public class NvgRenderer : INvgRenderer, IDisposable
         
         List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
 
-
-        
-
         foreach (DrawCall drawCall in calls)
         {
 
@@ -178,6 +186,7 @@ public class NvgRenderer : INvgRenderer, IDisposable
             CurrentCommandBuffer.SetVertexBuffer(1, _frame.FragmentUniformBuffer.BufferObject);
             CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, drawCall.UniformOffset / (uint)Unsafe.SizeOf<FragUniforms>() );
         }
+        
 
         CurrentCommandBuffer.End();
         Device.SubmitCommands(CurrentCommandBuffer);

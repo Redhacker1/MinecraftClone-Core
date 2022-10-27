@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Engine;
 using Engine.Initialization;
 using Engine.Input;
@@ -82,6 +83,10 @@ namespace NVGRenderer
                 InitialCommandBuffer = list
             };
             _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
+            Debug.Assert(_nvgRenderer.EdgeAntiAlias);
+            
+            Console.WriteLine(FlagHelper.HasFlag((int)(RenderFlags.StencilStrokes | RenderFlags.Antialias), (int)RenderFlags.StencilStrokes));
+            
             Nvg.Create(_nvgRenderer);
         }
 
@@ -95,7 +100,7 @@ namespace NVGRenderer
             };
             
             
-            _nvgRenderer = new NvgRenderer(rendererParams, 0);
+            _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
             Thing = Nvg.Create(_nvgRenderer);
             _frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
             {
@@ -113,6 +118,7 @@ namespace NVGRenderer
         
         protected override void Stage(RenderState rendererState, Frame TargetFrame, float time, float deltaTime)
         {
+            _nvgRenderer.CurrentCommandBuffer.Begin();
             Thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1f);
             foreach (WeakReference<NvgItem> panel in NvgItem.items)
             {
@@ -122,6 +128,10 @@ namespace NVGRenderer
                 }
             }
             Thing.EndFrame();
+            
+            _nvgRenderer.Flush();
+            _nvgRenderer.CurrentCommandBuffer.End();
+            _nvgRenderer.Device.SubmitCommands(_nvgRenderer.CurrentCommandBuffer);
         }
 
         public void Dispose()

@@ -1,9 +1,6 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Numerics;
 using Engine;
 using Engine.AssetLoading.AssimpIntegration;
@@ -17,9 +14,7 @@ using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using Silk.NET.Input;
-using Silk.NET.SDL;
 using Veldrid;
-using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace ObjDemo
@@ -201,7 +196,7 @@ namespace ObjDemo
 
 
 					AddChild(_instance3Ds[location]);
-					WindowClass.Renderer.Passes[0].AddInstance(_instance3Ds[location]);
+					WindowClass.Renderer.Stages[0].AddInstance(_instance3Ds[location]);
 				}
 			}
 			foreach (AssimpNode child in nodeDescription.Children)

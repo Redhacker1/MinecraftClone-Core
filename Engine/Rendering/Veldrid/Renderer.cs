@@ -3,11 +3,13 @@ using System.Diagnostics;
 using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
+using Engine.Rendering.Abstract.RenderStage;
 using ImGuiNET;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
+using Int2 = Engine.Utilities.MathLib.Int2;
 
 // TODO: This should be seperated into implementation and Logic files, Veldrid should NOT be a core dependency.
 // TODO: Look into making user definable or events to trigger on user defined times, say when a frame is completed or a new frame is starting.
@@ -20,15 +22,15 @@ namespace Engine.Rendering.Veldrid
     /// </summary>
     public class Renderer : IDisposable
     {
-        public RenderPass[] Passes = new RenderPass[16];
+        public RenderStage[] Stages = new RenderStage[16];
 
-        public bool AddPass(int index, RenderPass pass)
+        public bool AddPass(int index, RenderStage pass)
         {
-            lock (Passes)
+            lock (Stages)
             {
-                if (index > 0 && Passes.Length > index)
+                if (index > 0 && Stages.Length > index)
                 {
-                    Passes[index] = pass;
+                    Stages[index] = pass;
                     return true;
                 }   
             }
@@ -37,12 +39,12 @@ namespace Engine.Rendering.Veldrid
 
         public bool RemovePass(int index)
         {
-            lock (Passes)
+            lock (Stages)
             {
-                if (index < Passes.Length)
+                if (index < Stages.Length)
                 {
   
-                    Passes[index] = null;
+                    Stages[index] = null;
                 }
             }
             return false;
@@ -57,14 +59,14 @@ namespace Engine.Rendering.Veldrid
         internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
-                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
+                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.OpenGL);
             _list = Device.ResourceFactory.CreateCommandList();
             
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
 
             // TODO: probably should implement some better systems for dealing with this shit!
             //Passes[0] = new DepthPrepass(this);
-            Passes[0] = new DefaultRenderPass(this);
+            Stages[0] = new DefaultRenderPass(this);
 
         }
         
@@ -93,11 +95,19 @@ namespace Engine.Rendering.Veldrid
             
             _list.Begin();
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            lock (Passes)
+            lock (Stages)
             {
-                foreach (RenderPass pass in Passes)
+                foreach (RenderStage pass in Stages)
                 {
-                    pass?.RunPass(_list);
+                    pass?.RunStage(new Abstract.RenderStage.RenderState()
+                    {
+                        Device = Device,
+                        GlobalCommandList = _list
+                    }, new Frame()
+                    {
+                        Buffer = Device.SwapchainFramebuffer,
+                        Size = Int2.Zero
+                    });
                 }
             }
 

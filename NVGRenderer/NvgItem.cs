@@ -7,7 +7,6 @@ using Silk.NET.Maths;
 using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
-using SilkyNvg.Text;
 
 namespace NVGRenderer;
 
@@ -30,23 +29,18 @@ public class NvgItem
     }
 
     float TotalTime = 0;
-    public virtual void OnDraw(Nvg nvg, float timeElapsed)
+    public virtual void OnDraw(Nvg nvg, float delta)
     {
-        
-        TotalTime += timeElapsed;
-        
+        TotalTime += ( delta) / 100;   
+
         float minVal = 0;
         float maxVal = 1;
         float freq = 1; // oscillations per second
         float avgVal = (minVal + maxVal)/2;
         float amp = (maxVal - minVal) / 2;
-        avgVal += amp * MathF.Cos(TotalTime * freq * 10 / MathF.PI);
+        avgVal += amp * MathF.Cos(TotalTime  * freq / MathF.PI);
 
-        Console.WriteLine(avgVal);
-        
-        
-
-        var lerpfunc = Vector2.Lerp(Vector2.Zero, new Vector2(300, 400), avgVal);
+        Vector2 lerpfunc = Vector2.Lerp(Vector2.Zero, new Vector2(300, 400), avgVal);
 
         Vector2D<float> LerpedValue = new Vector2D<float>(lerpfunc.X, lerpfunc.Y);
         nvg.BeginPath();
@@ -71,7 +65,7 @@ public class DemoTest : NvgItem
     double PrevTime;
     Stopwatch watch;
 
-    public override void OnDraw(Nvg nvg, float timeElapsed)
+    public override void OnDraw(Nvg nvg, float delta)
     {
         watch ??= Stopwatch.StartNew();
         testDemo ??= new Demo(nvg);
@@ -93,7 +87,7 @@ public class PerfMonitor : NvgItem
     double PrevTime;
     Stopwatch watch;
 
-    public override void OnDraw(Nvg nvg, float timeElapsed) 
+    public override void OnDraw(Nvg nvg, float delta) 
     {
         watch ??= Stopwatch.StartNew();
         Graph ??= new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "FPS");

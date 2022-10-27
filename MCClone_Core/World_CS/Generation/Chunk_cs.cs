@@ -10,7 +10,6 @@ using Engine.Rendering.Abstract;
 using Engine.Utilities.MathLib;
 using Engine.Windowing;
 using MCClone_Core.Temp;
-using MCClone_Core.Utility;
 using MCClone_Core.World_CS.Blocks;
 
 namespace MCClone_Core.World_CS.Generation
@@ -86,7 +85,9 @@ namespace MCClone_Core.World_CS.Generation
 			
 			_instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
 			AddChild(_instance3D);
-			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
+			
+			(WindowClass.Renderer.Stages[0] as DefaultRenderPass)?.AddInstance(_instance3D);
+			
 		}
 
 
@@ -361,7 +362,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			BlockData.Dispose();
 			_visibilityMask.Dispose();
-			WindowClass.Renderer.Passes[0].RemoveInstance(_instance3D);
+			(WindowClass.Renderer.Stages[0] as DefaultRenderPass)?.RemoveInstance(_instance3D);
 
 			_freed = true;
 		}

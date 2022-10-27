@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Engine;
 using Engine.Initialization;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering.Abstract;
+using Engine.Rendering.Abstract.RenderStage;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
@@ -67,32 +67,30 @@ namespace NVGRenderer
         }
     }
 
-    class NvgRenderPass : RenderPass, IDisposable
+    class NvgRenderPass : RenderStage, IDisposable
     {
         public static Nvg Thing;
         readonly NvgRenderer _nvgRenderer;
         NvgFrame _frame;
         
-        public NvgRenderPass(CommandList list, Renderer renderer, string name = null) : base(list, renderer, name)
+        public NvgRenderPass(CommandList list, Renderer renderer, string name = null)
         {
             NvgRendererParams rendererParams = new NvgRendererParams
             {
                 AdvanceFrameIndexAutomatically = true,
                 Device = renderer.Device,
-                FrameCount = 10u,
                 InitialCommandBuffer = list
             };
             _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
             Nvg.Create(_nvgRenderer);
         }
 
-        public NvgRenderPass(Renderer renderer, string name = null) : base(renderer, name)
+        public NvgRenderPass(Renderer renderer, string name = null)
         {
             NvgRendererParams rendererParams = new NvgRendererParams
             {
                 AdvanceFrameIndexAutomatically = true,
                 Device = renderer.Device,
-                FrameCount = 10u,
                 InitialCommandBuffer = renderer.Device.ResourceFactory.CreateCommandList()
             };
             
@@ -104,7 +102,7 @@ namespace NVGRenderer
                 Framebuffer = renderer.Device.SwapchainFramebuffer
             });
 
-            WindowClass.Handle.Resize += vector2D =>
+            WindowClass.Handle.Resize += _ =>
             {
                 _frame.Framebuffer = renderer.Device.SwapchainFramebuffer;
             };
@@ -112,21 +110,17 @@ namespace NVGRenderer
 
         }
 
-
-        Stopwatch stopwatch = Stopwatch.StartNew();
-        protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera)
+        
+        protected override void Stage(RenderState rendererState, Frame TargetFrame, float time, float deltaTime)
         {
-
-            Thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1);
+            Thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1f);
             foreach (WeakReference<NvgItem> panel in NvgItem.items)
             {
                 if (panel.TryGetTarget(out NvgItem item))
                 {
-                    item.OnDraw(Thing, (float)stopwatch.Elapsed.TotalSeconds);
+                    item.OnDraw(Thing, deltaTime);
                 }
             }
-            
-            stopwatch.Restart();
             Thing.EndFrame();
         }
 

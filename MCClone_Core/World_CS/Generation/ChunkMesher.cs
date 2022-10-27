@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Numerics;
-using System.Runtime.Intrinsics;
 using System.Threading;
 using Engine.Collision.Simple;
 using Engine.Debugging;

@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using Engine.MathLib;
+﻿using Engine.MathLib;
 
 namespace Engine.AssetLoading.AssimpIntegration
 {

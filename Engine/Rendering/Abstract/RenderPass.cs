@@ -2,18 +2,20 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Engine.Rendering.Veldrid;
 using Engine.Utilities.Concurrency;
-using Silk.NET.GLFW;
 using Veldrid;
-using Monitor = System.Threading.Monitor;
+using Frame = Engine.Rendering.Abstract.RenderStage.Frame;
 
 namespace Engine.Rendering.Abstract
 {
     // QUESTION: What does a good API for using this even look like?
     // TODO: This is specialized for 3D, the 3D pass mesh code should be moved out and turned into a specialized class for that and the 2D code should be made into a separate renderpass arch
-    public abstract class RenderPass
+    /// <summary>
+    /// OBSOLETE: use <see cref="RenderStage"/> instead, This class will likely be re-adapted at a later time. 
+    /// </summary>
+    [Obsolete("Being replaced by the newer RenderStage system")]
+    public abstract class RenderPass : RenderStage.RenderStage
     {
         internal UniformBuffer<Matrix4x4> ViewProjBuffer;
         CommandList cmdList;
@@ -62,41 +64,6 @@ namespace Engine.Rendering.Abstract
         /// <param name="camera">"Information about the camera being used"</param>
         protected abstract void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera);
 
-        internal void RunPass()
-        {
-            if (cmdList != null)
-            {
-                RunPass(cmdList);   
-            }
-        }
-
-        internal virtual void RunPass(CommandList list)
-        {
-
-            if (Camera.MainCamera == null) return;
-
-
-            CameraInfo cameraInfo = new CameraInfo(Camera.MainCamera);   
-            List<Instance3D> instances;
-            lock (Instances)
-            {
-                instances = Cull(Instances, ref cameraInfo);
-            }
-            Sort(instances, cameraInfo);
-
-            if (Name != null)
-            {
-                list.PushDebugGroup(Name);   
-            }
-            PrePass(ref cameraInfo, list, instances);
-            Pass(list, instances, ref cameraInfo);
-            PostPass(list);
-            if (Name != null)
-            {
-                list.PopDebugGroup();   
-            }
-        }
-        
         [MethodImpl(MethodImplOptions.NoInlining)]
         protected virtual List<Instance3D> Cull(ThreadSafeList<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo) 
         {
@@ -166,6 +133,34 @@ namespace Engine.Rendering.Abstract
                 Instances.Remove(new WeakReference<Instance3D>(instance));
             }
             
+        }
+
+        protected override void Stage(RenderStage.RenderState rendererState, Frame targetFrame, float _, float _1)
+        {
+            var list = rendererState.GlobalCommandList;
+            if (Camera.MainCamera == null) return;
+
+
+            CameraInfo cameraInfo = new CameraInfo(Camera.MainCamera);
+            List<Instance3D> instances;
+            lock (Instances)
+            {
+                instances = Cull(Instances, ref cameraInfo);
+            }
+            Sort(instances, cameraInfo);
+
+            if (Name != null)
+            {
+                list.PushDebugGroup(Name);   
+            }
+            
+            PrePass(ref cameraInfo, list, instances);
+            Pass(list, new List<Instance3D>(), ref cameraInfo);
+            PostPass(list);
+            if (Name != null)
+            {
+                list.PopDebugGroup();   
+            }
         }
     }
 }

@@ -9,7 +9,6 @@ using Engine.Rendering.Abstract;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using Veldrid;
-using Shader = Engine.Rendering.Abstract.Shader;
 using Texture = Engine.Rendering.Veldrid.Texture;
 
 namespace VeldridCubeTest
@@ -141,7 +140,7 @@ namespace VeldridCubeTest
 			
 			_level.AddChild(_instance3D);
 			
-			WindowClass.Renderer.Passes[0].AddInstance(_instance3D);
+			(WindowClass.Renderer.Stages[0] as DefaultRenderPass).AddInstance(_instance3D);
 
 
         }

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using NVGRenderer.Rendering.Textures;
+﻿using NVGRenderer.Rendering.Textures;
 using Veldrid;
 
 namespace NVGRenderer.Rendering.Pipelines;

@@ -7,8 +7,7 @@ namespace NVGRenderer.Rendering
         public GraphicsDevice Device;
 
         public CommandList InitialCommandBuffer;
-
-        public uint FrameCount;
+        
         public bool AdvanceFrameIndexAutomatically;
 
     }

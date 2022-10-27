@@ -3,7 +3,6 @@
 #if !Core
 using Godot;
 #endif
-using System;
 using System.Numerics;
 using Engine.Input;
 using Engine.Rendering.Abstract;

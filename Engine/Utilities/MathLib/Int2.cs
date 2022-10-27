@@ -18,6 +18,8 @@ namespace Engine.Utilities.MathLib
             set => _backingVec = _backingVec.WithElement(1, value);
         }
 
+        public static readonly Int2 Zero = new Int2(0, 0);
+
         public Int2(int x, int y)
         {
             _backingVec = Vector64.Create(x, y);
@@ -28,8 +30,6 @@ namespace Engine.Utilities.MathLib
             _backingVec = backingVec;
         }
         
-        
-        public static Int2 Zero => new Int2(0, 0);
         
         public bool Equals(ref Int2 comparison)
         {

@@ -1,6 +1,5 @@
 ﻿using NVGRenderer.Rendering.Draw;
 using NVGRenderer.Rendering.Pipelines;
-using SilkyNvg.Rendering;
 
 namespace NVGRenderer.Rendering.Calls
 {

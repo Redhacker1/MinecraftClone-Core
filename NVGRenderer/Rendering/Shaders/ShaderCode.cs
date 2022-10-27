@@ -147,10 +147,10 @@ void main()
 		out_Colour = colour;
 	} else if (type == 1) { // Image
 		vec2 pt = (state.paintMat * vec3(pass_vertex, 1.0)).xy / state.extent;
-		vec4 colour = texelFetch(sampler2D(tex, texsampler), ivec2(pt), 0);
+		vec4 colour = texture(sampler2D(tex, texsampler), pt);
 		if (texType == 1) {
 			colour = vec4(colour.xyz * colour.w, colour.w);
-		} else if (type == 2) {
+		} else if (texType == 2) {
 			colour = vec4(colour.x);
 		}
 		colour *= state.innerCol;
@@ -159,7 +159,7 @@ void main()
 	} else if (type == 2) { // Stencil Fill
 		out_Colour = vec4(1, 1, 1, 1);
 	} else if (type == 3) { // Textured Tris
-		vec4 colour = texelFetch(sampler2D(tex, texsampler), ivec2(pass_tcoord), 0);
+		vec4 colour = texture(sampler2D(tex, texsampler), pass_tcoord);
 		if (texType == 1) {
 			colour = vec4(colour.xyz * colour.w, colour.w);
 		} else if (texType == 2) {
@@ -248,10 +248,10 @@ void main(void) {
 		out_Colour = colour;
 	} else if (type == 1) { // Image
 		vec2 pt = (state.paintMat * vec3(pass_vertex, 1.0)).xy / state.extent;
-		vec4 colour = texelFetch(sampler2D(tex, texsampler), ivec2(pt), 0);
+		vec4 colour = texture(sampler2D(tex, texsampler), pt);
 		if (texType == 1) {
 			colour = vec4(colour.xyz * colour.w, colour.w);
-		} else if (type == 2) {
+		} else if (texType == 2) {
 			colour = vec4(colour.x);
 		}
 		colour *= state.innerCol;
@@ -260,7 +260,7 @@ void main(void) {
 	} else if (type == 2) { // Stencil Fill
 		out_Colour = vec4(1, 1, 1, 1);
 	} else if (type == 3) { // Textured Tris
-		vec4 colour = texelFetch(sampler2D(tex, texsampler), ivec2(pass_tcoord), 0);
+		vec4 colour = texture(sampler2D(tex, texsampler), pass_tcoord);
 		if (texType == 1) {
 			colour = vec4(colour.xyz * colour.w, colour.w);
 		} else if (texType == 2) {

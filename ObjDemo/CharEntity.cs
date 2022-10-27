@@ -2,7 +2,6 @@
 using System.Numerics;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Rendering.Abstract;
 
 namespace ObjDemo
 {

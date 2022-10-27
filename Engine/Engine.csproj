@@ -19,8 +19,8 @@
     <ItemGroup>
       <PackageReference Include="BepuPhysics" Version="2.4.0" />
       <PackageReference Include="DdsKtxSharp" Version="1.1.0.1" />
-      <PackageReference Include="ImGui.NET" Version="1.87.3" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta1" />
+      <PackageReference Include="ImGui.NET" Version="1.88.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
       <PackageReference Include="Silk.NET.Assimp" Version="2.16.0" />
       <PackageReference Include="Silk.NET.Input" Version="2.15.0" />
       <PackageReference Include="Silk.NET.OpenAL" Version="2.16.0" />
@@ -38,6 +38,7 @@
       <Folder Include="AssetLoading\Shaders" />
       <Folder Include="GameUI" />
       <Folder Include="Rendering\" />
+      <Folder Include="Rendering\Abstract\RenderStage\2D" />
       <Folder Include="Rendering\DX11" />
       <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>

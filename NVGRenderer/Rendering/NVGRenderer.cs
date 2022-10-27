@@ -1,14 +1,9 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using DdsKtxSharp;
-using Engine.Utilities.LowLevel.EnumLib;
 using Engine.Utilities.MathLib;
-using Engine.Windowing;
 using NVGRenderer.Rendering.Calls;
 using NVGRenderer.Rendering.Draw;
-using NVGRenderer.Rendering.Pipelines;
 using NVGRenderer.Rendering.Shaders;
 using NVGRenderer.Rendering.Textures;
 using Silk.NET.Maths;
@@ -22,7 +17,7 @@ using Texture = SilkyNvg.Rendering.Texture;
 
 namespace NVGRenderer.Rendering;
 
-public class NvgRenderer : INvgRenderer, IDisposable
+public class NvgRenderer : INvgRenderer
 {
     private readonly RenderFlags _flags;
     public readonly GraphicsDevice Device;
@@ -93,10 +88,8 @@ public class NvgRenderer : INvgRenderer, IDisposable
     {
         Console.WriteLine($"Creating texture with size of {size}");
         
-        var format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
-        
-        Console.WriteLine(format);
-        
+        PixelFormat format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
+
         Engine.Rendering.Veldrid.Texture texture = data.IsEmpty ?
             new Engine.Rendering.Veldrid.Texture(size.X, size.Y, 1, Device, format) :
             Engine.Rendering.Veldrid.Texture.CreateFromBytes(Device, size.X, size.Y, data, format);
@@ -124,7 +117,9 @@ public class NvgRenderer : INvgRenderer, IDisposable
         Console.WriteLine($"Update Texture {image} {bounds.Size}");
         if (TextureManager.FindTexture(image, out TextureSlot Texture))
         {
-            Texture.Texture.UpdateTextureBytes(Device, data, new Int2((int)bounds.Origin.X, (int)bounds.Origin.Y), new Int2((int)bounds.Size.X, (int)bounds.Size.Y) );
+            uint width = Texture.Texture._Texture.Width;
+            uint height = Texture.Texture._Texture.Height;
+            Texture.Texture.UpdateTextureBytes(Device, data, new Int2(0, 0), new Int2((int)width, (int)height) );
             return true;
         }
         return false;
@@ -333,8 +328,6 @@ public class NvgRenderer : INvgRenderer, IDisposable
                 ResourceLayoutElementOptions.None),
             new ResourceLayoutElementDescription("tex", ResourceKind.TextureReadOnly, ShaderStages.Fragment,
                 ResourceLayoutElementOptions.None)
-
-
         );
 
         ResourceLayout layout = device.ResourceFactory.CreateResourceLayout(descriptorSetLayoutBindings);

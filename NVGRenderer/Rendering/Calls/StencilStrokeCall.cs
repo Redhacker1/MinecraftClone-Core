@@ -1,7 +1,6 @@
 ﻿using NVGRenderer.Rendering.Draw;
 using NVGRenderer.Rendering.Pipelines;
 using SilkyNvg.Blending;
-using SilkyNvg.Rendering;
 using Veldrid;
 using Path = NVGRenderer.Rendering.StrokePath;
 

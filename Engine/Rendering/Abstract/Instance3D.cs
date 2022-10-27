@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using Engine.Collision.Simple;
-using Engine.MathLib;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Veldrid;

@@ -196,14 +196,8 @@ namespace Engine.Rendering.Veldrid
         public void UpdateTextureBytes(GraphicsDevice device, ReadOnlySpan<byte> bytes, Int2 offset, Int2 bounds)
         {
             // if the addition totally fits inside the current texture, update the current texture and return.
-            if (bounds.X + offset.X < _Texture.Width && bounds.Y + offset.Y < _Texture.Height)
+            if (bounds.X + offset.X <= _Texture.Width && bounds.Y + offset.Y <= _Texture.Height)
             {
-                
-                if (_Texture.Height == 512 & _Texture.Width == 523)
-                {
-                    Console.WriteLine(_Texture.Format);
-                }
-                
                 device.UpdateTexture(_Texture, bytes, (uint)offset.X, (uint)offset.Y, 0, (uint)bounds.X, (uint)bounds.Y, 1, 0, 0);
 
                 return;
@@ -213,22 +207,22 @@ namespace Engine.Rendering.Veldrid
             var oldTexture = _Texture;
 
             // Create a new texture fit to the correct size.
-            TextureDescription textureDescription = TextureDescription.Texture2D((uint)offset.X + (uint)bounds.X, (uint)offset.Y + (uint)bounds.Y, mipLevels: 1, 1, oldTexture.Format, oldTexture.Usage);
+            TextureDescription textureDescription = TextureDescription.Texture2D(
+                (uint)offset.X + (uint)bounds.X, (uint)offset.Y + (uint)bounds.Y, mipLevels: 1, 1, oldTexture.Format, oldTexture.Usage);
             _Texture = device.ResourceFactory.CreateTexture(textureDescription);
-            
-            
+
             // Copy the old texture's contents into the new one. We need to use a command list for this unfortunately...
-            CommandList commandBuffer = device.ResourceFactory.CreateCommandList();
-            commandBuffer.CopyTexture(oldTexture, 0, 0, 0, 1, 1, _Texture, 0, 0, 0, 1, 1, oldTexture.Width, oldTexture.Height, oldTexture.Depth, oldTexture.ArrayLayers);
-            device.SubmitCommands(commandBuffer);
-            
+            using (CommandList commandBuffer = device.ResourceFactory.CreateCommandList())
+            {
+                commandBuffer.CopyTexture(oldTexture, 0, 0, 0, 0, 0, _Texture, 0, 0, 0, 0, 0, oldTexture.Width, oldTexture.Height, oldTexture.Depth, oldTexture.ArrayLayers);
+                device.SubmitCommands(commandBuffer);
+            }
+
             // Update the texture we just created with the new information
             device.UpdateTexture(_Texture, bytes, 0, 0, 0, (uint)offset.X, (uint)offset.Y, 1, 0, 0);
 
             //dispose of the old texture and command list used to copy the texture
-            commandBuffer.Dispose();
             device.DisposeWhenIdle(oldTexture);
-            
         }
 
         void Load(GraphicsDevice graphicsDevice, ReadOnlySpan<Rgba32> data, uint width, uint height)

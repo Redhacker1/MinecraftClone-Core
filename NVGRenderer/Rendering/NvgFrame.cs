@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using Engine.Rendering.Veldrid;
 using NVGRenderer.Rendering.Calls;
 using NVGRenderer.Rendering.Pipelines;

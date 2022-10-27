@@ -683,7 +683,7 @@ namespace NvgExample
         {
             float pad = 5.0f;
             float s = w / 9.0f - pad * 2;
-            float* pts = stackalloc float[4 * 2];
+            Span<float> pts = stackalloc float[4 * 2];
             Span<LineCap> joins = stackalloc LineCap[] { LineCap.Miter, LineCap.Round, LineCap.Bevel };
             Span<LineCap> caps = stackalloc LineCap[] { LineCap.Butt, LineCap.Round, LineCap.Square };
 

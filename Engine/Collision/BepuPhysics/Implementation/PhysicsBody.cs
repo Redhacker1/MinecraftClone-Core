@@ -1,6 +1,5 @@
 ﻿using System.Numerics;
 using BepuPhysics;
-using BepuPhysics.Collidables;
 using Engine.MathLib;
 
 namespace Engine.Collision.BEPUPhysics.Implementation;

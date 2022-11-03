@@ -80,7 +80,7 @@ namespace Engine.Rendering.Veldrid
             if (slot < layouts.Length && layouts[slot] != null)
             {
                 ResourceSetDescription set = new ResourceSetDescription(layouts[slot], bindableResources);   
-                Sets[slot] = WindowClass.Renderer.Device.ResourceFactory.CreateResourceSet(set);
+                Sets[slot] = Engine.Renderer.Device.ResourceFactory.CreateResourceSet(set);
             }
         }
 

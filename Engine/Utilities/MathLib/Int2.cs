@@ -40,7 +40,7 @@ namespace Engine.Utilities.MathLib
             }
             else
             {
-                return this.X == comparison.X && this.Y == comparison.Y;
+                return X == comparison.X && Y == comparison.Y;
             }
         }
 

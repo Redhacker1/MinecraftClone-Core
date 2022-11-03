@@ -12,6 +12,7 @@ namespace Engine.Initialization
         {
             InitWindow(x, y, width, height, windowName, gameclass);
             WindowClass.Handle?.Run();
+           // WindowClass.Handle?.Dispose();
         }
 
         static WindowClass InitWindow(int x, int y, int width, int height, string windowName, GameEntry gameclass)

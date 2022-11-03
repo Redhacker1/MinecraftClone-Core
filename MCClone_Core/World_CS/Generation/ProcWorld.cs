@@ -119,11 +119,11 @@ namespace MCClone_Core.World_CS.Generation
 				)
 			};
 
-			_material = new Material(materialDescription, vertexlayout, WindowClass.Renderer,
+			_material = new Material(materialDescription, vertexlayout, Engine.Engine.Renderer,
 				new[] {ProjectionLayout, fragmentLayout});
 			
-			atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
-			TextureSampler pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
+			atlas = new Texture(Engine.Engine.Renderer.Device, @"Assets\TextureAtlas.tga");
+			TextureSampler pointSampler = new TextureSampler(Engine.Engine.Renderer.Device.PointSampler);
 			_material.ResourceSet(1, pointSampler, atlas);
 
 

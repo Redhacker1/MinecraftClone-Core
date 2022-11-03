@@ -39,6 +39,7 @@
       <Folder Include="GameUI" />
       <Folder Include="Rendering\" />
       <Folder Include="Rendering\Abstract\RenderStage\2D" />
+      <Folder Include="Rendering\Abstract\RenderStage\3D" />
       <Folder Include="Rendering\DX11" />
       <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>

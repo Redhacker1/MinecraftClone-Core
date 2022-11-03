@@ -109,7 +109,7 @@ namespace ObjDemo
 						
 					)
 				}
-				, WindowClass.Renderer,
+				, Engine.Engine.Renderer,
 				
 				new []
 				{
@@ -119,8 +119,8 @@ namespace ObjDemo
 
 			);
 
-			atlas = new Texture(WindowClass.Renderer.Device, "Assets/TextureAtlas.tga");
-			baseMaterial.ResourceSet(1, new TextureSampler(WindowClass.Renderer.Device.Aniso4xSampler), atlas);
+			atlas = new Texture(Engine.Engine.Renderer.Device, "Assets/TextureAtlas.tga");
+			baseMaterial.ResourceSet(1, new TextureSampler(Engine.Engine.Renderer.Device.Aniso4xSampler), atlas);
 
 			Scale = new Vector3(.1f);
 

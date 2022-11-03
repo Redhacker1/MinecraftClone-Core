@@ -78,7 +78,7 @@ namespace VeldridCubeTest
 						new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
 						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
 				},
-				WindowClass.Renderer,
+				Engine.Engine.Renderer,
 				new []{				
 					vertexLayout,
 					fragmentLayout
@@ -87,8 +87,8 @@ namespace VeldridCubeTest
 			);
 			
 			
-			var atlas = new Texture(WindowClass.Renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass.Renderer.Device.PointSampler);
+			var atlas = new Texture(Engine.Engine.Renderer.Device, @"Assets\TextureAtlas.tga");
+			var pointSampler = new TextureSampler(Engine.Engine.Renderer.Device.PointSampler);
 			
 			material.ResourceSet(1, pointSampler, atlas);
 
@@ -140,7 +140,7 @@ namespace VeldridCubeTest
 			
 			_level.AddChild(_instance3D);
 			
-			(WindowClass.Renderer.Stages[0] as DefaultRenderPass).AddInstance(_instance3D);
+			//(WindowClass.Renderer.Stages[0] as DefaultRenderPass).AddInstance(_instance3D);
 
 
         }

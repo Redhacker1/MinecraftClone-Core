@@ -2,12 +2,7 @@ using System.Collections.Immutable;
 
 namespace Engine.Rendering.Abstract
 {
-    public enum ShaderType
-    {
-        Vertex,
-        Fragment
-    }
-    
+
     /// <summary>
     /// SPIR-V compiled Shader
     /// </summary>

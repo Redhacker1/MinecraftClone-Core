@@ -7,6 +7,7 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.Abstract.RenderStage;
+using Engine.Rendering.Abstract.View;
 using Engine.Rendering.Veldrid;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
@@ -33,8 +34,8 @@ namespace NVGRenderer
         protected override void GameStart()
         {
             Camera.MainCamera = new Camera(new Transform(), Vector3.UnitX, Vector3.UnitY, 1.7777778F, true);
-            pass = new NvgRenderPass(WindowClass.Renderer, "Rendering NVG Stuff");
-            WindowClass.Renderer.AddPass(1, pass);
+            pass = new NvgRenderPass(Engine.Engine.Renderer, "Rendering NVG Stuff");
+            Engine.Engine.MainFrameBuffer.AddPass(1, pass);
 
             DemoTest = new DemoTest();
             PerfGraph = new PerfMonitor();
@@ -116,7 +117,7 @@ namespace NVGRenderer
         }
 
         
-        protected override void Stage(RenderState rendererState, Frame TargetFrame, float time, float deltaTime)
+        protected override void Stage(RenderState rendererState, RenderTarget TargetFrame, float time, float deltaTime)
         {
             _nvgRenderer.CurrentCommandBuffer.Begin();
             Thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1f);

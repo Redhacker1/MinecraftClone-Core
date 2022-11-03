@@ -76,7 +76,6 @@ public class DemoTest : NvgItem
 
         Vector2 mouseInput = InputHandler.MousePos(0);
         testDemo.Render(mouseInput.X, mouseInput.Y, WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y, (float)t, false);
-        //watch.Restart();
     }
         
 }
@@ -90,7 +89,7 @@ public class PerfMonitor : NvgItem
     public override void OnDraw(Nvg nvg, float delta) 
     {
         watch ??= Stopwatch.StartNew();
-        Graph ??= new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Ms, "FPS");
+        Graph ??= new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Fps, "FPS");
 
         double t = watch.Elapsed.TotalSeconds;
         double dt = t - PrevTime;

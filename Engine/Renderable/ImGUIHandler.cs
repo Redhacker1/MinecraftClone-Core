@@ -442,7 +442,7 @@ namespace Engine.Renderable
 
         private void UpdateImGuiInput()
         {
-            var io = ImGuiNET.ImGui.GetIO();
+            var io = ImGui.GetIO();
 
             var mouseState = _input.Mice[0];
             var keyboardState = _input.Keyboards[0];
@@ -490,7 +490,7 @@ namespace Engine.Renderable
 
         private static unsafe void SetOpenTKKeyMappings()
         {
-            var io = ImGuiNET.ImGui.GetIO();
+            var io = ImGui.GetIO();
             io.KeyMap[(int) ImGuiKey.Tab] = (int) Key.Tab;
             io.KeyMap[(int) ImGuiKey.LeftArrow] = (int) Key.Left;
             io.KeyMap[(int) ImGuiKey.RightArrow] = (int) Key.Right;

@@ -21,8 +21,8 @@ public class ChunkMesh : BaseRenderable<VertexElements>
     bool _updatingMesh = true;
     public ChunkMesh()
     {
-        ebo = new IndexBuffer<uint>(WindowClass.Renderer.Device, 1);
-        vbo = new VertexBuffer<VertexElements>(WindowClass.Renderer.Device, new VertexElements[1]);
+        ebo = new IndexBuffer<uint>(Engine.Engine.Renderer.Device, 1);
+        vbo = new VertexBuffer<VertexElements>(Engine.Engine.Renderer.Device, new VertexElements[1]);
     }
 
     void CreateVertexArray(Span<int> vertices, Span<Vector2> uvs, Span<VertexElements> vertexArray)
@@ -66,12 +66,12 @@ public class ChunkMesh : BaseRenderable<VertexElements>
         VertexElements = (uint) vertices.Length;
         if (indices.Length > 0)
         {
-            ebo.ModifyBuffer(indices, WindowClass.Renderer.Device);
+            ebo.ModifyBuffer(indices, Engine.Engine.Renderer.Device);
             UseIndexedDrawing = true;
             VertexElements = (uint)indices.Length;
         }
 
-        vbo.ModifyBuffer(vertsTest, WindowClass.Renderer.Device);
+        vbo.ModifyBuffer(vertsTest, Engine.Engine.Renderer.Device);
         _updatingMesh = false;
     }
     

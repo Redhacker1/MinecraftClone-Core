@@ -25,12 +25,6 @@ namespace NVGRenderer.Rendering.Calls
                 },
                 UniformOffset = (uint)uniformOffset
             };
-            
-            
-            
-            //cmd.SetPipeline(fPipeline);
-            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
-            //cmd.SetGraphicsResourceSet(0, descriptorSet);
 
             foreach (StrokePath path in paths)
             {
@@ -41,12 +35,10 @@ namespace NVGRenderer.Rendering.Calls
 
             if (_renderer.EdgeAntiAlias)
             {
-                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer); 
-                //cmd.SetPipeline(aaPipeline);
+                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
                 call.Pipeline = aaPipeline;
                 foreach (StrokePath path in paths)
                 {
-                    //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
                     call.Count = path.StrokeCount;
                     call.Offset = path.StrokeOffset;
                 }

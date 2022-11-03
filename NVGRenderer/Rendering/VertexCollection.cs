@@ -36,9 +36,15 @@ namespace NVGRenderer.Rendering
         public void AddVertices(ICollection<Vertex> vertices)
         {
             AllocVerts(vertices.Count);
-
             _vertices.AppendRange(vertices.ToArray());
             _count += vertices.Count;
+        }
+        
+        public void AddVertices(ReadOnlySpan<Vertex> vertices)
+        {
+            AllocVerts(vertices.Length);
+            _vertices.AppendRange(vertices);
+            _count += vertices.Length;
         }
 
         public void Clear()

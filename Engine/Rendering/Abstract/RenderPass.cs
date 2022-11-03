@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Engine.Rendering.Abstract.View;
 using Engine.Rendering.Veldrid;
 using Engine.Utilities.Concurrency;
 using Veldrid;
-using Frame = Engine.Rendering.Abstract.RenderStage.Frame;
 
 namespace Engine.Rendering.Abstract
 {
@@ -63,8 +63,7 @@ namespace Engine.Rendering.Abstract
         /// <param name="instances">The sorted list of Instances to draw</param>
         /// <param name="camera">"Information about the camera being used"</param>
         protected abstract void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo camera);
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
+        
         protected virtual List<Instance3D> Cull(ThreadSafeList<WeakReference<Instance3D>> instances, ref CameraInfo cameraInfo) 
         {
             List<Instance3D> instance3Ds = new List<Instance3D>(0);
@@ -120,42 +119,28 @@ namespace Engine.Rendering.Abstract
         
         public void AddInstance(Instance3D instance)
         {
-            lock (Instances)
-            {
-                Instances.Add(new WeakReference<Instance3D>(instance));   
-            }
+            Instances.Add(new WeakReference<Instance3D>(instance));   
         }
         
         public void RemoveInstance(Instance3D instance)
         {
-            lock (Instances)
-            {
-                Instances.Remove(new WeakReference<Instance3D>(instance));
-            }
+            Instances.Remove(new WeakReference<Instance3D>(instance));
             
         }
 
-        protected override void Stage(RenderStage.RenderState rendererState, Frame targetFrame, float _, float _1)
+        protected override void Stage(RenderStage.RenderState rendererState, RenderTarget targetFrame, float _, float _1)
         {
-            var list = rendererState.GlobalCommandList;
             if (Camera.MainCamera == null) return;
 
-
+            CommandList list = rendererState.GlobalCommandList;
             CameraInfo cameraInfo = new CameraInfo(Camera.MainCamera);
-            List<Instance3D> instances;
-            lock (Instances)
-            {
-                instances = Cull(Instances, ref cameraInfo);
-            }
+            List<Instance3D> instances = Cull(Instances, ref cameraInfo);
             Sort(instances, cameraInfo);
 
-            if (Name != null)
-            {
-                list.PushDebugGroup(Name);   
-            }
+            list.PushDebugGroup(Name);   
             
             PrePass(ref cameraInfo, list, instances);
-            Pass(list, new List<Instance3D>(), ref cameraInfo);
+            Pass(list, instances, ref cameraInfo);
             PostPass(list);
             if (Name != null)
             {

@@ -26,17 +26,9 @@ namespace NVGRenderer.Rendering.Calls
                 },
                 UniformOffset = (uint)uniformOffset
             };
-
-            //cmd.SetPipeline(fillPipeline);
-            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
             
-            
-            //cmd.SetGraphicsResourceSet(0, descriptorSet);
-            
-
             foreach (Path path in paths)
             {
-                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
                 call.Offset = path.StrokeOffset;
                 call.Count = path.StrokeCount;
                 drawCalls.Add(call);

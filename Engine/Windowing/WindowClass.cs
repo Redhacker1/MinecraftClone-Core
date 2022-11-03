@@ -8,14 +8,15 @@ namespace Engine.Windowing
 {
     public class WindowClass
     {
+        [Obsolete]
         public static Renderer Renderer { get; protected set; }
-
+        
+        [Obsolete]
         readonly GameEntry _gameInstance;
         public static IWindow Handle;
 
         public WindowClass(WindowOptions options, GameEntry GameClass)
         {
-            //options.TransparentFramebuffer = true;
             Handle = Window.Create(options);
             Handle.IsContextControlDisabled = true;
             Handle.Closing += OnClose;
@@ -39,12 +40,13 @@ namespace Engine.Windowing
         {
             IInputContext context = Handle.CreateInput();
             InputHandler.InitInputHandler(context);
-
-            Renderer = new Renderer(Handle);
+            
+            Engine.Renderer = new Renderer(Handle);
+            Engine.MainFrameBuffer = new WindowRenderTarget(Engine.Renderer.Device);
             
             //Assign events.
-            Handle.FramebufferResize += Renderer.OnResize;
-            Handle.Render += Renderer.OnRender;
+            Handle.FramebufferResize += Engine.Renderer.OnResize;
+            Handle.Render += Engine.Renderer.OnRender;
             Handle.Update += _gameInstance.Update;
 
             _gameInstance.GameStart();
@@ -53,10 +55,8 @@ namespace Engine.Windowing
 
         void OnClose()
         {
-            Renderer.Dispose();
             _gameInstance.GameEnded();
             Console.WriteLine("Closed!");
-            Environment.ExitCode = 0;
         }
     }
 }

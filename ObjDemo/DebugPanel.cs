@@ -33,7 +33,7 @@ namespace ObjDemo
 
 
             ImGui.Text($"Memory is at: {CurrentProcess.WorkingSet64.ToString()} bytes!");
-            ImGui.Text($"FPS Estimate: {WindowClass.Renderer.FPS}");
+            ImGui.Text($"FPS Estimate: {Engine.Engine.Renderer.FPS}");
             ImGui.Text($"Rendered Vertex count is: {VertexCount}");
 
             Vector3 camerapos = Camera.MainCamera.Position;

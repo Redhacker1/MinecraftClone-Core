@@ -29,14 +29,14 @@ public class ChunkMesher
             {
                 AABB boundingBox = new AABB
                 {
-                    Origin = (mesh._instance3D.Position - Camera.MainCamera.Position)
+                    Origin = (mesh.Instance3D.Position - Camera.MainCamera.Position)
                 };
                 boundingBox.SetExtents(new Vector3(ChunkCs.MaxX/2f, ChunkCs.MaxY, ChunkCs.MaxZ/2f));
                 if (IntersectionHandler.aabb_to_frustum(ref boundingBox, frustum))
                 {
                     Inview = true;
                     mesh.Update();
-                    mesh._instance3D.GetInstanceAabb(out boundingBox);
+                    mesh.Instance3D.GetInstanceAabb(out boundingBox);
                 }
                 else
                 {

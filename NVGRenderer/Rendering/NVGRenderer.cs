@@ -235,7 +235,7 @@ public class NvgRenderer : INvgRenderer
             _vertexCollection.AddVertex(new Vertex(bounds.Min, 0.5f, 1.0f));
 
             
-            int uniformOffset = (int)_frame.UniformAllocator.AddUniform(uniforms);
+            int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             FragUniforms stencilUniforms = new FragUniforms(-1.0f, ShaderType.Simple);
             _ = _frame.UniformAllocator.AddUniform(stencilUniforms);
 

@@ -30,8 +30,8 @@ namespace MCClone_Core.World_CS.Generation
 
 		static readonly Int2 TextureAtlasSize = new Int2(8, 4);
 			
-		static readonly float Sizex = 1.0f / TextureAtlasSize.X;
-		static readonly float Sizey = 1.0f / TextureAtlasSize.Y;
+		static readonly float SizeX = 1.0f / TextureAtlasSize.X;
+		static readonly float SizeY = 1.0f / TextureAtlasSize.Y;
 
 		public const int MaxX = 16;
 		public const int MaxY = 384;
@@ -62,7 +62,7 @@ namespace MCClone_Core.World_CS.Generation
 		static readonly uint[] Cross3 = {6, 4, 1, 3};
 		static readonly uint[] Cross4 = {2, 0, 5, 7};
 
-		internal readonly Instance3D _instance3D;
+		internal readonly Instance3D Instance3D;
 
 		public readonly SafeByteStore<byte> BlockData;
 		readonly SafeByteStore<bool> _visibilityMask;
@@ -83,10 +83,10 @@ namespace MCClone_Core.World_CS.Generation
 
 			_chunkMesh = new ChunkMesh();
 			
-			_instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
-			AddChild(_instance3D);
+			Instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
+			AddChild(Instance3D);
 			
-			(WindowClass.Renderer.Stages[0] as DefaultRenderPass)?.AddInstance(_instance3D);
+			MinecraftCloneCore.Pass.AddInstance(Instance3D);
 			
 		}
 
@@ -163,7 +163,7 @@ namespace MCClone_Core.World_CS.Generation
 			lock (_renderLock)
 			{
 				_chunkMesh.GenerateMesh(_blockVerts.Span, _blockUVs.Span, _chunkIndices.Span);
-				_instance3D.SetTransform(this);
+				Instance3D.SetTransform(this);
 			}
 			
 		}
@@ -199,7 +199,7 @@ namespace MCClone_Core.World_CS.Generation
 			{
 				//GD.Print("External Chunk Write");
 
-				Vector3 worldCoordinates = new(x + Position.X, y, z + Position.Z);
+				Vector3 worldCoordinates = new Vector3(x + Position.X, y, z + Position.Z);
 				
 				int cx = ChunkCoordinate.X;
 				int cz = ChunkCoordinate.Y;
@@ -256,7 +256,7 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
-        void create_face(uint[] I, ref Int3 offset, Vector2 textureAtlasOffset, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint currentindex)
+        void create_face(uint[] I, ref Int3 offset, Vector2 textureAtlasOffset, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint currentIndex)
         {
 	        if (_freed)
 	        {
@@ -274,13 +274,13 @@ namespace MCClone_Core.World_CS.Generation
 	        );
 
 	        // the f means float, there is another type called double it defaults to that has better accuracy at the cost of being larger to store, but vector3 does not use it.
-	        Vector2 uvB = new Vector2(uvOffset.X, Sizey + uvOffset.Y);
-	        Vector2 uvC = new Vector2(Sizex, Sizey) + uvOffset;
-	        Vector2 uvD = new Vector2(Sizex + uvOffset.X, uvOffset.Y);
+	        Vector2 uvB = new Vector2(uvOffset.X, SizeY + uvOffset.Y);
+	        Vector2 uvC = new Vector2(SizeX, SizeY) + uvOffset;
+	        Vector2 uvD = new Vector2(SizeX + uvOffset.X, uvOffset.Y);
 	        
 	        
 	        Span<Vector2> uvs = stackalloc Vector2[4] { uvOffset, uvB, uvC, uvD};
-	        Span<uint> Indices = stackalloc uint[6] {currentindex, currentindex + 1, currentindex + 2, currentindex, currentindex + 2, currentindex + 3};
+	        Span<uint> Indices = stackalloc uint[6] {currentIndex, currentIndex + 1, currentIndex + 2, currentIndex, currentIndex + 2, currentIndex + 3};
 
 	        for (int i = 0; i < 4; i++)
 	        {
@@ -291,7 +291,7 @@ namespace MCClone_Core.World_CS.Generation
 		        blocks.Append(compressedPos);
 	        }
 	        indices.AppendRange(Indices);
-	        currentindex += 4;
+	        currentIndex += 4;
 
 
 	        uVs.AppendRange(uvs);
@@ -342,12 +342,7 @@ namespace MCClone_Core.World_CS.Generation
 				return false;
 			}
 
-			if (discardAir)
-			{
-				return BlockHelper.BlockTypes[BlockData.FullSpan[index]].Air;
-			}
-
-			return _visibilityMask.FullSpan[index];
+			return discardAir ? BlockHelper.BlockTypes[BlockData.FullSpan[index]].Air : _visibilityMask.FullSpan[index];
 		}
 		
 		protected override void OnFree()
@@ -362,7 +357,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			BlockData.Dispose();
 			_visibilityMask.Dispose();
-			(WindowClass.Renderer.Stages[0] as DefaultRenderPass)?.RemoveInstance(_instance3D);
+			MinecraftCloneCore.Pass.RemoveInstance(Instance3D);
 
 			_freed = true;
 		}

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Engine.Input;
 using Engine.Renderable;
-using Engine.Rendering.Abstract;
 using Engine.Rendering.Abstract.RenderStage;
+using Engine.Rendering.Abstract.View;
 using ImGuiNET;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -22,36 +23,8 @@ namespace Engine.Rendering.Veldrid
     /// </summary>
     public class Renderer : IDisposable
     {
-        public RenderStage[] Stages = new RenderStage[16];
-
-        public bool AddPass(int index, RenderStage pass)
-        {
-            lock (Stages)
-            {
-                if (index > 0 && Stages.Length > index)
-                {
-                    Stages[index] = pass;
-                    return true;
-                }   
-            }
-            return false;
-        }
-
-        public bool RemovePass(int index)
-        {
-            lock (Stages)
-            {
-                if (index < Stages.Length)
-                {
-  
-                    Stages[index] = null;
-                }
-            }
-            return false;
-        }
 
 
-        
 
         readonly ImGuiRenderer _imGuiHandler;
         
@@ -59,14 +32,10 @@ namespace Engine.Rendering.Veldrid
         internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
-                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.OpenGL);
+                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
             _list = Device.ResourceFactory.CreateCommandList();
             
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
-
-            // TODO: probably should implement some better systems for dealing with this shit!
-            //Passes[0] = new DepthPrepass(this);
-            Stages[0] = new DefaultRenderPass(this);
 
         }
         
@@ -95,21 +64,23 @@ namespace Engine.Rendering.Veldrid
             
             _list.Begin();
             _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            lock (Stages)
+
+
+            ImmutableArray<RenderTarget> renderTargets = RenderTarget.Targets.ToImmutableArray();
+            foreach (RenderTarget target in renderTargets)
             {
-                foreach (RenderStage pass in Stages)
+                if (target.ValidTarget)
                 {
-                    pass?.RunStage(new Abstract.RenderStage.RenderState()
-                    {
-                        Device = Device,
-                        GlobalCommandList = _list
-                    }, new Frame()
-                    {
-                        Buffer = Device.SwapchainFramebuffer,
-                        Size = Int2.Zero
-                    });
+                    target.Flush(
+                        new RenderState()
+                        {
+                            Device = Device,
+                            GlobalCommandList = _list
+                        }
+                    );
                 }
             }
+            
 
             _imGuiHandler.Update((float) time);
             foreach (ImGUIPanel uiPanel in ImGUIPanel.Panels)

@@ -17,8 +17,6 @@ namespace NVGRenderer.Rendering.Calls
 
 
             Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, _renderer);
-            //cmd.SetPipeline(sPipeline);
-            //cmd.SetFramebuffer(renderer.Device.SwapchainFramebuffer);
 
             DrawCall call = new DrawCall
             {
@@ -30,19 +28,14 @@ namespace NVGRenderer.Rendering.Calls
                 UniformOffset = (uint)uniformOffset
             };
             
-            
-            
-            //cmd.SetGraphicsResourceSet(0,descriptorSet);
             foreach (Path path in paths)
             {
-                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
                 call.Offset = path.StrokeOffset;
                 call.Count = path.StrokeCount;
                 drawCalls.Add(call);
             }
 
             Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, _renderer);
-            //cmd.SetPipeline(aaPipeline);
             call.Pipeline = aaPipeline;
 
 
@@ -52,23 +45,18 @@ namespace NVGRenderer.Rendering.Calls
             };
             call.UniformOffset = (uint) uniformOffset;
             
-            //cmd.SetGraphicsResourceSet(0, descriptorSet);
             foreach (Path path in paths)
             {
-                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
-                
                 call.Offset = path.StrokeOffset;
                 call.Count = path.StrokeCount;
                 drawCalls.Add(call);
             }
 
             Pipeline stPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
-            //cmd.SetPipeline(stPipeline);
             call.Pipeline = stPipeline;
             
             foreach (Path path in paths)
             {
-                //cmd.Draw(path.StrokeCount, 1, path.StrokeOffset, 0);
                 call.Offset = path.StrokeOffset;
                 call.Count = path.StrokeCount;
                 drawCalls.Add(call);

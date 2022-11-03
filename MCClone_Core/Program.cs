@@ -5,6 +5,7 @@ using Engine.Attributes;
 using Engine.Debugging;
 using Engine.Initialization;
 using Engine.Renderable;
+using Engine.Rendering.Abstract;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
@@ -13,7 +14,7 @@ using Steamworks;
 
 namespace MCClone_Core
 {
-    internal class Program
+    static class Program
     {
         static void Main(string[] args)
         {
@@ -30,6 +31,8 @@ namespace MCClone_Core
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
         Player player;
+        public static DefaultRenderPass Pass;  
+        
 
         protected override void GameStart()
         {
@@ -68,8 +71,11 @@ namespace MCClone_Core
             
             script._Ready();
             player._Ready();
-            
-            
+
+            Pass = new DefaultRenderPass(Engine.Engine.Renderer);
+            Engine.Engine.MainFrameBuffer.AddPass(1, Pass);
+
+
             base.GameStart();
         }
 

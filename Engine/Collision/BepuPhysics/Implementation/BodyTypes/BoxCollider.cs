@@ -11,8 +11,8 @@ public sealed class BoxCollider : PhysicsBody
     internal BoxCollider(PhysicsWorld world, Transform transform, Vector3 extents, float mass = 0f, float inertia = -1f) : base( world, transform, mass, inertia )
     {
         this.extents = extents;
-        this.Mass = mass;
-        this.Inertia = inertia;
+        Mass = mass;
+        Inertia = inertia;
     }
 
     public BoxCollider(PhysicsWorld world ,Vector3 extents) : this(world, new Transform(), extents)

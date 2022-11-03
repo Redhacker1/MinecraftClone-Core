@@ -20,8 +20,8 @@ public class Mesh : BaseRenderable<VertexElements>
     bool _updatingMesh = true;
     public Mesh()
     {
-        ebo = new IndexBuffer<uint>(WindowClass.Renderer.Device, 1);
-        vbo = new VertexBuffer<VertexElements>(WindowClass.Renderer.Device, new VertexElements[1]);
+        ebo = new IndexBuffer<uint>(Engine.Renderer.Device, 1);
+        vbo = new VertexBuffer<VertexElements>(Engine.Renderer.Device, new VertexElements[1]);
     }
 
     void CreateVertexArray(Span<Vector3> vertices, Span<Vector3> uvs, Span<VertexElements> vertexArray)
@@ -57,12 +57,12 @@ public class Mesh : BaseRenderable<VertexElements>
         VertexElements = (uint) vertices.Length;
         if (indices.Length > 0)
         {
-            ebo.ModifyBuffer(indices, WindowClass.Renderer.Device);
+            ebo.ModifyBuffer(indices, Engine.Renderer.Device);
             UseIndexedDrawing = true;
             VertexElements = (uint)indices.Length;
         }
 
-        vbo.ModifyBuffer(vertsTest, WindowClass.Renderer.Device);
+        vbo.ModifyBuffer(vertsTest, Engine.Renderer.Device);
         _updatingMesh = false;
     }
     

@@ -21,8 +21,13 @@ namespace Engine.Rendering.Abstract
         public DefaultRenderPass(Renderer _backingRenderer) : base(_backingRenderer)
         {
             backingRenderer = _backingRenderer;
-            ViewProjBuffer = new UniformBuffer<Matrix4x4>(_backingRenderer.Device, 2);
-            ViewProjBuffer.bufferObject.Name = "ViewProjBuffer";
+            ViewProjBuffer = new UniformBuffer<Matrix4x4>(_backingRenderer.Device, 2)
+            {
+                bufferObject =
+                {
+                    Name = "ViewProjBuffer"
+                }
+            };
 
             Transforms = new VertexBuffer<Matrix4x4>(backingRenderer.Device, Span<Matrix4x4>.Empty);
 

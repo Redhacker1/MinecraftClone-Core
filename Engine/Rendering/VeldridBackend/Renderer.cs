@@ -10,12 +10,11 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
-using Int2 = Engine.Utilities.MathLib.Int2;
 
 // TODO: This should be seperated into implementation and Logic files, Veldrid should NOT be a core dependency.
 // TODO: Look into making user definable or events to trigger on user defined times, say when a frame is completed or a new frame is starting.
 // TODO: The Level should probably have control over rendering the game, either that or the Game Entry, I am inclined to give it to the level class
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
 
     /// <summary>
@@ -118,15 +117,25 @@ namespace Engine.Rendering.Veldrid
 
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             if (_disposing)
             {
                 return;
             }
-            
             // Stop rendering frames and let the GPU flush it's current work, then dispose of the GraphicsDevice
             _disposing = true;
-            
+            GC.SuppressFinalize(this);
+            Device.WaitForIdle();
+
+            // Dispose of RenderTargets
+            foreach (RenderTarget renderTarget in RenderTarget.Targets)
+            {
+                if (renderTarget.ValidTarget)
+                {
+                    renderTarget.Dispose();
+                }
+            }
+
+
             Device.DisposeWhenIdle(Device);
         }
     }

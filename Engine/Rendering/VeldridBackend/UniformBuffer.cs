@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Veldrid;
 
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
 
     public abstract class BaseUnifomrBuffer

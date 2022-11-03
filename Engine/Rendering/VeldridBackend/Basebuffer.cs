@@ -1,7 +1,7 @@
 ﻿using System;
 using Veldrid;
 
-namespace Engine.Rendering.Veldrid;
+namespace Engine.Rendering.VeldridBackend;
 
 // TODO: Add uniform buffers backed by this.
 // TODO: When implementing other RHI/Backends, reuse this code and break Veldrid types out and move to engine replacements

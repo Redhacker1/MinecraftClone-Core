@@ -6,10 +6,10 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
-using Engine.Rendering.Veldrid;
+using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
 using Veldrid;
-using Texture = Engine.Rendering.Veldrid.Texture;
+using Texture = Engine.Rendering.VeldridBackend.Texture;
 
 namespace VeldridCubeTest
 {

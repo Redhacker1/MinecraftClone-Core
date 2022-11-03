@@ -1,7 +1,7 @@
 ﻿using Engine.Rendering.Abstract;
 using Veldrid;
 
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
     public struct MaterialDescription
     {

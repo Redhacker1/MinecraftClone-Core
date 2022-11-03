@@ -16,6 +16,8 @@ public class RenderTarget : IDisposable
 
     public Viewport Viewport { private get; set; }
     
+    public Camera viewCamera;
+    
     public Int2 Size
     {
         get => new Int2((int)_framebuffer.Width, (int)_framebuffer.Height);
@@ -38,12 +40,40 @@ public class RenderTarget : IDisposable
         Targets.Add(this);
         ValidTarget = true;
     }
+    
+    
+    internal RenderTarget(GraphicsDevice device, Int2 size, PixelFormat[] pixelFormats, PixelFormat? depthStencil)
+    {
+
+        Texture depthAttachment = null;
+        if (depthStencil.HasValue)
+        {
+            depthAttachment = device.ResourceFactory.CreateTexture(new TextureDescription((uint)size.X, (uint)size.Y, 1, 1, 0,
+                depthStencil.Value, TextureUsage.DepthStencil, TextureType.Texture2D));
+        }
+
+        Texture[] textures = new Texture[pixelFormats.Length];
+        for (int index = 0; index < pixelFormats.Length; index++)
+        {
+            textures[index] = device.ResourceFactory.CreateTexture(new TextureDescription((uint)size.X, (uint)size.Y, 1, 1, 0,
+                pixelFormats[index], TextureUsage.RenderTarget, TextureType.Texture2D));
+        }
+
+
+        _framebuffer = device.ResourceFactory.CreateFramebuffer(new FramebufferDescription(depthAttachment, textures));
+        _framebufferCommandList = device.ResourceFactory.CreateCommandList();
+        Device = device;
+        Targets.Add(this);
+        ValidTarget = true;
+    }
+    
+    
 
     internal void Flush(RenderState state)
     {
         _framebufferCommandList.Begin();
         _framebufferCommandList.SetFramebuffer(_framebuffer);
-        _framebufferCommandList.SetViewport(0, new global::Veldrid.Viewport(Viewport.Offset.X, Viewport.Offset.Y, Viewport.Size.X, Viewport.Size.Y, Viewport.MinDepth, Viewport.MaxDepth));
+        _framebufferCommandList.SetViewport(0, new Veldrid.Viewport(Viewport.Offset.X, Viewport.Offset.Y, Viewport.Size.X, Viewport.Size.Y, Viewport.MinDepth, Viewport.MaxDepth));
         lock (_stages)
         {
             foreach (RenderStage.RenderStage stage in _stages)
@@ -137,9 +167,9 @@ public class RenderTarget : IDisposable
     public void Dispose()
     {
         ValidTarget = false;
-        Targets.Remove(this);
         GC.SuppressFinalize(this);
-        Device?.Dispose();
+        
+        Targets.Remove(this);
         _framebuffer?.Dispose();
         _framebufferCommandList?.Dispose();
         

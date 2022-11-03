@@ -1,7 +1,6 @@
-﻿using Engine.Windowing;
-using Veldrid;
+﻿using Veldrid;
 
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
 
     public class Material

@@ -7,7 +7,7 @@ using SixLabors.ImageSharp.Processing;
 using Veldrid;
 using IS = SixLabors.ImageSharp;
 
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
     struct BC1
     {
@@ -26,7 +26,7 @@ namespace Engine.Rendering.Veldrid
     public class Texture : GraphicsResource
     {
 
-        public global::Veldrid.Texture _Texture;
+        public Veldrid.Texture _Texture;
 
         public Texture(GraphicsDevice device, string path, bool flipX = false, bool flipY = false) : base(device)
         {

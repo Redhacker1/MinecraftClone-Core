@@ -91,9 +91,9 @@ public class NvgRenderer : INvgRenderer
         var format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
         
         
-        Engine.Rendering.Veldrid.Texture texture = data.IsEmpty ?
-            new Engine.Rendering.Veldrid.Texture(size.X, size.Y, 1, Device, format) :
-            Engine.Rendering.Veldrid.Texture.CreateFromBytes(Device, size.X, size.Y, data, format);
+        Engine.Rendering.VeldridBackend.Texture texture = data.IsEmpty ?
+            new Engine.Rendering.VeldridBackend.Texture(size.X, size.Y, 1, Device, format) :
+            Engine.Rendering.VeldridBackend.Texture.CreateFromBytes(Device, size.X, size.Y, data, format);
 
         TextureSlot slot = new TextureSlot
         {

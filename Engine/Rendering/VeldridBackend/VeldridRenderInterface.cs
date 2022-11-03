@@ -3,7 +3,7 @@ using Silk.NET.Windowing;
 using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
 
-namespace Engine.Rendering.Veldrid;
+namespace Engine.Rendering.VeldridBackend;
 
 public class VeldridRenderInterface : BaseRenderInterface
 {

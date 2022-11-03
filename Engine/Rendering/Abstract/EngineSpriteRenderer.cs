@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Numerics;
-using Engine.Rendering.Veldrid;
+using Engine.Rendering.VeldridBackend;
 using Veldrid;
-using Pipeline = Engine.Rendering.Veldrid.Pipeline;
-using Texture = Engine.Rendering.Veldrid.Texture;
+using Pipeline = Engine.Rendering.VeldridBackend.Pipeline;
+using Texture = Engine.Rendering.VeldridBackend.Texture;
 
 namespace Engine.Rendering.Abstract;
 

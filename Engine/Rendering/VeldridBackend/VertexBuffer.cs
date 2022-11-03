@@ -1,7 +1,7 @@
 ﻿using System;
 using Veldrid;
 
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
 
     public class VertexBuffer<TDataType> : BaseBufferTyped<TDataType>

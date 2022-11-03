@@ -14,15 +14,15 @@ using Engine.Debugging;
 using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering.Abstract;
-using Engine.Rendering.Veldrid;
+using Engine.Rendering.VeldridBackend;
 using Engine.Utilities.MathLib;
 using Engine.Windowing;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
 using Veldrid;
-using Material = Engine.Rendering.Veldrid.Material;
-using Texture = Engine.Rendering.Veldrid.Texture;
+using Material = Engine.Rendering.VeldridBackend.Material;
+using Texture = Engine.Rendering.VeldridBackend.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {

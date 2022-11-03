@@ -1,6 +1,6 @@
 ﻿using SilkyNvg.Images;
 using Veldrid;
-using Texture = Engine.Rendering.Veldrid.Texture;
+using Texture = Engine.Rendering.VeldridBackend.Texture;
 
 namespace NVGRenderer.Rendering.Textures;
 

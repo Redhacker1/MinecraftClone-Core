@@ -8,7 +8,7 @@ using Veldrid;
 using Veldrid.SPIRV;
 using Shader = Veldrid.Shader;
 
-namespace Engine.Rendering.Veldrid
+namespace Engine.Rendering.VeldridBackend
 {
     public struct Pipeline : IEquatable<Pipeline>
     {
@@ -23,7 +23,7 @@ namespace Engine.Rendering.Veldrid
         readonly PrimitiveTopology _topology;
         readonly ShaderSet _shaders;
 
-        internal global::Veldrid.Pipeline _pipeline;
+        internal Veldrid.Pipeline _pipeline;
 
         public Pipeline(bool depthTest, bool writeDepthBuffer, ComparisonKind compare, FaceCullMode cullmode, FrontFace dir, PrimitiveTopology topology, PolygonFillMode filltype, ShaderSet shaders, GraphicsDevice device, VertexLayoutDescription[] vertexLayout, ResourceLayout[] layouts)
         {

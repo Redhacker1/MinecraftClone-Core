@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using Engine.Rendering.Abstract.View;
-using Engine.Rendering.Veldrid;
+using Engine.Rendering.VeldridBackend;
 using Engine.Utilities.Concurrency;
 using Veldrid;
 
@@ -114,7 +114,7 @@ namespace Engine.Rendering.Abstract
                 return -1;
             }
             // Only should happen if a value does not possibly equal itself, IE, pretty much only NaN
-            throw new ArithmeticException("Input was probably NAN, check your code");
+            throw new ArithmeticException("Input was probably NAN, check your inputs!");
         }
         
         public void AddInstance(Instance3D instance)

@@ -28,6 +28,7 @@ namespace Engine.Initialization
                 PreferredBitDepth = new Vector4D<int>(32),
                 PreferredDepthBufferBits = 32,
                 PreferredStencilBufferBits = 8,
+                FramesPerSecond = 144
             };
 
             WindowClass window = new WindowClass(options, gameclass);

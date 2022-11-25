@@ -15,7 +15,7 @@ namespace NVGRenderer.Rendering.Calls
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls)
         {
 
-            Pipeline fillPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
+            Pipeline fillPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer, frame);
 
             DrawCall call = new DrawCall
             {

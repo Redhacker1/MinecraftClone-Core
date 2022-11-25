@@ -18,34 +18,59 @@ public class PipelineCache
     public void SetFrame(NvgFrame frame)
     {
         _frame = frame;
-        _pipelines.Clear();
+        Clear();
+    }
+    
+
+    
+    readonly List<PipelineSettings> _settings = new List<PipelineSettings>();
+    
+    readonly List<Pipeline> _pipelines = new List<Pipeline>();
+
+
+
+
+    public Pipeline GetPipeLine(PipelineSettings renderPipeline, NvgRenderer renderer, NvgFrame frame)
+    {
+        for (int index = 0; index < _settings.Count; index++)
+        {
+            if (renderPipeline == _settings[index])
+            {
+                return _pipelines[index];
+            }
+        }
+        return AddPipeline(renderPipeline, renderer, frame);
     }
 
 
-    readonly Dictionary<PipelineSettings, Pipeline> _pipelines = new Dictionary<PipelineSettings, Pipeline>();
-
-    
-    public Pipeline GetPipeLine(PipelineSettings renderPipeline, NvgRenderer renderer)
+    public bool Remove(PipelineSettings settings, out Pipeline pipeline)
     {
-
-        if (!_pipelines.TryGetValue(renderPipeline, out Pipeline potentialPipeline))
+        pipeline = null;
+        for (int index = 0; index < _settings.Count; index++)
         {
-            potentialPipeline = AddPipeline(renderPipeline, renderer);
+            if (settings == _settings[index])
+            {
+                pipeline = _pipelines[index];
+                _pipelines.RemoveAt(index);
+                return true;
+            }
         }
-        return potentialPipeline;
+
+        return false;
     }
     
     public void Clear()
     {
-        foreach (KeyValuePair<PipelineSettings, Pipeline> set in _pipelines)
+        _settings.Clear();
+        foreach (Pipeline pipeline in _pipelines)
         {
-            
-            set.Value.Dispose();
+            pipeline.Dispose();
         }
+
         _pipelines.Clear();
     }
 
-    public Pipeline AddPipeline(PipelineSettings settings, NvgRenderer renderer)
+    public Pipeline AddPipeline(PipelineSettings settings, NvgRenderer renderer, NvgFrame frame)
     {
         DepthStencilStateDescription depthStencil = DepthStencilState(settings);
 
@@ -108,56 +133,27 @@ public class PipelineCache
 
         ShaderSetDescription shaderSet = new ShaderSetDescription(new[]
         {
-            new VertexLayoutDescription(new[]
-            {
-                new VertexElementDescription("vertex",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("tcoord",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-            }),
-            new VertexLayoutDescription((uint)Unsafe.SizeOf<FragUniforms>(), 1, new []
-            {
-                //Matrix 1
-                new VertexElementDescription("Matrix11xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("Matrix12xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("Matrix13xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                
-                //Matrix 2
-                new VertexElementDescription("Matrix21xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("Matrix22xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("Matrix23xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                
-                new VertexElementDescription("innerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("outerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                
-                new VertexElementDescription("scissorExt", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("scissorScale", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("extent", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
-                
-                new VertexElementDescription("rfss", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
-                new VertexElementDescription("tt", VertexElementFormat.Int2, VertexElementSemantic.TextureCoordinate),
-                
-            }
-            )
+            new VertexLayoutDescription(new VertexElementDescription("vertex",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("tcoord",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)),
+            new VertexLayoutDescription((uint)Unsafe.SizeOf<FragUniforms>(), 1, new VertexElementDescription("Matrix11xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix12xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix13xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix21xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix22xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix23xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("innerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("outerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("scissorExt", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("scissorScale", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("extent", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("rfss", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("tt", VertexElementFormat.Int2, VertexElementSemantic.TextureCoordinate))
         }, new[]{vs, fs});
 
         BlendStateDescription blendState = ColourBlendState(ColorBlendAttachmentState(settings));
 
         Pipeline pipeline = device.ResourceFactory.CreateGraphicsPipeline(
-            new GraphicsPipelineDescription(blendState, depthStencil, rasterizerState, settings.Topology, shaderSet, new []{renderer.DescriptorSetLayout}, device.MainSwapchain.Framebuffer.OutputDescription, ResourceBindingModel.Default));
+            new GraphicsPipelineDescription(blendState, depthStencil, rasterizerState, settings.Topology, shaderSet, new []{renderer.DescriptorSetLayout}, frame.Framebuffer.OutputDescription, ResourceBindingModel.Default));
 
-        _pipelines[settings] = pipeline;
+        _settings.Add(settings);
+        _pipelines.Add(pipeline);
 
         return pipeline;
     }
 
     public void Dispose()
     {
-        foreach (KeyValuePair<PipelineSettings, Pipeline> pipelineSet in _pipelines)
-        {
-            pipelineSet.Value.Dispose();
-        }
+        Clear();
     }
     
-    public static unsafe BlendStateDescription ColourBlendState(BlendAttachmentDescription colourBlendAttachmentState)
+    public static BlendStateDescription ColourBlendState(BlendAttachmentDescription colourBlendAttachmentState)
     {
 
         BlendStateDescription Blendstate = new BlendStateDescription();
@@ -191,6 +187,8 @@ public class PipelineCache
             DepthClipEnabled = false,
         };
     }
+    
+    
 
     
     

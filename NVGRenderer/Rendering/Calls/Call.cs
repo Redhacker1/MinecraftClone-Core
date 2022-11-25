@@ -29,7 +29,7 @@ namespace NVGRenderer.Rendering.Calls
             this.renderPipeline = renderPipeline;
             this.stencilPipeline = stencilPipeline;
             this.antiAliasPipeline = antiAliasPipeline;
-            this._renderer = renderer;
+            _renderer = renderer;
         }
 
         public abstract void Run(NvgFrame frame, List<DrawCall> drawCalls);

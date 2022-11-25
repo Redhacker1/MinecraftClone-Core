@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Engine.Rendering.Abstract.RenderStage;
 using Engine.Utilities.Concurrency;
 using Engine.Utilities.MathLib;
@@ -25,7 +26,7 @@ public class RenderTarget : IDisposable
     }
     
 
-    Framebuffer _framebuffer;
+    protected internal Framebuffer _framebuffer;
 
     readonly RenderStage.RenderStage[] _stages = new RenderStage.RenderStage[16];
 

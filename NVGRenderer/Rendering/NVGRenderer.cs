@@ -88,7 +88,7 @@ public class NvgRenderer : INvgRenderer
     public int CreateTexture(Texture type, Vector2D<uint> size, ImageFlags imageFlags, ReadOnlySpan<byte> data)
     {
 
-        var format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
+        PixelFormat format = type == Texture.Rgba ? PixelFormat.R8_G8_B8_A8_UNorm : PixelFormat.R8_UNorm;
         
         
         Engine.Rendering.VeldridBackend.Texture texture = data.IsEmpty ?
@@ -115,11 +115,11 @@ public class NvgRenderer : INvgRenderer
 
     public bool UpdateTexture(int image, Rectangle<uint> bounds, ReadOnlySpan<byte> data)
     {
-        if (TextureManager.FindTexture(image, out TextureSlot Texture))
+        if (TextureManager.FindTexture(image, out TextureSlot texture))
         {
-            uint width = Texture.Texture._Texture.Width;
-            uint height = Texture.Texture._Texture.Height;
-            Texture.Texture.UpdateTextureBytes(Device, data, Int2.Zero, new Int2((int)width, (int)height) );
+            uint width = texture.Texture._Texture.Width;
+            uint height = texture.Texture._Texture.Height;
+            texture.Texture.UpdateTextureBytes(Device, data, Int2.Zero, new Int2((int)width, (int)height) );
             return true;
         }
         return false;
@@ -154,6 +154,7 @@ public class NvgRenderer : INvgRenderer
             return;
         }
         
+        CurrentCommandBuffer.Begin();
         CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer);
         Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
         CurrentCommandBuffer.SetViewport(0, viewport);
@@ -171,15 +172,38 @@ public class NvgRenderer : INvgRenderer
         
         List<DrawCall> calls = _frame.Queue.CreateDrawCalls();
 
+        Pipeline prevPipeline = default;
+        ResourceSet prevSet = default;
+
         foreach (DrawCall drawCall in calls)
         {
+            bool resultCode = _frame.ResourceSetCache.GetResourceSet(drawCall.Set, out ResourceSet set);
+            if (resultCode == false)
+            {
+                Console.WriteLine("Error getting Resource set!");
+                continue;
+            }
+            
+            if (drawCall.Pipeline != prevPipeline)
+            {
+                prevPipeline = drawCall.Pipeline;
+                CurrentCommandBuffer.SetPipeline(drawCall.Pipeline);
+                
+                CurrentCommandBuffer.SetVertexBuffer(0, _frame.VertexBuffer.BufferObject);
+                CurrentCommandBuffer.SetVertexBuffer(1, _frame.FragmentUniformBuffer.BufferObject);
 
-            CurrentCommandBuffer.SetPipeline(drawCall.Pipeline);
-            CurrentCommandBuffer.SetGraphicsResourceSet(0, _frame.ResourceSetCache.GetResourceSet(drawCall.Set));
-            CurrentCommandBuffer.SetVertexBuffer(0, _frame.VertexBuffer.BufferObject);
-            CurrentCommandBuffer.SetVertexBuffer(1, _frame.FragmentUniformBuffer.BufferObject);
+            }
+
+            if (prevSet != set)
+            {
+                prevSet = set;
+                CurrentCommandBuffer.SetGraphicsResourceSet(0, prevSet);
+            }
+            
             CurrentCommandBuffer.Draw(drawCall.Count, 1, drawCall.Offset, drawCall.UniformOffset / (uint)Unsafe.SizeOf<FragUniforms>() );
         }
+        CurrentCommandBuffer.End();
+        Device.SubmitCommands(CurrentCommandBuffer);
 
 
         if (Params.AdvanceFrameIndexAutomatically)
@@ -224,7 +248,7 @@ public class NvgRenderer : INvgRenderer
         Call call;
         if (paths.Count == 1 && paths[0].Convex) // Convex
         {
-            int uniformOffset = (int)_frame.UniformAllocator.AddUniform(uniforms);
+            int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             call = new ConvexFillCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
         }
         else
@@ -268,20 +292,20 @@ public class NvgRenderer : INvgRenderer
             offset += paths[i].Stroke.Count;
         }
 
-        FragUniforms uniforms = new(paint, scissor, strokeWidth, fringe, -1.0f, this);
+        FragUniforms uniforms = new FragUniforms(paint, scissor, strokeWidth, fringe, -1.0f, this);
         Call call;
         if (StencilStrokes)
         {
 
             FragUniforms stencilUniforms = new FragUniforms(paint, scissor, strokeWidth, fringe, 1.0f - 0.5f / 255.0f, this);
 
-            int uniformOffset = (int)_frame.UniformAllocator.AddUniform(uniforms);
+            int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             _ = _frame.UniformAllocator.AddUniform(stencilUniforms);
             call = new StencilStrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
         }
         else
         {
-            int uniformOffset = (int)_frame.UniformAllocator.AddUniform(uniforms);
+            int uniformOffset = _frame.UniformAllocator.AddUniform(uniforms);
             call = new StrokeCall(paint.Image, renderPaths, uniformOffset, compositeOperation, this);
         }
         _frame.Queue.Add(call);
@@ -300,7 +324,7 @@ public class NvgRenderer : INvgRenderer
         _vertexCollection.AddVertices(vertices);
 
         FragUniforms uniforms = new FragUniforms(paint, scissor, fringe, this);
-        int uniformOffset =(int)_frame.UniformAllocator.AddUniform(uniforms);
+        int uniformOffset =_frame.UniformAllocator.AddUniform(uniforms);
         Call call = new TrianglesCall(paint.Image, compositeOperation, offset, (uint)vertices.Count, uniformOffset, this);
         _frame.Queue.Add(call);
     }
@@ -313,8 +337,6 @@ public class NvgRenderer : INvgRenderer
 
     public void CreateLayout()
     {
-        GraphicsDevice device = Device;
-
         ResourceLayoutDescription descriptorSetLayoutBindings = new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("VertexUniforms", ResourceKind.UniformBuffer, ShaderStages.Vertex,
                 ResourceLayoutElementOptions.None),
@@ -326,9 +348,9 @@ public class NvgRenderer : INvgRenderer
 
         );
 
-        ResourceLayout layout = device.ResourceFactory.CreateResourceLayout(descriptorSetLayoutBindings);
+        ResourceLayout layout = Device.ResourceFactory.CreateResourceLayout(descriptorSetLayoutBindings);
         DescriptorSetLayout = layout;
     }
 
     public ResourceLayout DescriptorSetLayout;
-}    
+} 

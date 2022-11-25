@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Engine;
 using Engine.Initialization;
 using Engine.Input;
@@ -12,7 +11,6 @@ using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
 using Silk.NET.Input;
-using Silk.NET.Maths;
 using SilkyNvg;
 using Veldrid;
 
@@ -28,26 +26,17 @@ namespace NVGRenderer
 
     class NvgRendererDemo : GameEntry
     {
+        Camera cam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1.3333334F, true );
         NvgItem DemoTest;
         NvgItem PerfGraph;
         NvgRenderPass pass;
         protected override void GameStart()
         {
-            Camera.MainCamera = new Camera(new Transform(), Vector3.UnitX, Vector3.UnitY, 1.7777778F, true);
-            pass = new NvgRenderPass(Engine.Engine.Renderer, "Rendering NVG Stuff");
+            pass = new NvgRenderPass(Engine.Engine.Renderer);
             Engine.Engine.MainFrameBuffer.AddPass(1, pass);
 
-            DemoTest = new DemoTest();
+            DemoTest = new LineBenchmark();
             PerfGraph = new PerfMonitor();
-            this.PinnedObject = new BaseLevel();
-            this.PinnedObject.AddEntityToLevel(new GameObject());
-
-        }
-
-        protected override void GameEnded()
-        {
-            pass.Dispose();
-            base.GameEnded();
         }
     }
 
@@ -55,7 +44,7 @@ namespace NVGRenderer
     {
         public GameObject()
         {
-            this.Ticks = true;
+            Ticks = true;
         }
         protected override void _Process(double delta)
         {
@@ -69,12 +58,11 @@ namespace NVGRenderer
         }
     }
 
-    class NvgRenderPass : RenderStage, IDisposable
+    public class NvgRenderPass : RenderStage, IDisposable
     {
         public static Nvg Thing;
         readonly NvgRenderer _nvgRenderer;
-        NvgFrame _frame;
-        
+
         public NvgRenderPass(CommandList list, Renderer renderer, string name = null)
         {
             NvgRendererParams rendererParams = new NvgRendererParams
@@ -84,13 +72,12 @@ namespace NVGRenderer
                 InitialCommandBuffer = list
             };
             _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
-            Debug.Assert(_nvgRenderer.EdgeAntiAlias);
-            
-            Console.WriteLine(FlagHelper.HasFlag((int)(RenderFlags.StencilStrokes | RenderFlags.Antialias), (int)RenderFlags.StencilStrokes));
-            
+
             Nvg.Create(_nvgRenderer);
         }
 
+        NvgFrame frame;
+        
         public NvgRenderPass(Renderer renderer, string name = null)
         {
             NvgRendererParams rendererParams = new NvgRendererParams
@@ -100,39 +87,35 @@ namespace NVGRenderer
                 InitialCommandBuffer = renderer.Device.ResourceFactory.CreateCommandList()
             };
             
-            
             _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
             Thing = Nvg.Create(_nvgRenderer);
-            _frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
+            frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
             {
-                Framebuffer = renderer.Device.SwapchainFramebuffer
+                Framebuffer = Engine.Engine.Renderer.Device.SwapchainFramebuffer,
+                GraphicsDevice = Engine.Engine.Renderer.Device,
+                List = Engine.Engine.Renderer.Device.ResourceFactory.CreateCommandList()
             });
-
-            WindowClass.Handle.Resize += _ =>
-            {
-                _frame.Framebuffer = renderer.Device.SwapchainFramebuffer;
-            };
-
-
         }
 
         
-        protected override void Stage(RenderState rendererState, RenderTarget TargetFrame, float time, float deltaTime)
+        protected override void Stage(RenderState rendererState, RenderTarget targetFrame, float time, float deltaTime)
         {
-            _nvgRenderer.CurrentCommandBuffer.Begin();
-            Thing.BeginFrame(new Vector2D<float>(WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y), 1f);
-            foreach (WeakReference<NvgItem> panel in NvgItem.items)
-            {
-                if (panel.TryGetTarget(out NvgItem item))
-                {
-                    item.OnDraw(Thing, deltaTime);
-                }
-            }
-            Thing.EndFrame();
+            frame.Framebuffer = rendererState.Device.SwapchainFramebuffer;
             
-            _nvgRenderer.Flush();
-            _nvgRenderer.CurrentCommandBuffer.End();
-            _nvgRenderer.Device.SubmitCommands(_nvgRenderer.CurrentCommandBuffer);
+            _nvgRenderer.SetFrame(frame);
+            if (WindowClass.Handle.Size.LengthSquared > 0)
+            {
+                foreach (WeakReference<NvgItem> panel in NvgItem.items)
+                {
+                    if (panel.TryGetTarget(out NvgItem item))
+                    {
+                        item.OnDraw(Thing, deltaTime);
+                    }
+                }
+                Thing.EndFrame();
+            
+                _nvgRenderer.Flush();   
+            }
         }
 
         public void Dispose()

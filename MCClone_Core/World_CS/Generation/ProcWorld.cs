@@ -451,8 +451,10 @@ namespace MCClone_Core.World_CS.Generation
 
 		string Restart(params string[] parameters)
 		{
-			// Shuts down the old threadpool and saves the game state.
 			SaveAndQuit();
+
+			ProcWorld.Instance = new ProcWorld(this.WorldSeed);
+
 			return "Restarting...";
 			
 		}

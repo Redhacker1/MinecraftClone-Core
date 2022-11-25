@@ -11,7 +11,12 @@ namespace Engine.MathLib
         
         public static float DegreesToRadians(float yRotation)
         {
-            return (float) (yRotation * (Math.PI / 180));
+            return yRotation * (MathF.PI / 180);
+        }
+        
+        public static float RadiansToRDegrees(float yRotation)
+        {
+            return yRotation * 57.2957795f;
         }
         
         public static float Round(float value)

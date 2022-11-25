@@ -1,14 +1,22 @@
 ﻿using System;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
 
 namespace Engine.Renderable;
 
+[StructLayout(LayoutKind.Sequential)]
 public struct VertexElements
 { 
     public Vector3 Vertex;
     public Vector3 UVCoordinates;
+
+    public VertexElements(Vector3 vertex, Vector3 uvCoords)
+    {
+        Vertex = vertex;
+        UVCoordinates = uvCoords;
+    }
 }
 
 
@@ -75,5 +83,21 @@ public class Mesh : BaseRenderable<VertexElements>
     public void GenerateMesh(MeshData meshStruct)
     {
         GenerateMesh(meshStruct._vertices, meshStruct._uvs, meshStruct._indices);
+    }
+
+    public void GenerateMesh(VertexElements[] meshData, uint[] indices)
+    {
+
+        _updatingMesh = true;
+        VertexElements = (uint) meshData.Length;
+        if (indices.Length > 0)
+        {
+            ebo.ModifyBuffer(indices, Engine.Renderer.Device);
+            UseIndexedDrawing = true;
+            VertexElements = (uint)indices.Length;
+        }
+
+        vbo.ModifyBuffer(meshData, Engine.Renderer.Device);
+        _updatingMesh = false;
     }
 }

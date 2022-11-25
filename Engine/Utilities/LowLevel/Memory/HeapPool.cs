@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 
 namespace Engine.Utilities.LowLevel.Memory
 {
@@ -15,6 +16,8 @@ namespace Engine.Utilities.LowLevel.Memory
         private const uint MinMask = ~0u >> (32 - MinRangeBits);
 
         private const nuint StepSize = 1024;
+        
+        
 
         public ulong AvailableBytes
         {
@@ -28,6 +31,8 @@ namespace Engine.Utilities.LowLevel.Memory
                 return total;
             }
         }
+
+        public ulong BytesInUse;
 
         public MemoryHeap Heap { get; }
         public uint MaxCapacity { get; }
@@ -85,20 +90,30 @@ namespace Engine.Utilities.LowLevel.Memory
         public override IntPtr Alloc(nuint byteCapacity, out nuint actualByteCapacity)
         {
             Segment? segment = GetSegment(byteCapacity);
+            IntPtr allocAddress;
             if (segment.HasValue != true)
             {
-                return Heap.Alloc(byteCapacity, out actualByteCapacity);
+                allocAddress = Heap.Alloc(byteCapacity, out actualByteCapacity);
             }
             else
             {
-                return segment.Value.Rent(Heap, out actualByteCapacity);    
+                allocAddress = segment.Value.Rent(Heap, out actualByteCapacity);    
             }
-            
+            AddToByteCount(actualByteCapacity);
+            return allocAddress;
+
+
+        }
+
+        public void AddToByteCount(ulong additional)
+        {
+            Interlocked.Add(ref BytesInUse, additional);
         }
 
         public override void Free(nuint byteCapacity, IntPtr buffer)
         {
             Segment? segment = GetSegment(byteCapacity);
+            AddToByteCount(0-byteCapacity);
             if (segment.HasValue && segment.Value.BlockSize == byteCapacity)
             {
                 segment.Value.Return(Heap, buffer);
@@ -113,20 +128,29 @@ namespace Engine.Utilities.LowLevel.Memory
             nuint requestedByteCapacity,
             out nuint actualByteCapacity)
         {
+
+            IntPtr endLocation;
+            
             if (requestedByteCapacity > MaxCapacity)
             {
-                return Heap.Realloc(
+                endLocation = Heap.Realloc(
+                    buffer,
+                    previousByteCapacity,
+                    requestedByteCapacity,
+                    out actualByteCapacity);
+            }
+            else
+            {
+                endLocation = base.Realloc(
                     buffer,
                     previousByteCapacity,
                     requestedByteCapacity,
                     out actualByteCapacity);
             }
 
-            return base.Realloc(
-                buffer,
-                previousByteCapacity,
-                requestedByteCapacity,
-                out actualByteCapacity);
+            AddToByteCount(0-previousByteCapacity);
+            AddToByteCount(actualByteCapacity);
+            return endLocation;
         }
     }
 }

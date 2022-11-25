@@ -10,6 +10,7 @@ using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
 using Veldrid;
 using Texture = Engine.Rendering.VeldridBackend.Texture;
+using Vector3 = System.Numerics.Vector3;
 
 namespace VeldridCubeTest
 {
@@ -29,6 +30,8 @@ namespace VeldridCubeTest
 	    Player _player;
 
 	    BaseLevel _level = new BaseLevel();
+	    DefaultRenderPass pass;
+	    
 
 	    protected override void GameStart()
 	    {
@@ -38,7 +41,10 @@ namespace VeldridCubeTest
 	        _player = new Player();
 	        _level.AddChild(_player);
 	        _player._Ready();
-	        
+
+	        pass = new DefaultRenderPass(Engine.Engine.Renderer);
+
+	        Engine.Engine.MainFrameBuffer.AddPass(0, pass);
 	        Camera.MainCamera = new Camera(new Transform(), Vector3.UnitZ, Vector3.UnitY,1024/768, true );
 	        
 	        ShaderSet set = new ShaderSet(
@@ -87,8 +93,8 @@ namespace VeldridCubeTest
 			);
 			
 			
-			var atlas = new Texture(Engine.Engine.Renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(Engine.Engine.Renderer.Device.PointSampler);
+			Texture atlas = new Texture(Engine.Engine.Renderer.Device, @"Assets\TextureAtlas.tga");
+			TextureSampler pointSampler = new TextureSampler(Engine.Engine.Renderer.Device.PointSampler);
 			
 			material.ResourceSet(1, pointSampler, atlas);
 
@@ -97,41 +103,19 @@ namespace VeldridCubeTest
 			{
 				_vertices = new[]
 				{
-					new Vector3(-0.5f, +0.5f, -0.5f), new Vector3(+0.5f, +0.5f, -0.5f),
-					new Vector3(+0.5f, +0.5f, +0.5f), new Vector3(-0.5f, +0.5f, +0.5f),
-					new Vector3(-0.5f, -0.5f, +0.5f), new Vector3(+0.5f, -0.5f, +0.5f),
-					new Vector3(+0.5f, -0.5f, -0.5f), new Vector3(-0.5f, -0.5f, -0.5f),
-					new Vector3(-0.5f, +0.5f, -0.5f), new Vector3(-0.5f, +0.5f, +0.5f),
-					new Vector3(-0.5f, -0.5f, +0.5f), new Vector3(-0.5f, -0.5f, -0.5f),
-					new Vector3(+0.5f, +0.5f, +0.5f), new Vector3(+0.5f, +0.5f, -0.5f),
-					new Vector3(+0.5f, -0.5f, -0.5f), new Vector3(+0.5f, -0.5f, +0.5f),
-					new Vector3(+0.5f, +0.5f, -0.5f), new Vector3(-0.5f, +0.5f, -0.5f),
-					new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(+0.5f, -0.5f, -0.5f),
-					new Vector3(-0.5f, +0.5f, +0.5f), new Vector3(+0.5f, +0.5f, +0.5f),
-					new Vector3(+0.5f, -0.5f, +0.5f), new Vector3(-0.5f, -0.5f, +0.5f)
+					new Vector3(-1f, +1f, +1f), new Vector3(-1f, +1f, -1f),
+					new Vector3(-1f, -1f, -1f), new Vector3(-1f, -1f, +1f),
 				},
 				_uvs = new []
 				{
 					new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0),
 					new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0),
-					new Vector3(1, 1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
-					new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0),
-					new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0),
-					new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0),
-					new Vector3(1, 1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
-					new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0)
 				},
 				_indices = new uint[] 
 				{
-					0,1,2, 0,2,3, 
-					4,5,6, 4,6,7, 
-					8,9,10, 8,10,11, 
-					12,13,14, 12,14,15, 
-					16,17,18, 16,18,19, 
-					20,21,22, 20,22,23,
+					0,1,2, 0,2,3
 				}
 			};
-			Object = new Entity(new Transform());
 			Mesh mesh = new Mesh();
 			mesh.GenerateMesh(data);
 
@@ -140,7 +124,7 @@ namespace VeldridCubeTest
 			
 			_level.AddChild(_instance3D);
 			
-			//(WindowClass.Renderer.Stages[0] as DefaultRenderPass).AddInstance(_instance3D);
+			pass.AddInstance(_instance3D);
 
 
         }

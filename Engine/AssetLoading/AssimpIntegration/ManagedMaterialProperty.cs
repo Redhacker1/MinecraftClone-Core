@@ -6,41 +6,48 @@ using Silk.NET.Assimp;
 
 namespace Engine.AssetLoading.AssimpIntegration;
 
-public struct ManagedMaterialProperty
+public readonly struct ManagedMaterialProperty
 {
-    internal byte[] data;
-    public string Key;
+    internal readonly byte[] Data;
+    public readonly string Key;
     public readonly TextureType Semantic;
-    public readonly PropertyTypeInfo type;
+    readonly PropertyTypeInfo _type;
     
-    public unsafe ManagedMaterialProperty(byte* data, uint count, string Key, TextureType Semantic, PropertyTypeInfo typeInfo )
+    public unsafe ManagedMaterialProperty(byte* data, uint count, string key, TextureType semantic, PropertyTypeInfo typeInfo )
     {
-        this.data = new Span<byte>(data, (int)count).ToArray();
-        this.Key = Key;
-        this.Semantic = Semantic;
-        type = typeInfo;
+        Data = new Span<byte>(data, (int)count).ToArray();
+        Key = key;
+        Semantic = semantic;
+        _type = typeInfo;
+    }
+    public unsafe ManagedMaterialProperty(Span<byte> data, string key, TextureType semantic, PropertyTypeInfo typeInfo )
+    {
+        Data = data.ToArray();
+        Key = key ?? throw new ArgumentNullException(nameof(key));
+        Semantic = semantic;
+        _type = typeInfo;
     }
 	
     public unsafe ManagedMaterialProperty(MaterialProperty property)
     {
-        data = new Span<byte>(property.MData, (int)property.MDataLength).ToArray();
+        Data = new Span<byte>(property.MData, (int)property.MDataLength).ToArray();
         Key = property.MKey;
         Semantic = (TextureType)property.MSemantic;
-        type = property.MType;
+        _type = property.MType;
     }
     
 
     /// <summary>
     ///  Gets the value of the materialProperty as a string if successful, if not, String.Empty
     /// </summary>
-    /// <returns>Whether the it was indeed possible to read the data as a string, and that the type specified was indeed a string</returns>
+    /// <returns>Whether it was indeed possible to read the data as a string, and that the type specified was indeed a string</returns>
     public bool TryGetPropertyString(out string result)
     {
         // Ensure the data is valid and is defined as a string
-        if (data.Length > 5 && type == PropertyTypeInfo.PtiString)
+        if (Data.Length > 5 && _type == PropertyTypeInfo.String)
         {
             // snip the data to only what we need with as few allocations as possible
-            Span<byte> Stringbytes = new Span<byte>(data, 4, data.Length - 5);
+            Span<byte> Stringbytes = new Span<byte>(Data, 4, Data.Length - 5);
             // set the output variable as defined below.
             result = Encoding.UTF8.GetString(Stringbytes);
             return true;
@@ -58,11 +65,11 @@ public struct ManagedMaterialProperty
     /// by ASSIMP's system, or alternatively, ARE supported, however the wrapper does not currently support.
     /// Assuming you can verify the type yourself via name or whatever else have you,
     /// this should be enough to get you the backing data to then use <see cref="MemoryMarshal"/>'s Cast method to
-    /// convert the type into the struct expected. This is the SUPPORTED way to get arbitrary data out.
+    /// convert the type into the struct/datatype expected.
     /// </summary>
     public bool TryGetPropertyAsBytes(out ReadOnlySpan<byte> result)
     {
-        Span<byte> bytes = new Span<byte>(data, 0, data.Length);
+        Span<byte> bytes = new Span<byte>(Data);
         result = bytes;
         return true;
     }
@@ -80,9 +87,9 @@ public struct ManagedMaterialProperty
     
     public bool TryGetPropertyAsDoubles(out ReadOnlySpan<double> result)
     {
-        if (type == PropertyTypeInfo.PtiBuffer || type == PropertyTypeInfo.PtiDouble)
+        if (_type == PropertyTypeInfo.Buffer || _type == PropertyTypeInfo.Double)
         {
-            result = MemoryMarshal.Cast<byte, double>(data.AsSpan());
+            result = MemoryMarshal.Cast<byte, double>(Data.AsSpan());
             return true;
         }
         result = ReadOnlySpan<double>.Empty;
@@ -101,9 +108,9 @@ public struct ManagedMaterialProperty
     
     public bool TryGetPropertyAsFloats(out ReadOnlySpan<float> result)
     {
-        if (type == PropertyTypeInfo.PtiBuffer || type == PropertyTypeInfo.PtiFloat)
+        if (_type == PropertyTypeInfo.Buffer || _type == PropertyTypeInfo.Float)
         {
-            result = MemoryMarshal.Cast<byte, float>(data.AsSpan());
+            result = MemoryMarshal.Cast<byte, float>(Data.AsSpan());
             return true;
         }
 
@@ -124,9 +131,9 @@ public struct ManagedMaterialProperty
     
     public bool TryGetPropertyAsInts(out ReadOnlySpan<int> result)
     {
-        if (type == PropertyTypeInfo.PtiBuffer || type == PropertyTypeInfo.PtiInteger)
+        if (_type == PropertyTypeInfo.Buffer || _type == PropertyTypeInfo.Integer)
         {
-            result = MemoryMarshal.Cast<byte, int>(data.AsSpan());
+            result = MemoryMarshal.Cast<byte, int>(Data.AsSpan());
             
             return true;
         }
@@ -139,7 +146,7 @@ public struct ManagedMaterialProperty
         bool success = TryGetPropertyAsInts(out result);
         if (success)
         {
-            result = result.Slice(0, Math.Min(MaxElements, result.Length));   
+            result = result[..Math.Min(MaxElements, result.Length)];   
         }
         return success;
     }
@@ -180,7 +187,7 @@ public struct ManagedMaterialProperty
     /// <typeparam name="T"></typeparam>
     public void DangerousGetPropertyAs<T>(out ReadOnlySpan<T> result) where T : unmanaged
     {
-        result = MemoryMarshal.Cast<byte, T>(data.AsSpan());
+        result = MemoryMarshal.Cast<byte, T>(Data.AsSpan());
     }
     
     
@@ -193,7 +200,7 @@ public struct ManagedMaterialProperty
     /// <typeparam name="T"></typeparam>
     public void DangerousGetPropertyAs<T>(out ReadOnlySpan<T> result, int MaxElements) where T : unmanaged
     {
-        DangerousGetPropertyAs<T>(out result);
+        DangerousGetPropertyAs(out result);
         if (MaxElements > 0)
         {
             result = result.Slice(0, Math.Min(MaxElements, result.Length));

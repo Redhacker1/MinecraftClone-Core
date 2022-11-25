@@ -19,7 +19,7 @@ public struct TextureSlot : IDisposable, IEquatable<TextureSlot>
 
     public bool HasFlag(ImageFlags flag)
     {
-        return Flags.HasFlag(flag);
+        return FlagHelper.HasFlag((int) Flags, (int)flag);
     }
 
     public bool Equals(TextureSlot other)

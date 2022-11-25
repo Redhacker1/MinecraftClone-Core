@@ -1,4 +1,7 @@
-﻿using SilkyNvg;
+﻿using System.Globalization;
+using System.Numerics;
+using Silk.NET.Maths;
+using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 using SilkyNvg.Text;
@@ -8,142 +11,185 @@ namespace NvgExample
 
     public class PerformanceGraph
     {
-
-        private const uint GRAPH_HISTORY_COUNT = 100;
-
         public enum GraphRenderStyle
         {
             Fps,
             Ms,
             Percent
         }
+        
+        public enum LineStyle : byte
+        {
+            Fill,
+            Stroke
+        }
 
-        private readonly GraphRenderStyle _style;
+        private LineStyle _style = LineStyle.Stroke;
         private readonly string _name;
-        private readonly float[] _values = new float[GRAPH_HISTORY_COUNT];
+        float[] _values;
+        Vector2D<uint> boxSize;
 
         private uint _head;
-
         public float GraphAverage
         {
             get
             {
                 float avg = 0;
-                for (uint i = 0; i < GRAPH_HISTORY_COUNT; i++)
+                for (uint i = 0; i <  _values.Length; i++)
                 {
                     avg += _values[i];
                 }
-                return avg / GRAPH_HISTORY_COUNT;
+                return avg /  _values.Length;
             }
         }
 
-        public PerformanceGraph(GraphRenderStyle style, string name)
+        Vector2D<float> MinMax
         {
-            _style = style;
-            _name = name;
+            get
+            {
+                Vector2D<float> minMaxVal = new Vector2D<float>(float.PositiveInfinity, float.NegativeInfinity);  
+                for (uint i = 0; i < _values.Length; i++)
+                {
+                    minMaxVal.X = MathF.Min(minMaxVal.X, _values[i]);
+                    minMaxVal.Y = MathF.Max(minMaxVal.Y, _values[i]);
+                }
+
+                return minMaxVal;
+            }
+        }
+
+        public PerformanceGraph(Vector2D<uint> graphSize)
+        {
+            Resize(graphSize);
         }
 
         public void Update(float frameTime)
         {
-            _head = (_head + 1) % GRAPH_HISTORY_COUNT;
+            _head = (_head  + 1) % (uint)_values.Length;
             _values[_head] = frameTime;
         }
-
-        public void Render(float x, float y, Nvg nvg)
+        
+        float GetValue(uint index)
         {
-            float avg = GraphAverage;
+            index %= (uint)_values.Length;
+            return _values[index];
+        }
 
-            float w = 200.0f;
-            float h = 35.0f;
+        Vector2D<float> _range;
 
+
+        public void Resize(Vector2D<uint> size)
+        {
+            boxSize = size;
+            float[] oldArray = _values;
+            _values = new float[size.X / 2];
+            if (oldArray != null)
+            {
+                int TransferSize = Math.Min(oldArray.Length,_values.Length);
+                int TransferStart = Math.Max(TransferSize - oldArray.Length, 0);
+                Array.Copy(oldArray, TransferStart, _values, 0, TransferSize);   
+            }
+
+            _head = 0;
+
+        }
+
+
+
+
+        void DrawBackGroundRect(Nvg nvg, float x, float y)
+        {
             nvg.BeginPath();
-            nvg.Rect(x, y, w, h);
+            nvg.Rect(x, y, boxSize.X, boxSize.Y);
             nvg.FillColour(nvg.Rgba(0, 0, 0, 128));
             nvg.Fill();
+        }
 
+        void DrawLines(Nvg nvg, float x, float y)
+        {
+            float XStepSize = (float)boxSize.X / _values.Length;
+            float startPoint = NormalizeData(GetValue(_head), _range.X, _range.Y);
+            
             nvg.BeginPath();
-            nvg.MoveTo(x, y + h);
-            if (_style == GraphRenderStyle.Fps)
+            
+            nvg.MoveTo(x, startPoint * boxSize.Y);
+            for (uint graphData = _head; graphData < _values.Length + _head; graphData++)
             {
-                for (uint i = 0; i < GRAPH_HISTORY_COUNT; i++)
+                var pointValue = GetValue(graphData);
+                var height = NormalizeData(pointValue, _range.X, _range.Y);
+
+                if (height >= 1 || height <= 0)
                 {
-                    float v = 1.0f / (0.00001f + _values[(_head + i) % GRAPH_HISTORY_COUNT]);
-                    v = MathF.Min(v, 80.0f);
-                    float vx = ((float)i / (GRAPH_HISTORY_COUNT - 1)) * w;
-                    float vy = y + h - ((v / 80.0f) * h);
-                    nvg.LineTo(vx, vy);
+                    _range = MinMax;
+                    height = NormalizeData(pointValue, _range.X, _range.Y);
                 }
-            }
-            else if (_style == GraphRenderStyle.Percent)
-            {
-                for (uint i = 0; i < GRAPH_HISTORY_COUNT; i++)
-                {
-                    float v = _values[(_head + i) % GRAPH_HISTORY_COUNT] * 1.0f;
-                    v = MathF.Min(v, 100.0f);
-                    float vx = x + ((float)i / (GRAPH_HISTORY_COUNT - 1)) * w;
-                    float vy = y + h - ((v / 100.0f) * h);
-                    nvg.LineTo(vx, vy);
-                }
-            }
-            else if (_style == GraphRenderStyle.Ms)
-            {
-                for (uint i = 0; i < GRAPH_HISTORY_COUNT; i++)
-                {
-                    float v = _values[(_head + i) % GRAPH_HISTORY_COUNT] * 1000.0f;
-                    v = MathF.Min(v, 20.0f);
-                    float vx = x + ((float)i / (GRAPH_HISTORY_COUNT - 1)) * w;
-                    float vy = y + h - ((v / 20.0f) * h);
-                    nvg.LineTo(vx, vy);
-                }
+                nvg.LineTo(XStepSize * (graphData - _head) + (x), (y)  + height * (boxSize.Y));
             }
 
-            nvg.LineTo(x + w, y + h);
-            nvg.FillColour(nvg.Rgba(255, 192, 0, 128));
-            nvg.Fill();
 
-            nvg.FontFace("sans");
-
-            if (_name != null)
+            if (_style == LineStyle.Fill)
             {
-                nvg.FontSize(12.0f);
-                nvg.TextAlign(Align.Left | Align.Top);
-                nvg.FillColour(nvg.Rgba(240, 240, 240, 192));
-                _ = nvg.Text(x + 3.0f, y + 3.0f, _name);
+                nvg.LineTo(x + boxSize.X, y + boxSize.Y);
+                nvg.LineTo(x, y + boxSize.Y);
+                nvg.LineTo(x, startPoint * boxSize.Y);
+                nvg.FillColour(Colour.Red);
+                nvg.Fill();
             }
-
-            if (_style == GraphRenderStyle.Fps)
+            else
             {
-                nvg.FontSize(15.0f);
-                nvg.TextAlign(Align.Right | Align.Top);
-                nvg.FillColour(nvg.Rgba(240, 240, 240, 160));
-                float val = 1.0f / avg;
-                string str = (float.IsInfinity(val) ? "inf" : val) + " FPS";
-                _ = nvg.Text(x + w - 3.0f, y + 3.0f, str);
-
-                nvg.FontSize(13.0f);
-                nvg.TextAlign(Align.Right | Align.Baseline);
-                nvg.FillColour(nvg.Rgba(240, 240, 240, 160));
-                val = avg * 1000.0f;
-                str = val + " ms";
-                _ = nvg.Text(x + w - 3.0f, y + h - 3.0f, str);
-            }
-            else if (_style == GraphRenderStyle.Percent)
-            {
-                nvg.FontSize(15.0f);
-                nvg.TextAlign(Align.Right | Align.Top);
-                nvg.FillColour(nvg.Rgba(240, 240, 240, 255));
-                string str = avg * 1.0f + "%";
-                _ = nvg.Text(x + w - 3.0f, y + 3.0f, str);
-            }
-            else if (_style == GraphRenderStyle.Ms)
-            {
-                nvg.FontSize(15.0f);
-                nvg.TextAlign(Align.Right | Align.Top);
-                nvg.FillColour(nvg.Rgba(240, 240, 240, 255));
-                string str = avg * 1000.0f + " ms";
-                _ = nvg.Text(x + w - 3.0f, y + 3.0f, str);
+                nvg.StrokeWidth(1f);
+                nvg.StrokeColour(Colour.Red);
+                nvg.Stroke();
             }
         }
 
+        bool normalize = true;
+        public void Render(float x, float y, Nvg nvg)
+        {
+            var fontIndex = nvg.FindFont("sans-bold");
+            if (fontIndex == -1)
+            {
+                fontIndex = nvg.CreateFont("sans-bold", "./fonts/Roboto-Bold.ttf");
+            }
+            
+
+            if (normalize)
+            {
+                _range = MinMax;
+                normalize = false;
+            }
+            DrawBackGroundRect(nvg, x, y);
+            DrawLines(nvg, x, y);
+            DrawText(nvg, x, y);
+        }
+
+        void DrawText(Nvg nvg, float x, float y)
+        {
+            
+            var minmax = MinMax;
+            
+            nvg.FontSize(11);
+            nvg.FontFace("sans-bold");
+            nvg.FillColour(new Colour(57, 255, 0));
+            nvg.TextAlign(Align.Top);
+            
+            TextHelper(nvg, $"Maximum: {minmax.Y * 1000}", new Vector2D<float>(x + boxSize.X, y - 5.5f));
+
+            TextHelper(nvg, $"Average: {GraphAverage * 1000}", new Vector2D<float>(x + boxSize.X, y - 5f + (boxSize.Y / 2f) - 5.5f));
+            
+            TextHelper(nvg, $"Minimum: {minmax.X * 1000}", new Vector2D<float>(x + boxSize.X, y - 16f + boxSize.Y));
+        }
+
+        void TextHelper(Nvg nvg, string text, Vector2D<float> location)
+        {
+            nvg.TextBounds(0, 0, text, out Rectangle<float> renderBounds);
+            nvg.Text(location.X, location.Y + renderBounds.Size.Y - 5.5F, text);
+        }
+
+
+        float NormalizeData(float input, float min, float max)
+        {
+            return (input - min) / (max - min);
+        }
     }
 }

@@ -16,7 +16,7 @@ namespace NVGRenderer.Rendering.Calls
         {
 
 
-            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, _renderer);
+            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, _renderer, frame);
 
             DrawCall call = new DrawCall
             {
@@ -35,7 +35,7 @@ namespace NVGRenderer.Rendering.Calls
                 drawCalls.Add(call);
             }
 
-            Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, _renderer);
+            Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, _renderer, frame);
             call.Pipeline = aaPipeline;
 
 
@@ -52,7 +52,7 @@ namespace NVGRenderer.Rendering.Calls
                 drawCalls.Add(call);
             }
 
-            Pipeline stPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
+            Pipeline stPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer, frame);
             call.Pipeline = stPipeline;
             
             foreach (Path path in paths)

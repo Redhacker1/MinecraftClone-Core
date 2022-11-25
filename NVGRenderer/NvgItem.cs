@@ -28,7 +28,7 @@ public class NvgItem
         items.Remove(_itemWeakRef);
     }
 
-    float TotalTime = 0;
+    float TotalTime;
     public virtual void OnDraw(Nvg nvg, float delta)
     {
         TotalTime += ( delta) / 100;   
@@ -89,7 +89,7 @@ public class PerfMonitor : NvgItem
     public override void OnDraw(Nvg nvg, float delta) 
     {
         watch ??= Stopwatch.StartNew();
-        Graph ??= new PerformanceGraph(PerformanceGraph.GraphRenderStyle.Fps, "FPS");
+        Graph ??= new PerformanceGraph(new Vector2D<uint>(200, 48));
 
         double t = watch.Elapsed.TotalSeconds;
         double dt = t - PrevTime;

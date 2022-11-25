@@ -44,24 +44,26 @@ public class ResourceSetCache
         _nvgFrame = nvgFrame;
     }
 
-    public ResourceSet GetResourceSet(ResourceSetData parameters)
+    public bool GetResourceSet(ResourceSetData parameters, out ResourceSet set)
     {
+        set = null;
 
-        if (!_sets.TryGetValue(parameters, out ResourceSet result))
+        if (_sets.TryGetValue(parameters, out set) == false)
         {
-            _ = _nvgFrame.Renderer.TextureManager.FindTexture(parameters.image, out TextureSlot texSlot);
+            if (_nvgFrame.Renderer.TextureManager.FindTexture(parameters.image, out TextureSlot texSlot))
+            {
+                set = _nvgFrame.Renderer.Device.ResourceFactory.CreateResourceSet(
+                    new ResourceSetDescription(_nvgFrame.Renderer.DescriptorSetLayout,
+                        _nvgFrame.VertexUniformBuffer.GetBuffer(),
+                        texSlot.TextureSampler,
+                        texSlot.Texture._Texture
+                    ));
 
-            result = _nvgFrame.Renderer.Device.ResourceFactory.CreateResourceSet(
-                new ResourceSetDescription(_nvgFrame.Renderer.DescriptorSetLayout,
-                    _nvgFrame.VertexUniformBuffer.GetBuffer(),
-                    texSlot.TextureSampler,
-                    texSlot.Texture._Texture
-                ));
-
-            _sets[parameters] = result;
+                _sets[parameters] = set;
+            }   
         }
-        return result;
-        
-        
+        return set != null;
+
+
     }
 }

@@ -8,7 +8,7 @@ namespace Engine.Rendering.VeldridBackend
         where T : unmanaged
     {
         
-        public IndexBuffer(GraphicsDevice gDevice, Span<T> data) : base(gDevice)
+        public IndexBuffer(GraphicsDevice gDevice, ReadOnlySpan<T> data) : base(gDevice)
         {
             BufferType = BufferUsage.IndexBuffer;
             unsafe

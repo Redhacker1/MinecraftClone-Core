@@ -26,6 +26,7 @@ namespace MCClone_Core.Utility.IO
                     File.Delete(format.GetFilename(chunkCoords, world, false));
                 }
             }
+            
             DefaultSaveFileFormat.WriteChunkData(blocks,chunkCoords,world,optimizeSave);
         }
 
@@ -52,7 +53,7 @@ namespace MCClone_Core.Utility.IO
                     }
                 }   
             }
-            
+
             return data;
         }
     }

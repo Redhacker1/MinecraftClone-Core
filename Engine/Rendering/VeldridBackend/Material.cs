@@ -5,22 +5,22 @@ namespace Engine.Rendering.VeldridBackend
 
     public class Material
     {
-        Material parent;
-        internal ResourceLayout[] layouts;
-        internal ResourceSet[] Sets;
+        Material _parent;
+        internal ResourceLayout[] Layouts;
+        public ResourceSet[] Sets;
 
-        Pipeline pipeline;
+        Pipeline _pipeline;
 
-        internal bool Bind(CommandList list, ResourceSet SetZero, bool DepthPrepass)
+        internal bool Bind(CommandList list, ResourceSet setZero, bool depthPrepass = false)
         {
-            if (pipeline != new Pipeline() && DepthPrepass == false)
+            if (_pipeline != new Pipeline() && depthPrepass == false)
             {
-                list.SetPipeline(pipeline._pipeline);
+                list.SetPipeline(_pipeline._pipeline);
             }
 
-            list.SetGraphicsResourceSet(0 , SetZero);
+            list.SetGraphicsResourceSet(0 , setZero);
 
-            if (!DepthPrepass)
+            if (!depthPrepass)
             {
                 for (int i = 1; i < Sets.Length; i++)
                 {
@@ -28,9 +28,9 @@ namespace Engine.Rendering.VeldridBackend
                     {
                         list.SetGraphicsResourceSet((uint) i , Sets[i]);
                     }
-                    else if(parent != null)
+                    else if(_parent != null)
                     {
-                        list.SetGraphicsResourceSet((uint) i, parent.Sets[i]);
+                        list.SetGraphicsResourceSet((uint) i, _parent.Sets[i]);
                     }
                     else
                     {
@@ -50,12 +50,12 @@ namespace Engine.Rendering.VeldridBackend
                 ResourceLayoutDescription layout = resourceLayouts[layoutIndex];
                 materialLayouts[layoutIndex] = renderer.Device.ResourceFactory.CreateResourceLayout(layout);
             }
-            layouts = materialLayouts;
+            Layouts = materialLayouts;
 
-            pipeline = new Pipeline(description.DepthTest, true,
+            _pipeline = new Pipeline(description.DepthTest, true,
                 ComparisonKind.Less,
                 description.CullMode, description.FaceDir, description.Topology, description.FillMode,
-                description.Shaders, renderer.Device, vertexLayoutDescription, layouts);
+                description.Shaders, renderer.Device, vertexLayoutDescription, Layouts);
 
 
             Sets = new ResourceSet[materialLayouts.Length];
@@ -63,9 +63,9 @@ namespace Engine.Rendering.VeldridBackend
         
         public Material(Material parent)
         {
-            this.parent = parent;
+            this._parent = parent;
             Sets = new ResourceSet[parent.Sets.Length];
-            layouts = parent.layouts;
+            Layouts = parent.Layouts;
         }
         
         public void ResourceSet(uint slot, params GraphicsResource[] resources)
@@ -76,9 +76,9 @@ namespace Engine.Rendering.VeldridBackend
                 bindableResources[resource] = resources[resource].GetUnderlyingResource().Item2;
             }
 
-            if (slot < layouts.Length && layouts[slot] != null)
+            if (slot < Layouts.Length && Layouts[slot] != null)
             {
-                ResourceSetDescription set = new ResourceSetDescription(layouts[slot], bindableResources);   
+                ResourceSetDescription set = new ResourceSetDescription(Layouts[slot], bindableResources);   
                 Sets[slot] = Engine.Renderer.Device.ResourceFactory.CreateResourceSet(set);
             }
         }

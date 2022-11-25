@@ -10,7 +10,7 @@ namespace MCClone_Core.Utility.IO
     {
         public byte VersionNumber = 1;
 
-        public string FileExtension = ".cdat";
+        public string FileExtension = "cdat";
 
         public abstract ChunkCs GetChunkData(WorldData world, Int2 int2, out bool chunkExists);
         public abstract void WriteChunkData(Span<byte> span, Int2 int2, WorldData world,

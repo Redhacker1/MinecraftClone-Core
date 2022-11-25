@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Numerics;
+using System.Threading;
 using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Abstract.RenderStage;
 using Engine.Rendering.Abstract.View;
+using Engine.Utilities.MathLib;
+using Engine.Windowing;
 using ImGuiNET;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -22,6 +26,7 @@ namespace Engine.Rendering.VeldridBackend
     /// </summary>
     public class Renderer : IDisposable
     {
+        public readonly Thread RenderThread;
 
 
 
@@ -31,24 +36,51 @@ namespace Engine.Rendering.VeldridBackend
         internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
-                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
             _list = Device.ResourceFactory.CreateCommandList();
             
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
+            RenderThread = new Thread(() =>
+            {
+                while (!_disposing)
+                {
+                    if (Pause)
+                    {
+                        Device.WaitForIdle();
+                        continue;
+                    }
+                    
+                    OnRender(_stopwatch.Elapsed.TotalSeconds);
+                    
+                    if (_stopwatch.ElapsedMilliseconds != 0)
+                    {
+                        FPS = (uint) (1f / _stopwatch.Elapsed.TotalSeconds);   
+                    }
+                    _stopwatch.Restart();
 
+                    RendererHalted = Pause;
+                }
+
+                RendererHalted = true;
+            });
+            OnResize = _ => { Resize(WindowClass.Handle.Size);};
         }
         
-        CommandList _list; 
+        CommandList _list;
         Stopwatch _stopwatch = new Stopwatch();
         public uint FPS;
         public GraphicsDevice Device;
+        public bool Pause = false;
+        public bool RendererHalted = true;
+
+        Vector2D<int> newSize = new Vector2D<int>();
+
         internal void OnRender(double time)
         {
-            if (_disposing)
+            if (SizeChange)
             {
-                return;
+                ResizeMainSwapchain(newSize);
             }
-            _stopwatch.Restart();
             
             // Clear the screen, 
             _list.Begin();
@@ -82,18 +114,20 @@ namespace Engine.Rendering.VeldridBackend
             
 
             _imGuiHandler.Update((float) time);
-            foreach (ImGUIPanel uiPanel in ImGUIPanel.Panels)
+            for (int index = 0; index < ImGUIPanel.Panels.Count; index++)
             {
-
+                ImGUIPanel uiPanel = ImGUIPanel.Panels[index];
                 if (uiPanel.Draggable == false)
                 {
-                    ImGui.SetNextWindowPos(uiPanel.Position, ImGuiCond.Once);   
+                    ImGui.SetNextWindowPos(uiPanel.Position, ImGuiCond.Once);
                 }
+
                 ImGui.Begin(uiPanel.PanelName, uiPanel.Flags);
                 uiPanel.CreateUI();
                 uiPanel.Position = ImGui.GetWindowPos();
                 ImGui.End();
             }
+
             _imGuiHandler.Render(Device, _list);
             _list.End();
             
@@ -102,30 +136,62 @@ namespace Engine.Rendering.VeldridBackend
             
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                FPS = (uint) (1 / time);   
+                FPS = (uint) (1 / _stopwatch.Elapsed.TotalMilliseconds);   
             }
 
         }
-        
-        internal void OnResize(Vector2D<int> size)
+
+        bool SizeChange = false;
+
+
+        void ResizeMainSwapchain(Vector2D<int> size)
         {
-            // Adjust the viewport to the new window size
-            Device.ResizeMainWindow((uint)size.X,(uint)size.Y);
+            if (size.Length > 0)
+            {
+                // Adjust the viewport to the new window size
+
+                Engine.MainFrameBuffer.Size = new Int2(size.X, size.Y);
+                _imGuiHandler.WindowResized(size);
+                
+            }
+        }
+
+        public readonly Action<Vector2D<int>> OnResize;
+
+
+        internal void Resize(Vector2D<int> size)
+        {
+            SizeChange = true;
+            newSize = size;
         }
 
         bool _disposing;
 
+
+        void WaitForHalt()
+        {
+            Device.WaitForIdle();
+            while (RendererHalted == false)
+            {
+                
+            }
+        }
+
         public void Dispose()
         {
+            
+            Pause = true;
             if (_disposing)
             {
                 return;
             }
+            Console.WriteLine("Telling render system to stop and dispose of objects");
             // Stop rendering frames and let the GPU flush it's current work, then dispose of the GraphicsDevice
             _disposing = true;
-            GC.SuppressFinalize(this);
-            Device.WaitForIdle();
+            WaitForHalt();
+            RenderThread.Join();
 
+            GC.SuppressFinalize(this);
             // Dispose of RenderTargets
             foreach (RenderTarget renderTarget in RenderTarget.Targets)
             {
@@ -134,8 +200,6 @@ namespace Engine.Rendering.VeldridBackend
                     renderTarget.Dispose();
                 }
             }
-
-
             Device.DisposeWhenIdle(Device);
         }
     }

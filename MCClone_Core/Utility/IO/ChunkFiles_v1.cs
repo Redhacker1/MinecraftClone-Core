@@ -1,6 +1,3 @@
-#if !Core
-using Godot;
-#endif
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -33,8 +30,8 @@ namespace MCClone_Core.Utility.IO
                 compressed = true;
             }
             
-            var FileData = File.ReadAllBytes(filePath);
-            MemoryStream data = new MemoryStream(FileData);
+            byte[] fileData = File.ReadAllBytes(filePath);
+            MemoryStream data = new MemoryStream(fileData);
 
             DeflateStream compressor = null;
             BinaryReader fileReader = new BinaryReader(data);
@@ -72,9 +69,11 @@ namespace MCClone_Core.Utility.IO
             saveData.Location = new Int2(x, y);
             
             byte[] serializedBlockData = fileReader.ReadBytes(ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ);
-            ChunkCs referencedChunk = new ChunkCs();
-            referencedChunk.ChunkCoordinate = saveData.Location;
-            referencedChunk.Position = new Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxZ * saveData.Location.Y);
+            ChunkCs referencedChunk = new ChunkCs
+            {
+                ChunkCoordinate = saveData.Location,
+                Position = new Vector3(ChunkCs.MaxX * saveData.Location.X, 0, ChunkCs.MaxZ * saveData.Location.Y)
+            };
 
             for (int i = 0; i <  serializedBlockData.Length; i++)
             {
@@ -97,33 +96,34 @@ namespace MCClone_Core.Utility.IO
         {
             SaveInfo saveData = SerializeChunkData(blocks,chunkCoords, world, optimizeSave);
             
-            MemoryStream chunkdat = new MemoryStream();
+            MemoryStream outputData = new MemoryStream();
             
-            BinaryWriter fileWriter = new BinaryWriter(chunkdat);
+            BinaryWriter binaryWriter = new BinaryWriter(outputData);
 
-            fileWriter.Write(saveData.VersionNumber);
-            fileWriter.Write(saveData.BlockSize);
-            fileWriter.Write(saveData.BiomeId);
+            binaryWriter.Write(saveData.VersionNumber);
+            binaryWriter.Write(saveData.BlockSize);
+            binaryWriter.Write(saveData.BiomeId);
 
-            fileWriter.Write((short)saveData.BlockPalette.Count);
+            binaryWriter.Write((short)saveData.BlockPalette.Count);
             foreach (KeyValuePair<byte, byte> blockIdPair in saveData.BlockPalette)
             {
-                fileWriter.Write(blockIdPair.Key);
-                fileWriter.Write(blockIdPair.Value);
+                binaryWriter.Write(blockIdPair.Key);
+                binaryWriter.Write(blockIdPair.Value);
             }
             
             
-            fileWriter.Write(saveData.Location.X);
-            fileWriter.Write(saveData.Location.Y);
-            Span<byte> encodedBytes = stackalloc byte[saveData.ChunkBlocks.Length];
+            binaryWriter.Write(saveData.Location.X);
+            binaryWriter.Write(saveData.Location.Y);
+            Span<byte> encodedBytes = new byte[saveData.ChunkBlocks.Length];
 
             for (int blockIndex = 0; blockIndex < encodedBytes.Length; blockIndex++)
             {
                 encodedBytes[blockIndex] = saveData.BlockPalette[saveData.ChunkBlocks.Span[blockIndex]];
             }
-            fileWriter.Write(encodedBytes);
+            binaryWriter.Write(encodedBytes);
 
-            if(world.Directory == null) return;
+            if (world.Directory == null) return;
+            
             FileStream fs = new FileStream(Path.Combine(world.Directory, GetFilename(chunkCoords, world, optimizeSave)), FileMode.Create);
 
             
@@ -136,28 +136,29 @@ namespace MCClone_Core.Utility.IO
                     File.Delete(uncompressedPath);
                 }
 
-                byte[] cdat = Compress(chunkdat.GetBuffer());
-                fs.Write(cdat, 0, cdat.Length);
+                byte[] cdata = Compress(outputData.GetBuffer());
+                fs.Write(cdata);
             }
             else
             {
-                fs.Write(chunkdat.ToArray(), 0, (int)chunkdat.Length);
+                fs.Write(outputData.GetBuffer());
             }
             
-            fileWriter.Close();
-            chunkdat.Close();
+            binaryWriter.Close();
+            outputData.Close(); 
             fs.Close();
 
 
         }
 
-        public static byte[] Compress(byte[] data)
+        public static byte[] Compress(ReadOnlySpan<byte> data)
         {
             using MemoryStream memoryStream = new MemoryStream();
-            using DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress);
-            deflateStream.Write(data, 0, data.Length);
-            byte[] compressArray = memoryStream.ToArray();
-            return compressArray;
+            using (DeflateStream deflateStream = new DeflateStream(memoryStream, CompressionMode.Compress))
+            {
+                deflateStream.Write(data);
+            }
+            return memoryStream.GetBuffer();
         }
 
     }

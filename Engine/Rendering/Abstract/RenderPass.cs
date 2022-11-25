@@ -21,6 +21,7 @@ namespace Engine.Rendering.Abstract
         CommandList cmdList;
         protected Renderer backingRenderer;
         public string Name;
+        public bool FrustumCull = true;
         
         ThreadSafeList<WeakReference<Instance3D>> Instances = new ThreadSafeList<WeakReference<Instance3D>>();
 
@@ -134,11 +135,35 @@ namespace Engine.Rendering.Abstract
 
             CommandList list = rendererState.GlobalCommandList;
             CameraInfo cameraInfo = new CameraInfo(Camera.MainCamera);
-            List<Instance3D> instances = Cull(Instances, ref cameraInfo);
+            List<Instance3D> instances;
+            if (FrustumCull)
+            {
+                instances = Cull(Instances, ref cameraInfo);   
+            }
+            else
+            {
+                instances = new List<Instance3D>();
+                for (int i = 0; i < Instances.Count; i++)
+                {
+                    // Check if the WeakReference is valid and if the mesh it points to has not been disposed. 
+                    if (Instances[i].TryGetTarget(out Instance3D currentInstance) &&
+                        currentInstance._baseRenderableElement.Disposed == false)
+                    {
+                        if (currentInstance.isVisible &&
+                            currentInstance._baseRenderableElement.VertexElements > 0)
+                        {
+                            instances.Add(currentInstance);
+                        }
+                    }
+                }
+            }
             Sort(instances, cameraInfo);
 
-            list.PushDebugGroup(Name);   
-            
+            if (Name != null)
+            {
+                list.PushDebugGroup(Name);      
+            }
+
             PrePass(ref cameraInfo, list, instances);
             Pass(list, instances, ref cameraInfo);
             PostPass(list);

@@ -23,7 +23,7 @@ namespace Engine.Rendering.VeldridBackend
         readonly PrimitiveTopology _topology;
         readonly ShaderSet _shaders;
 
-        internal Veldrid.Pipeline _pipeline;
+        public Veldrid.Pipeline _pipeline;
 
         public Pipeline(bool depthTest, bool writeDepthBuffer, ComparisonKind compare, FaceCullMode cullmode, FrontFace dir, PrimitiveTopology topology, PolygonFillMode filltype, ShaderSet shaders, GraphicsDevice device, VertexLayoutDescription[] vertexLayout, ResourceLayout[] layouts)
         {

@@ -2,6 +2,7 @@
 using Engine.Input;
 using Engine.Rendering.VeldridBackend;
 using Silk.NET.Input;
+using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
 namespace Engine.Windowing
@@ -46,7 +47,8 @@ namespace Engine.Windowing
             
             //Assign events.
             Handle.FramebufferResize += Engine.Renderer.OnResize;
-            Handle.Render += Engine.Renderer.OnRender;
+
+            Engine.Renderer.RenderThread.Start();
             Handle.Update += _gameInstance.Update;
 
             _gameInstance.GameStart();
@@ -56,6 +58,7 @@ namespace Engine.Windowing
         void OnClose()
         {
             _gameInstance.GameEnded();
+            Engine.Renderer.Dispose();
             Console.WriteLine("Closed!");
         }
     }

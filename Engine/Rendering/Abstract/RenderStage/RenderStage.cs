@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using BepuUtilities;
 using Engine.Rendering.Abstract.View;
 using Veldrid;
@@ -19,7 +20,6 @@ public abstract class RenderStage
     float prevTime;
     internal void RunStage(RenderState rendererState, RenderTarget target)
     {
-
         float curTime = (float) _stopwatch.Elapsed.TotalMilliseconds;
         Stage(rendererState, target, curTime, curTime - prevTime );
         prevTime = curTime;

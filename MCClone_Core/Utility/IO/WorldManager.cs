@@ -18,7 +18,7 @@ namespace MCClone_Core.Utility.IO
     }
     public static class WorldManager
     {
-        public static readonly string WorldDir = Path.Combine(Environment.CurrentDirectory, "World");
+        public static readonly string WorldDir = Path.Combine(Environment.CurrentDirectory, "Worlds");
 
         static Dictionary<string, WorldData> _worlds = FindWorlds();
         public static Dictionary<string, WorldData> FindWorlds()
@@ -33,9 +33,7 @@ namespace MCClone_Core.Utility.IO
                     {
                         if (Path.GetExtension(file) == ".wdat")
                         {
-                            WorldData world = new WorldData(
-                                Path.GetFileNameWithoutExtension(path).Replace(path, ""), 
-                                file);
+                            WorldData world = new WorldData(Path.GetFileNameWithoutExtension(path).Replace(path, ""), file);
                             world.Name = Path.GetFileNameWithoutExtension(path).Replace(path, "");
                             world.Directory = path;
                             
@@ -47,8 +45,8 @@ namespace MCClone_Core.Utility.IO
                 _worlds = worlds;
                 return worlds;
             }
-
             Directory.CreateDirectory(WorldDir);
+            
             return new Dictionary<string, WorldData>();
         }
 
@@ -69,14 +67,15 @@ namespace MCClone_Core.Utility.IO
         {
             WorldData world = new WorldData();
             world.Name = worldname;
-            if (!WorldExists(worldname))
+            if (WorldExists(worldname) == false)
             {
 
                 string dir = Path.Combine(WorldDir, worldname);
                 
                 Directory.CreateDirectory(dir);
                 File.Create(Path.Combine(dir, worldname + ".wdat")).Close();
-
+                world.Directory = dir;
+                
                 return world;
             }
 

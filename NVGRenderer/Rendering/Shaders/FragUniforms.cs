@@ -38,6 +38,7 @@ namespace NVGRenderer.Rendering.Shaders
         {
             Matrix3X2<float> invtransform;
 
+
             _innerCol = paint.InnerColour.Premult();
             _outerCol = paint.OuterColour.Premult();
 
@@ -61,7 +62,7 @@ namespace NVGRenderer.Rendering.Shaders
             _extent = paint.Extent;
             _strokeMult = (width * 0.5f + fringe * 0.5f) / fringe;
             _strokeThr = strokeThr;
-
+            
             if (paint.Image != 0)
             {
                 _ = renderer.TextureManager.FindTexture(paint.Image, out TextureSlot tex);
@@ -71,8 +72,6 @@ namespace NVGRenderer.Rendering.Shaders
                     _radius = paint.Radius;
                     _feather = paint.Feather;
                     _texType = 0;
-
-                    _ = Matrix3X2.Invert(paint.Transform, out invtransform);
                 }
                 else
                 {
@@ -86,10 +85,6 @@ namespace NVGRenderer.Rendering.Shaders
                         m1 = Matrix3X2.CreateTranslation(new Vector2D<float>(0.0f, -_extent.Y * 0.5f));
                         m1 = NvgTransforms.Multiply(m1, m2);
                         _ = Matrix3X2.Invert(m1, out invtransform);
-                    }
-                    else
-                    {
-                        _ = Matrix3X2.Invert(paint.Transform, out invtransform);
                     }
                     _type = (int)ShaderType.FillImg;
 
@@ -111,10 +106,9 @@ namespace NVGRenderer.Rendering.Shaders
                 _radius = paint.Radius;
                 _feather = paint.Feather;
                 _texType = 0;
-
-                _ = Matrix3X2.Invert(paint.Transform, out invtransform);
             }
-
+            
+            Matrix3X2.Invert(paint.Transform, out invtransform);
             _paintMat = new Matrix3X4<float>(invtransform);
         }
 

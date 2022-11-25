@@ -48,7 +48,7 @@ namespace MCClone_Core.Debug_and_Logging
             
             
             ImGui.InputFloat3("Rotation", ref CameraFront, null);
-            //ImGui.Text($"Heapool: {ChunkSingletons.ChunkPool.MaxCapacity} bytes maxed, {ChunkSingletons.ChunkPool.AvailableBytes} free!");
+            ImGui.Text($"Heapool: {ChunkSingletons.ChunkPool.BytesInUse} bytes, {ChunkSingletons.ChunkPool.AvailableBytes} free!");
             
             
             Distance = ProcWorld.Instance._loadRadius;

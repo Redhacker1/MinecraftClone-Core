@@ -8,7 +8,6 @@ using Engine.MathLib;
 using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Utilities.MathLib;
-using Engine.Windowing;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
 
@@ -72,9 +71,11 @@ namespace MCClone_Core.World_CS.Generation
 		{
 			BlockData = SafeByteStore<byte>.Create(ChunkSingletons.ChunkPool, MaxX * MaxY * MaxZ);
 			BlockData.EnsureCapacity(MaxX * MaxY * MaxZ);
+			BlockData.GetAppendSpan(MaxX * MaxY * MaxZ);
 			
 			_visibilityMask = SafeByteStore<bool>.Create(ChunkSingletons.ChunkPool, MaxX * MaxY * MaxZ);
 			_visibilityMask.EnsureCapacity(MaxX * MaxY * MaxZ);
+			_visibilityMask.GetAppendSpan(MaxX * MaxY * MaxZ);
 
 			if (BlockData.Capacity == 0)
 			{
@@ -94,14 +95,14 @@ namespace MCClone_Core.World_CS.Generation
 		public void InstantiateChunk(int cx, int cz, long seed)
 		{
 
-			for (int i = 0; i < BlockData.FullSpan.Length; i++)
+			for (int i = 0; i < BlockData.Span.Length; i++)
 			{
-				BlockData.FullSpan[i] = 0;
+				BlockData.Span[i] = 0;
 			}
 			
-			for (int i = 0; i < BlockData.FullSpan.Length; i++)
+			for (int i = 0; i < BlockData.Span.Length; i++)
 			{
-				BlockData.FullSpan[i] = 0;
+				BlockData.Span[i] = 0;
 			}
 			
 			
@@ -139,6 +140,13 @@ namespace MCClone_Core.World_CS.Generation
 			
 			Span<bool> transparent = stackalloc bool[6];
 			uint index = 0;
+
+			ReadOnlySpan<byte> BlockSpan = BlockData.Span;
+
+			if (BlockSpan.Length < MaxX * MaxY * MaxZ)
+			{
+				
+			}
 			
 			
 			for (int z = 0; z < MaxZ; z++)
@@ -146,7 +154,7 @@ namespace MCClone_Core.World_CS.Generation
 			for (int x = 0; x < MaxX; x++)
 			{
 	
-				byte block = BlockData.FullSpan[GetFlattenedIndex(x, y, z)];
+				byte block = BlockSpan[GetFlattenedIndex(x, y, z)];
 				if (block == 0 || _blockTypes[block].Air)
 				{
 					continue;
@@ -178,7 +186,7 @@ namespace MCClone_Core.World_CS.Generation
 			for (int x = 0; x < MaxX; x++)
 			{
 				int index = GetFlattenedIndex(x, y, z);
-				_visibilityMask.FullSpan[index] = BlockHelper.BlockTypes[BlockData.FullSpan[index]].Transparent;
+				_visibilityMask.Span[index] = BlockHelper.BlockTypes[BlockData.Span[index]].Transparent;
 			}
 		}
 	
@@ -188,10 +196,10 @@ namespace MCClone_Core.World_CS.Generation
 			if (x >= 0 && x < MaxX && y >= 0 && y < MaxY && z >= 0 && z < MaxZ)
 			{
 				var index = GetFlattenedIndex(x, y, z);
-				if (!overwrite && BlockData.FullSpan[index] != 0) return;
-				BlockData.FullSpan[index] = b;
+				if (!overwrite && BlockData.Span[index] != 0) return;
+				BlockData.Span[index] = b;
 
-				_visibilityMask.FullSpan[index] = BlockHelper.BlockTypes[b].Transparent;
+				_visibilityMask.Span[index] = BlockHelper.BlockTypes[b].Transparent;
 				ChunkDirty = true;
 				//NeedsSaved = true;
 			}
@@ -342,7 +350,7 @@ namespace MCClone_Core.World_CS.Generation
 				return false;
 			}
 
-			return discardAir ? BlockHelper.BlockTypes[BlockData.FullSpan[index]].Air : _visibilityMask.FullSpan[index];
+			return discardAir ? BlockHelper.BlockTypes[BlockData.Span[index]].Air : _visibilityMask.Span[index];
 		}
 		
 		protected override void OnFree()

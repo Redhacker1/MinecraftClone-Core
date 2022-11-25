@@ -13,5 +13,6 @@ public class WindowRenderTarget : RenderTarget
     public override void Resize(Int2 size)
     {
         Device.ResizeMainWindow((uint)size.X, (uint)size.Y);
+        this._framebuffer = Device.SwapchainFramebuffer;
     }
 }

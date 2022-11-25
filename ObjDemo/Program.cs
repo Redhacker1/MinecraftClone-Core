@@ -12,7 +12,6 @@ using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;
-using Engine.Windowing;
 using Silk.NET.Input;
 using Veldrid;
 using Texture = Engine.Rendering.VeldridBackend.Texture;
@@ -23,6 +22,7 @@ namespace ObjDemo
 	{
 		ConsoleText debug_console = new ConsoleText();
 		MeshSpawner thing;
+		public static DefaultRenderPass _pass;
 
 		protected override void GameStart()
 		{
@@ -37,6 +37,8 @@ namespace ObjDemo
 			ConsoleLibrary.InitConsole(debug_console.SetConsoleScrollback);
 
 			InputHandler.SetMouseMode(0, CursorMode.Normal);
+
+			_pass = new DefaultRenderPass(Engine.Engine.Renderer);
 
 
 			PinnedObject = thing;
@@ -196,7 +198,7 @@ namespace ObjDemo
 
 
 					AddChild(_instance3Ds[location]);
-					WindowClass.Renderer.Stages[0].AddInstance(_instance3Ds[location]);
+					ObjDemo._pass.AddInstance(_instance3Ds[location]);
 				}
 			}
 			foreach (AssimpNode child in nodeDescription.Children)

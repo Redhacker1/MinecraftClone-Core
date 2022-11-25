@@ -14,7 +14,7 @@ namespace NVGRenderer.Rendering.Calls
         public override void Run(NvgFrame frame, List<DrawCall> drawCalls) 
         {
 
-            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, _renderer);
+            Pipeline sPipeline = frame.PipelineCache.GetPipeLine(stencilPipeline, _renderer, frame);
 
             DrawCall call = new DrawCall
             {
@@ -36,7 +36,7 @@ namespace NVGRenderer.Rendering.Calls
 
             if (_renderer.EdgeAntiAlias)
             {
-                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, _renderer);
+                Pipeline aaPipeline = frame.PipelineCache.GetPipeLine(antiAliasPipeline, _renderer, frame);
                 call.Pipeline = aaPipeline;
                 foreach (StrokePath path in paths)
                 {
@@ -46,7 +46,7 @@ namespace NVGRenderer.Rendering.Calls
                 }
             }
 
-            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer);
+            Pipeline fPipeline = frame.PipelineCache.GetPipeLine(renderPipeline, _renderer, frame);
             call.Count = triangleCount;
             call.Offset = triangleOffset;
             call.Pipeline = fPipeline;

@@ -27,7 +27,7 @@ namespace Engine.Renderable
             
         }
 
-        internal abstract void BindResources(CommandList list);
+        protected internal abstract void BindResources(CommandList list);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public AABB GetBoundingBox()
@@ -69,7 +69,7 @@ namespace Engine.Renderable
 
 
 
-        internal override void BindResources(CommandList list)
+        protected internal override void BindResources(CommandList list)
         {
 
             if (vbo.BufferType != BufferUsage.VertexBuffer || ebo?.BufferType == 0 && Disposed == false)

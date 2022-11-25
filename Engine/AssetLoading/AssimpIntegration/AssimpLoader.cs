@@ -350,8 +350,6 @@ namespace Engine.AssetLoading.AssimpIntegration
                     }
                 }
             }
-            
-
             return CurrentNode;
         }
         
@@ -359,25 +357,19 @@ namespace Engine.AssetLoading.AssimpIntegration
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static unsafe bool UnmanagedToManagedCopy<T>(T* source, uint length, Span<T> destination) where T: unmanaged
         {
-            if (destination.Length <= length && source != null)
+
+            if (destination.Length >= length)
             {
-                fixed (void* pDest = destination)
-                {
-                    Unsafe.CopyBlock(pDest, source, (uint) (length * sizeof(T)));
-                }
-                return true;
+                Span<T> tempSpan = new Span<T>(source, (int) length);
+                return UnmanagedToManagedCopy(tempSpan, destination);
             }
             return false;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        // ReSharper disable once UnusedMethodReturnValue.Local
-        static unsafe bool UnmanagedToManagedCopy<T>(Span<T> source, Span<T> destination) where T: unmanaged
+        static bool UnmanagedToManagedCopy<T>(Span<T> source, Span<T> destination) where T: unmanaged
         {
-            fixed (T* sourcevar = source)
-            {
-                return UnmanagedToManagedCopy(sourcevar, (uint)source.Length, destination);
-            }
+            return source.TryCopyTo(destination);
         }
 
     }

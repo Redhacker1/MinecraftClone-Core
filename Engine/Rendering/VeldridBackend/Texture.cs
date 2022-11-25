@@ -251,10 +251,10 @@ namespace Engine.Rendering.VeldridBackend
 
         }
 
-            protected override void OnDispose()
-            {
-                _Texture.Dispose();
-            }
+        protected override void OnDispose()
+        {
+            _device.DisposeWhenIdle(_Texture);
+        }
 
         public override (ResourceKind, BindableResource) GetUnderlyingResource()
         {
@@ -263,7 +263,7 @@ namespace Engine.Rendering.VeldridBackend
         
         ~Texture()
         {
-            _Texture.Dispose();
+            _device.DisposeWhenIdle(_Texture);
         }
     }
     

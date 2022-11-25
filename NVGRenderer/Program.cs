@@ -11,6 +11,7 @@ using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
 using Silk.NET.Input;
+using Silk.NET.Maths;
 using SilkyNvg;
 using Veldrid;
 
@@ -35,7 +36,7 @@ namespace NVGRenderer
             pass = new NvgRenderPass(Engine.Engine.Renderer);
             Engine.Engine.MainFrameBuffer.AddPass(1, pass);
 
-            DemoTest = new LineBenchmark();
+            DemoTest = new DemoTest();
             PerfGraph = new PerfMonitor();
         }
     }
@@ -105,11 +106,12 @@ namespace NVGRenderer
             _nvgRenderer.SetFrame(frame);
             if (WindowClass.Handle.Size.LengthSquared > 0)
             {
+                Thing.BeginFrame(targetFrame.Size.X, targetFrame.Size.Y, 1);
                 foreach (WeakReference<NvgItem> panel in NvgItem.items)
                 {
                     if (panel.TryGetTarget(out NvgItem item))
                     {
-                        item.OnDraw(Thing, deltaTime);
+                        item.OnDraw(Thing, time, deltaTime);
                     }
                 }
                 Thing.EndFrame();

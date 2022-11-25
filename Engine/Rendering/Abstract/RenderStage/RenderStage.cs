@@ -20,8 +20,8 @@ public abstract class RenderStage
     float prevTime;
     internal void RunStage(RenderState rendererState, RenderTarget target)
     {
-        float curTime = (float) _stopwatch.Elapsed.TotalMilliseconds;
-        Stage(rendererState, target, curTime, curTime - prevTime );
+        float curTime = (float) _stopwatch.Elapsed.TotalMilliseconds * 1000;
+        Stage(rendererState, target, (float)_stopwatch.Elapsed.TotalSeconds, curTime - prevTime );
         prevTime = curTime;
     }
 

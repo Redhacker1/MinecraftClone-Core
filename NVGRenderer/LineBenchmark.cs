@@ -12,8 +12,7 @@ class LineBenchmark : NvgItem
     static Random rand = new Random();
     void BenchMark(int width, int height, Nvg _nvgContext)
     {
-            
-        _nvgContext.BeginFrame(new Vector2D<float>(width, height), 1);
+        
         _nvgContext.StrokeWidth(1f);
 
         Span<byte> colour = stackalloc byte[4];
@@ -32,10 +31,9 @@ class LineBenchmark : NvgItem
             _nvgContext.LineTo(x2, y2);
             _nvgContext.Stroke();
         }
-        _nvgContext.EndFrame();
     }
 
-    public override void OnDraw(Nvg nvg, float delta)
+    public override void OnDraw(Nvg nvg, float elapsed,  float delta)
     {
         BenchMark(Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, nvg);
     }

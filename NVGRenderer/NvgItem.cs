@@ -27,18 +27,16 @@ public class NvgItem
     {
         items.Remove(_itemWeakRef);
     }
-
-    float TotalTime;
-    public virtual void OnDraw(Nvg nvg, float delta)
+    
+    public virtual void OnDraw(Nvg nvg, float elapsed, float delta)
     {
-        TotalTime += ( delta) / 100;   
 
         float minVal = 0;
         float maxVal = 1;
         float freq = 1; // oscillations per second
         float avgVal = (minVal + maxVal)/2;
         float amp = (maxVal - minVal) / 2;
-        avgVal += amp * MathF.Cos(TotalTime  * freq / MathF.PI);
+        avgVal += amp * MathF.Cos(elapsed * freq / MathF.PI);
 
         Vector2 lerpfunc = Vector2.Lerp(Vector2.Zero, new Vector2(300, 400), avgVal);
 
@@ -62,20 +60,13 @@ public class NvgItem
 public class DemoTest : NvgItem
 {
     Demo testDemo;
-    double PrevTime;
-    Stopwatch watch;
 
-    public override void OnDraw(Nvg nvg, float delta)
+    public override void OnDraw(Nvg nvg, float elapsed, float delta)
     {
-        watch ??= Stopwatch.StartNew();
         testDemo ??= new Demo(nvg);
-        
-        double t = watch.Elapsed.TotalSeconds;
-        double dt = t - PrevTime;
-        PrevTime = t;
 
         Vector2 mouseInput = InputHandler.MousePos(0);
-        testDemo.Render(mouseInput.X, mouseInput.Y, WindowClass.Handle.Size.X, WindowClass.Handle.Size.Y, (float)t, false);
+        testDemo.Render(mouseInput.X, mouseInput.Y, Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, elapsed, false);
     }
         
 }
@@ -86,7 +77,7 @@ public class PerfMonitor : NvgItem
     double PrevTime;
     Stopwatch watch;
 
-    public override void OnDraw(Nvg nvg, float delta) 
+    public override void OnDraw(Nvg nvg, float elapsed, float delta) 
     {
         watch ??= Stopwatch.StartNew();
         Graph ??= new PerformanceGraph(new Vector2D<uint>(200, 48));

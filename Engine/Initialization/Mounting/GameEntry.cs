@@ -1,15 +1,63 @@
 ﻿using System;
+using System.Diagnostics;
 using Engine.Debugging;
 using Engine.Input;
 using Engine.Objects;
+using Engine.Renderable;
+using ImGuiNET;
 
 namespace Engine
 {
+    struct GameMetricsData
+    {
+        public float tickTime;
+        public float renderTime;
+    }
+    
+    
+    class GameMetrics : ImGUIPanel
+    {
+
+        GameMetricsData _metricsData;
+
+        float _highestTick = 0, _lowestTick = 0;
+        float _highestFrameTime = 0, _lowestFrameTime = 0;
+        public override void CreateUI()
+        {
+
+            _highestTick = Math.Max(_highestTick, _metricsData.tickTime);
+            _lowestTick = Math.Min(_highestTick, _metricsData.tickTime);
+            
+            _highestFrameTime= Math.Max(_highestFrameTime, _metricsData.renderTime);
+            _lowestFrameTime = Math.Min(_highestFrameTime, _metricsData.renderTime);
+            
+            
+            ImGui.Text($"Highest Tick time: {_highestTick}");
+            ImGui.Text($"Tick time: {_metricsData.tickTime}");
+            ImGui.Text($"Lowest Tick time: {_lowestTick}");
+            ImGui.Text("\n");
+            
+            ImGui.Text($"Highest Render time: {_highestTick}");
+            ImGui.Text($"Render time: {_metricsData.renderTime}");
+            ImGui.Text($"Lowest Render time: {_lowestFrameTime}");
+            
+        }
+
+        internal void UpdateMetrics( GameMetricsData metricsData)
+        {
+            _metricsData = metricsData;
+        }
+    }
+    
+    
+    
     /// <summary>
     /// Game entrypoint, define all startup logic here. TODO: we could probably abstract most of this away in the simple cases, 
     /// </summary>
     public abstract class GameEntry : BaseMountable
     {
+
+        GameMetrics _metrics = new GameMetrics();
 
         ILevelContract Level;
         
@@ -34,10 +82,15 @@ namespace Engine
         {
             PinnedObject?.OnLevelLoad();
         }
+
+
+        float tickTime = 0;
         
         internal void Update(double delta)
         {
             InputHandler.PollInputs();
+
+            tickTime = (float)delta;
             PinnedObject?.OnTick((float)delta);
 
         }
@@ -50,6 +103,16 @@ namespace Engine
             PinnedObject?.OnLevelUnload();
             
             Environment.ExitCode = 0;
+        }
+
+        protected internal virtual void OnRender(float deltaT)
+        {
+            _metrics.UpdateMetrics(new GameMetricsData()
+            {
+                tickTime = tickTime,
+                renderTime = deltaT
+                
+            });
         }
 
         /// <summary>

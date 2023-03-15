@@ -2,7 +2,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Engine.Rendering.VeldridBackend;
-using Engine.Windowing;
 
 namespace Engine.Renderable;
 
@@ -20,7 +19,7 @@ public struct VertexElements
 }
 
 
-public class Mesh : BaseRenderable<VertexElements>
+public class Mesh : GenericBaseModel
 {
     internal Vector3 Minpoint;
     internal Vector3 Maxpoint;
@@ -70,7 +69,7 @@ public class Mesh : BaseRenderable<VertexElements>
             VertexElements = (uint)indices.Length;
         }
 
-        vbo.ModifyBuffer(vertsTest, Engine.Renderer.Device);
+        vbo.ModifyBuffer<VertexElements>(vertsTest, Engine.Renderer.Device);
         _updatingMesh = false;
     }
     
@@ -97,7 +96,7 @@ public class Mesh : BaseRenderable<VertexElements>
             VertexElements = (uint)indices.Length;
         }
 
-        vbo.ModifyBuffer(meshData, Engine.Renderer.Device);
+        vbo.ModifyBuffer<VertexElements>(meshData, Engine.Renderer.Device);
         _updatingMesh = false;
     }
 }

@@ -11,7 +11,6 @@ using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
 using Silk.NET.Input;
-using Silk.NET.Maths;
 using SilkyNvg;
 using Veldrid;
 
@@ -36,7 +35,7 @@ namespace NVGRenderer
             pass = new NvgRenderPass(Engine.Engine.Renderer);
             Engine.Engine.MainFrameBuffer.AddPass(1, pass);
 
-            DemoTest = new DemoTest();
+            DemoTest = new LineBenchmark();
             PerfGraph = new PerfMonitor();
         }
     }
@@ -72,7 +71,7 @@ namespace NVGRenderer
                 Device = renderer.Device,
                 InitialCommandBuffer = list
             };
-            _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
+            _nvgRenderer = new NvgRenderer(rendererParams, 0);
 
             Nvg.Create(_nvgRenderer);
         }
@@ -88,7 +87,17 @@ namespace NVGRenderer
                 InitialCommandBuffer = renderer.Device.ResourceFactory.CreateCommandList()
             };
             
-            _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);
+            
+            // Stencil strokes in OpenGL are expensive due to needing all the VertexAttribPtr calls needed to set up the new renderstate that veldrid makes, so disable them, it makes it look worse, but it improves performance 3-4 times 
+            if (renderer.Device.BackendType == GraphicsBackend.OpenGL ||
+                renderer.Device.BackendType == GraphicsBackend.OpenGLES)
+            {
+                _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.Antialias);
+            }
+            else
+            {
+                _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);   
+            }
             Thing = Nvg.Create(_nvgRenderer);
             frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
             {

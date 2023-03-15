@@ -1,14 +1,9 @@
 ﻿using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Numerics;
-using System.Threading;
 using Engine.Input;
 using Engine.Renderable;
-using Engine.Rendering.Abstract.RenderStage;
 using Engine.Rendering.Abstract.View;
 using Engine.Utilities.MathLib;
-using Engine.Windowing;
 using ImGuiNET;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -26,8 +21,6 @@ namespace Engine.Rendering.VeldridBackend
     /// </summary>
     public class Renderer : IDisposable
     {
-        public readonly Thread RenderThread;
-
 
 
         readonly ImGuiRenderer _imGuiHandler;
@@ -37,82 +30,20 @@ namespace Engine.Rendering.VeldridBackend
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
                 false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
-            _list = Device.ResourceFactory.CreateCommandList();
-            
+
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
-            RenderThread = new Thread(() =>
-            {
-                while (!_disposing)
-                {
-                    if (Pause)
-                    {
-                        Device.WaitForIdle();
-                        continue;
-                    }
-                    
-                    OnRender(_stopwatch.Elapsed.TotalSeconds);
-                    
-                    if (_stopwatch.ElapsedMilliseconds != 0)
-                    {
-                        FPS = (uint) (1f / _stopwatch.Elapsed.TotalSeconds);   
-                    }
-                    _stopwatch.Restart();
-
-                    RendererHalted = Pause;
-                }
-
-                RendererHalted = true;
-            });
-            OnResize = _ => { Resize(WindowClass.Handle.Size);};
+            
+            _stopwatch.Start();
         }
         
-        CommandList _list;
         Stopwatch _stopwatch = new Stopwatch();
-        public uint FPS;
+        public float FPS;
         public GraphicsDevice Device;
-        public bool Pause = false;
-        public bool RendererHalted = true;
 
         Vector2D<int> newSize = new Vector2D<int>();
 
-        internal void OnRender(double time)
+        public void RenderImgGui(double time, CommandList list)
         {
-            if (SizeChange)
-            {
-                ResizeMainSwapchain(newSize);
-            }
-            
-            // Clear the screen, 
-            _list.Begin();
-            _list.PushDebugGroup("Clear Screen");
-            _list.SetFramebuffer(Device.SwapchainFramebuffer);
-            _list.ClearColorTarget(0, new RgbaFloat(.29804f,.29804f, .32157f, 1f));
-            _list.ClearDepthStencil(1, 0);
-            _list.PopDebugGroup();
-            _list.End();
-            Device.SubmitCommands(_list);
-            
-            
-            _list.Begin();
-            _list.SetFramebuffer(Device.SwapchainFramebuffer);
-
-
-            ImmutableArray<RenderTarget> renderTargets = RenderTarget.Targets.ToImmutableArray();
-            foreach (RenderTarget target in renderTargets)
-            {
-                if (target.ValidTarget)
-                {
-                    target.Flush(
-                        new RenderState()
-                        {
-                            Device = Device,
-                            GlobalCommandList = _list
-                        }
-                    );
-                }
-            }
-            
-
             _imGuiHandler.Update((float) time);
             for (int index = 0; index < ImGUIPanel.Panels.Count; index++)
             {
@@ -128,20 +59,16 @@ namespace Engine.Rendering.VeldridBackend
                 ImGui.End();
             }
 
-            _imGuiHandler.Render(Device, _list);
-            _list.End();
-            
-            Device.SubmitCommands(_list);
-            Device.SwapBuffers();
-            
+            _imGuiHandler.Render(Device, list);
+
             if (_stopwatch.ElapsedMilliseconds != 0)
             {
-                FPS = (uint) (1 / _stopwatch.Elapsed.TotalMilliseconds);   
+                FPS = (float)_stopwatch.Elapsed.TotalMilliseconds;
             }
+            _stopwatch.Restart();
 
         }
-
-        bool SizeChange = false;
+        
 
 
         void ResizeMainSwapchain(Vector2D<int> size)
@@ -156,31 +83,30 @@ namespace Engine.Rendering.VeldridBackend
             }
         }
 
-        public readonly Action<Vector2D<int>> OnResize;
+
+        internal void RunCommandList(CommandList list)
+        {
+            Device.SubmitCommands(list);
+        }
+        
+        internal void SwapBuffers()
+        {
+            Device.SwapBuffers();
+        }
 
 
         internal void Resize(Vector2D<int> size)
         {
-            SizeChange = true;
-            newSize = size;
+            Console.WriteLine("resized!");
+            Device.ResizeMainWindow((uint)size.X, (uint)size.Y);
+            _imGuiHandler.WindowResized(size);
         }
 
         bool _disposing;
-
-
-        void WaitForHalt()
-        {
-            Device.WaitForIdle();
-            while (RendererHalted == false)
-            {
-                
-            }
-        }
+        
 
         public void Dispose()
         {
-            
-            Pause = true;
             if (_disposing)
             {
                 return;
@@ -188,9 +114,7 @@ namespace Engine.Rendering.VeldridBackend
             Console.WriteLine("Telling render system to stop and dispose of objects");
             // Stop rendering frames and let the GPU flush it's current work, then dispose of the GraphicsDevice
             _disposing = true;
-            WaitForHalt();
-            RenderThread.Join();
-
+            Device.WaitForIdle();
             GC.SuppressFinalize(this);
             // Dispose of RenderTargets
             foreach (RenderTarget renderTarget in RenderTarget.Targets)

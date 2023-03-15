@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Linq;
-using Engine.Rendering.Abstract.RenderStage;
 using Engine.Utilities.Concurrency;
 using Engine.Utilities.MathLib;
 using Veldrid;
@@ -67,24 +65,6 @@ public class RenderTarget : IDisposable
         Targets.Add(this);
         ValidTarget = true;
     }
-    
-    
-
-    internal void Flush(RenderState state)
-    {
-        _framebufferCommandList.Begin();
-        _framebufferCommandList.SetFramebuffer(_framebuffer);
-        _framebufferCommandList.SetViewport(0, new Veldrid.Viewport(Viewport.Offset.X, Viewport.Offset.Y, Viewport.Size.X, Viewport.Size.Y, Viewport.MinDepth, Viewport.MaxDepth));
-        lock (_stages)
-        {
-            foreach (RenderStage.RenderStage stage in _stages)
-            {
-                stage?.RunStage(state, this);
-            }   
-        }
-        _framebufferCommandList.End();
-        state.Device.SubmitCommands(_framebufferCommandList);
-    }
 
     public virtual void Resize(Int2 size)
     {
@@ -136,35 +116,6 @@ public class RenderTarget : IDisposable
     }
 
 
-
-
-    public bool AddPass(int index, RenderStage.RenderStage pass)
-    {
-        lock (_stages)
-        {
-            if (index > 0 && _stages.Length > index)
-            {
-                _stages[index] = pass;
-                return true;
-            }   
-        }
-        return false;
-    }
-
-    public bool RemovePass(int index)
-    {
-        lock (_stages)
-        {
-            if (index < _stages.Length)
-            {
-  
-                _stages[index] = null;
-            }
-        }
-        return false;
-    }
-
-
     public void Dispose()
     {
         ValidTarget = false;
@@ -174,5 +125,10 @@ public class RenderTarget : IDisposable
         _framebuffer?.Dispose();
         _framebufferCommandList?.Dispose();
         
+    }
+
+    public void Bind(CommandList list)
+    {
+        list.SetFramebuffer(_framebuffer);
     }
 }

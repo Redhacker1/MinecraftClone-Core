@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Veldrid;
 
 namespace Engine.Rendering.VeldridBackend;
@@ -12,9 +13,7 @@ public abstract class BaseBufferUntyped : GraphicsResource
     {
         
     }
-    
-    protected readonly uint _alignment;
-    
+
     public override (ResourceKind, BindableResource) GetUnderlyingResource()
     {
         if (BufferType == BufferUsage.UniformBuffer)
@@ -33,6 +32,15 @@ public abstract class BaseBufferUntyped : GraphicsResource
     
 
     public uint LengthInBytes => BufferObject.SizeInBytes;
+    
+    protected void SafeCreateBuffer<T>(GraphicsDevice device, uint count)
+    {
+        if (count == 0)
+        {
+            count = 1;
+        }
+        BufferObject = device.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( Unsafe.SizeOf<T>() *  count), BufferType));
+    }
 
 
     /// <summary>
@@ -41,6 +49,24 @@ public abstract class BaseBufferUntyped : GraphicsResource
     /// <param name="list">The command list to bind to</param>
     /// <param name="slot">Only used for vertex buffers, index buffers will not respect this</param>
     internal abstract void Bind(CommandList list, uint slot = 0);
+
+    public void ModifyBuffer<T>(ReadOnlySpan<T> data, GraphicsDevice device) where T : unmanaged
+    {
+        if (data.IsEmpty)
+        {
+            return;
+        }
+        
+        if (data.Length * Unsafe.SizeOf<T>() > LengthInBytes || BufferObject == null)
+        {
+            _device.DisposeWhenIdle(BufferObject);
+            SafeCreateBuffer<T>(device, (uint)data.Length);
+
+        }
+        device.UpdateBuffer(BufferObject, 0, data);  
+    }
+    
+    
 
     /// <summary>
     /// The GC should properly dispose of the object if it is otherwise leaked irresponsibly. NOTE: might cause problems with APIs that don't allow for explicit multithreading, and possibly more work for those that do!
@@ -55,9 +81,9 @@ public abstract class BaseBufferUntyped : GraphicsResource
 /// <summary>
 /// Typed buffer class meant for keeping track of the internal buffer 
 /// </summary>
-/// <typeparam name="T"></typeparam>
+/// <typeparam name="TBaseType"></typeparam>
 
-public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unmanaged
+public abstract unsafe class BaseBufferTyped<TBaseType> : BaseBufferUntyped where TBaseType: unmanaged
 {
     public uint Length
     {
@@ -65,7 +91,7 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
         {
             if (BufferObject?.IsDisposed == false)
             {
-                return (uint)(BufferObject.SizeInBytes / sizeof(T));
+                return (uint)(BufferObject.SizeInBytes / sizeof(TBaseType));
             }
             else
             {
@@ -73,30 +99,10 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
             }
         }
     }
-    
-    protected void SafeCreateBuffer(GraphicsDevice device, uint count)
-    {
-        if (count == 0)
-        {
-            count = 1;
-        }
-        BufferObject = device.ResourceFactory.CreateBuffer(new BufferDescription((uint) ( sizeof(T) *  count), BufferType));
-    }
 
-    public void ModifyBuffer(ReadOnlySpan<T> readOnlySpan, GraphicsDevice device)
+    public void ModifyBuffer(ReadOnlySpan<TBaseType> readOnlySpan, GraphicsDevice device)
     {
-        if (readOnlySpan.IsEmpty)
-        {
-            return;
-        }
-        
-        if (readOnlySpan.Length > Length || BufferObject == null)
-        {
-            _device.DisposeWhenIdle(BufferObject);
-            SafeCreateBuffer(device, (uint)readOnlySpan.Length);
-
-        }
-        device.UpdateBuffer(BufferObject, 0, readOnlySpan);   
+        ModifyBuffer<TBaseType>(readOnlySpan, device);
     }
 
     /// <summary>
@@ -105,10 +111,10 @@ public abstract unsafe class BaseBufferTyped<T> : BaseBufferUntyped where T: unm
     /// <param name="readOnlySpan">The data you which to feed into your index buffer</param>
     /// <param name="device">The graphics device you wish to use to feed into your buffer</param>
     /// <param name="count">The number of elements you wish to insert into TData from the offset</param>
-    /// <typeparam name="T">The type of variable you wish to fill in</typeparam>
-    public void ModifyBuffer(ReadOnlySpan<T> readOnlySpan, GraphicsDevice device, int count)
+    /// <typeparam name="TBaseType">The type of variable you wish to fill in</typeparam>
+    public void ModifyBuffer(ReadOnlySpan<TBaseType> readOnlySpan, GraphicsDevice device, int count)
     {
-        ModifyBuffer(readOnlySpan.Slice(0, count), device);
+        ModifyBuffer(readOnlySpan[..count], device);
     }
 
     protected BaseBufferTyped(GraphicsDevice device) : base(device)

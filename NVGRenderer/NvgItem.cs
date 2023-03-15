@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using Engine.Input;
-using Engine.Windowing;
 using NvgExample;
 using Silk.NET.Maths;
 using SilkyNvg;

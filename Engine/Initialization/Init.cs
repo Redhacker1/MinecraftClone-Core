@@ -27,8 +27,7 @@ namespace Engine.Initialization
                 API = GraphicsAPI.Default with {Version = new APIVersion(4, 6)},
                 PreferredBitDepth = new Vector4D<int>(32),
                 PreferredDepthBufferBits = 32,
-                PreferredStencilBufferBits = 8,
-                FramesPerSecond = 144
+                PreferredStencilBufferBits = 8
             };
 
             WindowClass window = new WindowClass(options, gameclass);

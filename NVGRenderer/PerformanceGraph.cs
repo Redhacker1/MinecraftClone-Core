@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-using System.Numerics;
-using Silk.NET.Maths;
+﻿using Silk.NET.Maths;
 using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;

@@ -1,6 +1,4 @@
-﻿using Engine.Windowing;
-using Silk.NET.Maths;
-using SilkyNvg;
+﻿using SilkyNvg;
 using SilkyNvg.Graphics;
 using SilkyNvg.Paths;
 
@@ -16,7 +14,7 @@ class LineBenchmark : NvgItem
         _nvgContext.StrokeWidth(1f);
 
         Span<byte> colour = stackalloc byte[4];
-        for (int i = 0; i < 9000; i++)
+        for (int i = 0; i < 10000; i++)
         {
             float x1 = rand.NextSingle() * width;
             float x2 = rand.NextSingle() * width;

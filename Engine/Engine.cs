@@ -1,4 +1,4 @@
-﻿using Engine.Rendering.Abstract;
+﻿using System;
 using Engine.Rendering.Abstract.View;
 using Engine.Rendering.VeldridBackend;
 
@@ -14,4 +14,8 @@ public static class Engine
     public static RenderTarget MainFrameBuffer { get; internal set; }
 
     public static Renderer Renderer { get; internal set; }
+    
+    public static Action<float> OnRender = _ => { };
+
+    public static bool IsRenderThread => Windowing.WindowClass.IsRenderThread();
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Numerics;
 using Engine.MathLib;
+using Engine.Objects.SceneSystem;
 using Engine.Rendering.VeldridBackend;
 using Veldrid;
 
@@ -22,11 +23,11 @@ namespace Engine.Rendering.Abstract
         {
             Name = "Depth Prepass";
             
-            backingRenderer = _backingRenderer;
+            BackingRenderer = _backingRenderer;
             ViewProjBuffer = new UniformBuffer<Matrix4x4>(_backingRenderer.Device, 2);
             ViewProjBuffer.bufferObject.Name = "ViewProjBuffer";
 
-            Transforms = new VertexBuffer<Matrix4x4>(backingRenderer.Device, Span<Matrix4x4>.Empty);
+            Transforms = new VertexBuffer<Matrix4x4>(BackingRenderer.Device, Span<Matrix4x4>.Empty);
 
 
             ResourceLayoutDescription resourceLayoutDescription = new ResourceLayoutDescription(
@@ -36,7 +37,7 @@ namespace Engine.Rendering.Abstract
             ResourceSetDescription resourceSetDescription =
                 new ResourceSetDescription(layout, ViewProjBuffer.bufferObject);
 
-            CameraResourceSet = backingRenderer.Device.ResourceFactory.CreateResourceSet(resourceSetDescription);
+            CameraResourceSet = BackingRenderer.Device.ResourceFactory.CreateResourceSet(resourceSetDescription);
 
            TransformsUpdateList = _backingRenderer.Device.ResourceFactory.CreateCommandList();
            TransformsUpdateList.Name = "TransformsUpdatePass";
@@ -45,7 +46,7 @@ namespace Engine.Rendering.Abstract
         }
 
         Matrix4x4[] transforms = new Matrix4x4[1];
-        protected override void PrePass(ref CameraInfo camera, CommandList list, List<Instance3D> instances)
+        protected override void PrePass(ref CameraInfo camera, CommandList list, IReadOnlyList<Instance> instances)
         {
             // Create the matrix 
             Span<Matrix4x4> updateMatrix = stackalloc Matrix4x4[2];
@@ -68,32 +69,23 @@ namespace Engine.Rendering.Abstract
                 Transform.Compose(in instanceTransform, out Matrix4x4 outMatrix);
                 transforms[index] = outMatrix;
             }
-            Transforms.ModifyBuffer(transforms, backingRenderer.Device);
+            Transforms.ModifyBuffer(transforms, BackingRenderer.Device);
 
         }
 
-        protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo info)
+        protected override void Pass(CommandList list, IReadOnlyList<Instance> instances, ref CameraInfo info)
         {
             if (instances.Count > 0)
             {
-                for (int index = 0; index < instances.Count; index++)
+                foreach (Instance instance in instances)
                 {
-                    Instance3D instance = instances[index];
-                    if (instance.ModelMaterial.Bind(list, CameraResourceSet, true))
+                    if (instance.InstanceMaterial.Bind(list, CameraResourceSet, true))
                     {
                         instance._baseRenderableElement.BindResources(list);
                         list.SetVertexBuffer(0, Transforms.BufferObject);
-
-                        if (instance._baseRenderableElement.UseIndexedDrawing)
-                        {
-                            list.DrawIndexed(instance._baseRenderableElement.VertexElements, 1, 0, 0, (uint)index);
-                        }
-                        else
-                        {
-                            list.Draw(instance._baseRenderableElement.VertexElements, 1, 0, (uint)index);      
-                        }
+                        instance._baseRenderableElement.Draw(list, 1, 1);
                     }
-                }   
+                }
             }
         }
     }

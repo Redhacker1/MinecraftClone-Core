@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading;
 using Engine.Input;
 using Engine.Rendering.VeldridBackend;
 using Silk.NET.Input;
@@ -11,19 +13,25 @@ namespace Engine.Windowing
     {
         [Obsolete]
         public static Renderer Renderer { get; protected set; }
+
+        static Thread _renderThread;
         
+        public Action<Vector2D<int>> OnResize;
+        
+
+
         [Obsolete]
         readonly GameEntry _gameInstance;
         public static IWindow Handle;
 
-        public WindowClass(WindowOptions options, GameEntry GameClass)
+        public WindowClass(WindowOptions options, GameEntry gameClass)
         {
             Handle = Window.Create(options);
             Handle.IsContextControlDisabled = true;
             Handle.Closing += OnClose;
             Handle.Load += OnLoad;
 
-            _gameInstance = GameClass;
+            _gameInstance = gameClass;
         }
         
         public WindowClass(IWindow windowHandle, GameEntry gameClass)
@@ -35,6 +43,11 @@ namespace Engine.Windowing
 
             _gameInstance = gameClass;
         }
+
+        internal static bool IsRenderThread()
+        {
+            return Environment.CurrentManagedThreadId == _renderThread.ManagedThreadId;
+        }
         
 
         void OnLoad()
@@ -44,14 +57,27 @@ namespace Engine.Windowing
             
             Engine.Renderer = new Renderer(Handle);
             Engine.MainFrameBuffer = new WindowRenderTarget(Engine.Renderer.Device);
-            
+
             //Assign events.
-            Handle.FramebufferResize += Engine.Renderer.OnResize;
+            Handle.FramebufferResize += OnResize;
+            OnResize += Engine.Renderer.Resize;
 
-            Engine.Renderer.RenderThread.Start();
+            _renderThread = new Thread(() =>
+            {
+                float deltaT = 0f;
+                Stopwatch stopwatch = new Stopwatch();
+                while (Handle.IsClosing != true)
+                {
+                    Engine.OnRender(deltaT);
+                    deltaT = (float)stopwatch.Elapsed.TotalSeconds;
+                    stopwatch.Restart();
+                }
+            });
+            Engine.OnRender += _gameInstance.OnRender;
+
             Handle.Update += _gameInstance.Update;
-
             _gameInstance.GameStart();
+            _renderThread.Start();
             
         }
 

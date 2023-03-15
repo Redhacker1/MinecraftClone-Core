@@ -2,7 +2,6 @@
 using System.Numerics;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
-using Engine.Windowing;
 using ImGuiNET;
 using MCClone_Core.World_CS.Generation;
 using Plane = System.Numerics.Plane;
@@ -30,27 +29,16 @@ namespace MCClone_Core.Debug_and_Logging
         
         public override void CreateUI()
         {
-            ulong VertexCount = 0;
 
-            CurrentProcess.Refresh();
-            
-            float MemUsage = CurrentProcess.WorkingSet64 / 1048576f;
-
-            //ImGui.Text($"Memory: {CurrentProcess.WorkingSet64 / 1048576f}MB");
             ImGui.Text($"FPS Estimate: {Engine.Engine.Renderer.FPS}");
-            //ImGui.Text($"Potentially visible mesh count: {0}, Mesh count: {currentsnapshot.Count}");
-            ImGui.Text($"Rendered Vertex count is: {VertexCount}");
             ImGui.Text($"Chunk Count: {ProcWorld.Instance.LoadedChunks.Count}");
 
             Vector3 camerapos = Camera.MainCamera.Position;
-            Vector3 CameraFront = Camera.MainCamera.Front;
+            Vector3 cameraFront = Camera.MainCamera.Front;
             ImGui.InputFloat3("Player Location: ", ref camerapos, null);
-            
-            
-            ImGui.InputFloat3("Rotation", ref CameraFront, null);
-            ImGui.Text($"Heapool: {ChunkSingletons.ChunkPool.BytesInUse} bytes, {ChunkSingletons.ChunkPool.AvailableBytes} free!");
-            
-            
+            ImGui.InputFloat3("Rotation", ref cameraFront, null);
+
+
             Distance = ProcWorld.Instance._loadRadius;
             bool updated = ImGui.SliderInt("Render distance", ref Distance, 4, 90);
 

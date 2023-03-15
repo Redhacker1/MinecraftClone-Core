@@ -4,6 +4,7 @@ using Engine;
 using Engine.Attributes;
 using Engine.Debugging;
 using Engine.Initialization;
+using Engine.Objects.SceneSystem;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
 using MCClone_Core.Player_CS;
@@ -22,6 +23,8 @@ namespace MCClone_Core
 
         }
     }
+    
+    
 
     [GameDefinition("Blocky Worlds", true)]
     internal class MinecraftCloneCore: GameEntry
@@ -31,11 +34,14 @@ namespace MCClone_Core
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
         Player player;
-        public static DefaultRenderPass Pass;  
+
+        public static Scene Scene;
         
 
         protected override void GameStart()
         {
+            
+            Scene = new Scene();
             base.GameStart();
             
             ConsoleLibrary.InitConsole(consoleBox.SetConsoleScrollback);
@@ -71,9 +77,8 @@ namespace MCClone_Core
             
             script._Ready();
             player._Ready();
-
-            Pass = new DefaultRenderPass(Engine.Engine.Renderer);
-            Engine.Engine.MainFrameBuffer.AddPass(1, Pass);
+            
+            //_scene.AddPass(1, Pass);
 
 
             base.GameStart();
@@ -86,8 +91,11 @@ namespace MCClone_Core
             world.SaveAndQuit();
             Console.WriteLine($"Gamemode: {world.GetType().Name} Ended");
         }
-        
-        
-        
+
+        protected override void OnRender(float deltaT)
+        {
+            base.OnRender(deltaT);
+            Scene?.Render(Camera.MainCamera, Engine.Engine.MainFrameBuffer, deltaT);
+        }
     }
 }

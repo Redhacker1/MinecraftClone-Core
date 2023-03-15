@@ -133,8 +133,23 @@ public class PipelineCache
 
         ShaderSetDescription shaderSet = new ShaderSetDescription(new[]
         {
-            new VertexLayoutDescription(new VertexElementDescription("vertex",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("tcoord",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)),
-            new VertexLayoutDescription((uint)Unsafe.SizeOf<FragUniforms>(), 1, new VertexElementDescription("Matrix11xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix12xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix13xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix21xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix22xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("Matrix23xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("innerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("outerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("scissorExt", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("scissorScale", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("extent", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("rfss", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate), new VertexElementDescription("tt", VertexElementFormat.Int2, VertexElementSemantic.TextureCoordinate))
+            new VertexLayoutDescription(
+                new VertexElementDescription("vertex",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("tcoord",  VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate)),
+            new VertexLayoutDescription((uint)Unsafe.SizeOf<FragUniforms>(), 1, 
+                new VertexElementDescription("Matrix11xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("Matrix12xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("Matrix13xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("Matrix21xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("Matrix22xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("Matrix23xx", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("innerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("outerCol", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("scissorExt", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("scissorScale", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("extent", VertexElementFormat.Float2, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("rfss", VertexElementFormat.Float4, VertexElementSemantic.TextureCoordinate),
+                new VertexElementDescription("tt", VertexElementFormat.Int2, VertexElementSemantic.TextureCoordinate))
         }, new[]{vs, fs});
 
         BlendStateDescription blendState = ColourBlendState(ColorBlendAttachmentState(settings));

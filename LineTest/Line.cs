@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Engine.Collision.Simple;
+using Engine.Objects.SceneSystem;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
@@ -80,7 +81,7 @@ class LineRenderer : RenderPass
             
     }
 
-    protected override void Pass(CommandList list, List<Instance3D> instances, ref CameraInfo cameraInfo)
+    protected override void Pass(CommandList list, IReadOnlyList<Instance> instances, ref CameraInfo cameraInfo)
     {
     
         Frustum frustum = Camera.MainCamera.GetViewFrustum(out _);

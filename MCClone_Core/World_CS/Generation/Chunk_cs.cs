@@ -6,7 +6,7 @@ using System.Numerics;
 using System.Runtime.CompilerServices;
 using Engine.MathLib;
 using Engine.Objects;
-using Engine.Rendering.Abstract;
+using Engine.Objects.SceneSystem;
 using Engine.Utilities.MathLib;
 using MCClone_Core.Temp;
 using MCClone_Core.World_CS.Blocks;
@@ -87,7 +87,7 @@ namespace MCClone_Core.World_CS.Generation
 			Instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
 			AddChild(Instance3D);
 			
-			MinecraftCloneCore.Pass.AddInstance(Instance3D);
+			MinecraftCloneCore.Scene.Add(Instance3D);
 			
 		}
 
@@ -116,7 +116,6 @@ namespace MCClone_Core.World_CS.Generation
 
 		readonly SafeByteStore<int> _blockVerts = SafeByteStore<int>.Create(ChunkSingletons.ChunkPool, 1);
 		readonly SafeByteStore<Vector3> _blocksNormals = SafeByteStore<Vector3>.Create(ChunkSingletons.ChunkPool, 1);
-		readonly SafeByteStore<uint> _chunkIndices = SafeByteStore<uint>.Create(ChunkSingletons.ChunkPool, 1);
 		readonly SafeByteStore<Vector2> _blockUVs = SafeByteStore<Vector2>.Create(ChunkSingletons.ChunkPool, 1);
 
 		readonly Stopwatch _stopwatch =Stopwatch.StartNew();
@@ -134,21 +133,16 @@ namespace MCClone_Core.World_CS.Generation
 			
 			_blockVerts.Clear();
 			_blocksNormals.Clear();
-			_chunkIndices.Clear();
 			_blockUVs.Clear();
 			
 			
 			Span<bool> transparent = stackalloc bool[6];
-			uint index = 0;
 
 			ReadOnlySpan<byte> BlockSpan = BlockData.Span;
 
-			if (BlockSpan.Length < MaxX * MaxY * MaxZ)
-			{
-				
-			}
-			
-			
+			uint faces = 0;
+
+
 			for (int z = 0; z < MaxZ; z++)
 			for (int y = 0; y < MaxY; y++)
 			for (int x = 0; x < MaxX; x++)
@@ -160,19 +154,27 @@ namespace MCClone_Core.World_CS.Generation
 					continue;
 				}
 				check_transparent_neighbours(x, y, z, transparent);
+
 				//TODO: AO Code goes here!
 				if (transparent.Contains(true))
 				{
-					_create_block(transparent, x, y, z, block, _blockVerts, _blocksNormals, _blockUVs, _chunkIndices,
-						ref index);
+					foreach (bool faceVisible in transparent)
+					{
+						if (faceVisible)
+						{
+							faces++;
+						}
+					}
+					
+					_create_block(transparent, x, y, z, block, _blockVerts, _blocksNormals, _blockUVs);
 				}
 			}
 			
 			lock (_renderLock)
 			{
-				_chunkMesh.GenerateMesh(_blockVerts.Span, _blockUVs.Span, _chunkIndices.Span);
-				Instance3D.SetTransform(this);
+				_chunkMesh.GenerateMesh(_blockVerts.Span, _blockUVs.Span, faces * 6);
 			}
+			Instance3D.SetTransform(this);
 			
 		}
 		
@@ -241,30 +243,30 @@ namespace MCClone_Core.World_CS.Generation
 			output[5] = is_block_transparent(x, y, z + 1, discardOnlyAir);
 		}
 
-		void _create_block(Span<bool> check, int x, int y, int z, byte block, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint index)
+		void _create_block(Span<bool> check, int x, int y, int z, byte block, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs)
 		{
 			List<BlockStruct> blockTypes = BlockHelper.BlockTypes;
 			Int3 coord = new Int3(x, y, z);
 			if (blockTypes[block].TagsList.Contains("Flat"))
 			{
 				Vector2 Only = blockTypes[block].Only;
-				create_face(Cross1, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
-				create_face(Cross2, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
-				create_face(Cross3, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
-				create_face(Cross4, ref coord, Only, blocks, blocksNormals, uVs, indices, ref index);
+				create_face(Cross1, ref coord, Only, blocks, blocksNormals, uVs);
+				create_face(Cross2, ref coord, Only, blocks, blocksNormals, uVs);
+				create_face(Cross3, ref coord, Only, blocks, blocksNormals, uVs);
+				create_face(Cross4, ref coord, Only, blocks, blocksNormals, uVs);
 			}
 			else
 			{
-				if (check[0]) create_face(Top, ref coord, blockTypes[block].Top, blocks, blocksNormals, uVs, indices, ref index);
-				if (check[1]) create_face(Bottom, ref coord, blockTypes[block].Bottom, blocks, blocksNormals, uVs, indices, ref index);
-				if (check[2]) create_face(Left, ref coord, blockTypes[block].Left, blocks, blocksNormals, uVs, indices, ref index);
-				if (check[3]) create_face(Right, ref coord, blockTypes[block].Right, blocks, blocksNormals, uVs, indices, ref index);
-				if (check[4]) create_face(Back, ref coord, blockTypes[block].Back, blocks, blocksNormals, uVs, indices,ref index);
-				if (check[5]) create_face(Front, ref coord, blockTypes[block].Front, blocks, blocksNormals, uVs, indices, ref index);
+				if (check[0]) create_face(Top, ref coord, blockTypes[block].Top, blocks, blocksNormals, uVs);
+				if (check[1]) create_face(Bottom, ref coord, blockTypes[block].Bottom, blocks, blocksNormals, uVs);
+				if (check[2]) create_face(Left, ref coord, blockTypes[block].Left, blocks, blocksNormals, uVs);
+				if (check[3]) create_face(Right, ref coord, blockTypes[block].Right, blocks, blocksNormals, uVs);
+				if (check[4]) create_face(Back, ref coord, blockTypes[block].Back, blocks, blocksNormals, uVs);
+				if (check[5]) create_face(Front, ref coord, blockTypes[block].Front, blocks, blocksNormals, uVs);
 			}
 		}
 
-        void create_face(uint[] I, ref Int3 offset, Vector2 textureAtlasOffset, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs, SafeByteStore<uint> indices, ref uint currentIndex)
+        void create_face(uint[] I, ref Int3 offset, Vector2 textureAtlasOffset, SafeByteStore<int> blocks, SafeByteStore<Vector3> blocksNormals, SafeByteStore<Vector2> uVs)
         {
 	        if (_freed)
 	        {
@@ -272,7 +274,6 @@ namespace MCClone_Core.World_CS.Generation
 	        }
 	        
 	        blocks.PrepareCapacityFor(4);
-	        indices.PrepareCapacityFor(6);
 	        uVs.PrepareCapacityFor(4);
 
 
@@ -288,7 +289,6 @@ namespace MCClone_Core.World_CS.Generation
 	        
 	        
 	        Span<Vector2> uvs = stackalloc Vector2[4] { uvOffset, uvB, uvC, uvD};
-	        Span<uint> Indices = stackalloc uint[6] {currentIndex, currentIndex + 1, currentIndex + 2, currentIndex, currentIndex + 2, currentIndex + 3};
 
 	        for (int i = 0; i < 4; i++)
 	        {
@@ -298,8 +298,6 @@ namespace MCClone_Core.World_CS.Generation
 		        compressedPos = compressedPos << 9 | vert.Y;
 		        blocks.Append(compressedPos);
 	        }
-	        indices.AppendRange(Indices);
-	        currentIndex += 4;
 
 
 	        uVs.AppendRange(uvs);
@@ -359,13 +357,12 @@ namespace MCClone_Core.World_CS.Generation
 			_blockVerts.Dispose();
 			_blockUVs.Dispose();
 			_blocksNormals.Dispose();
-			_chunkIndices.Dispose();
 			_blockUVs.Dispose();
 			_chunkMesh.Dispose();
 			
 			BlockData.Dispose();
 			_visibilityMask.Dispose();
-			MinecraftCloneCore.Pass.RemoveInstance(Instance3D);
+			MinecraftCloneCore.Scene.Remove(Instance3D);
 
 			_freed = true;
 		}

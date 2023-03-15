@@ -1,22 +1,19 @@
 ﻿using System.Numerics;
 using Engine.Collision.Simple;
-using Engine.Objects;
 using Engine.Renderable;
+using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;
 
-namespace Engine.Rendering.Abstract;
+namespace Engine.Objects.SceneSystem;
 
-public sealed class Instance3D : EngineObject
+public sealed class Instance3D : Instance
 {
-
-    public bool isVisible = true;
-    internal BaseRenderableUntyped _baseRenderableElement;
-    internal Material ModelMaterial;
+    
     internal AABB Boundingbox;
-    public Instance3D(BaseRenderableUntyped baseRenderableElement, Material material)
+    public Instance3D(BaseRenderable baseRenderableElement, Material material)
     {
         _baseRenderableElement = baseRenderableElement;
-        ModelMaterial = material;
+        InstanceMaterial = material;
         RegenAabb();
     }
 

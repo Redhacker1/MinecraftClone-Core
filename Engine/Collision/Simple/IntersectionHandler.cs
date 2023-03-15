@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
-using Engine.Rendering.Abstract;
+using Engine.Objects.SceneSystem;
 
 namespace Engine.Collision.Simple;
 
@@ -55,5 +55,14 @@ namespace Engine.Collision.Simple;
                     return false;
             } 
             return true;
+        }
+
+        public static bool AABB_to_AABB(AABB a, AABB b)
+        {
+            a.GetMinMax(out Vector3 aMin, out Vector3 aMax);
+            b.GetMinMax(out Vector3 bMin, out Vector3 bMax);
+            return (aMin.X <= bMax.X && aMax.X >= bMin.X) &&
+                   (aMin.Y <= bMax.Y && aMax.Y >= bMin.Y) &&
+                   (aMin.Z <= bMax.Z && aMax.Z >= bMin.Z);
         }
     }

@@ -9,6 +9,7 @@ using Engine.Initialization;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
+using Engine.Objects.SceneSystem;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;

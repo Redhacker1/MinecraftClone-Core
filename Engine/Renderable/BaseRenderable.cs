@@ -12,17 +12,16 @@ namespace Engine.Renderable
     /// <summary>
     /// Engine type for referring to a generic Model. 
     /// </summary>
-    public abstract class BaseRenderableUntyped : IDisposable
+    public abstract class BaseRenderable : IDisposable
     {
-
-        public bool UseIndexedDrawing {get; protected set; }
         public bool Disposed {get; internal set; }
         
         public uint VertexElements;
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public abstract void GetMinMax(out Vector3 minPoint, out Vector3 maxPoint);
         
-        protected BaseRenderableUntyped()
+        protected BaseRenderable()
         {
             
         }
@@ -48,6 +47,8 @@ namespace Engine.Renderable
             return;
         }
 
+        protected internal abstract void Draw(CommandList list, uint count, uint start);
+
         public void Dispose()
         {
             SuppressFinalize(this);
@@ -58,49 +59,11 @@ namespace Engine.Renderable
                 OnDisposed();
             }
         }
-    }
-
-
-    public abstract class BaseRenderable<T> :BaseRenderableUntyped where T : unmanaged
-    {
-
-        protected IndexBuffer<uint> ebo;
-        protected BaseBufferTyped<T> vbo;
-
-
-
-        protected internal override void BindResources(CommandList list)
-        {
-
-            if (vbo.BufferType != BufferUsage.VertexBuffer || ebo?.BufferType == 0 && Disposed == false)
-            {
-                //Buffer has not been initialized, not an error, just has not been initialized,
-                //should not trip, that being said, if run on another thread it might, and just covering bases, if it does we just need to skip ahead and move along
-                if (vbo.BufferType == 0 || ebo.BufferType == 0)
-                {
-                    return;
-                }
-                
-                throw new InvalidOperationException("Cannot bind non vertex or non index buffer!");
-            }
-
-            if (UseIndexedDrawing)
-            {
-                ebo?.Bind(list);   
-            }
-            vbo.Bind(list, 1);
-            
-        }
-
-        protected override void ReleaseEngineResources()
-        {
-            ebo?.Dispose();
-            vbo?.Dispose();   
-        }
 
         ~BaseRenderable()
         {
-            ReleaseEngineResources();
+            Dispose();
         }
     }
+    
 }

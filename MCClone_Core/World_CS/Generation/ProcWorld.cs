@@ -16,7 +16,6 @@ using Engine.Objects;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;
 using Engine.Utilities.MathLib;
-using Engine.Windowing;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
@@ -62,6 +61,10 @@ namespace MCClone_Core.World_CS.Generation
 		public Material _material;
 		static Texture atlas;
 
+
+		public static readonly IndexBuffer<uint> MasterIndexBuffer = new IndexBuffer<uint>(Engine.Engine.Renderer.Device,
+			((ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ) / 2) * 4 * 6);
+
 		public ProcWorld(long seed)
 		{
 		
@@ -77,6 +80,21 @@ namespace MCClone_Core.World_CS.Generation
 			if (Instance != null)
 				return;
 			Instance = this;
+			List<uint> indices = new List<uint>();
+
+			for (uint i = 0; i < MasterIndexBuffer.Length; i += 4)
+			{
+				indices.Add(i);
+				indices.Add(i + 1);
+				indices.Add(i + 2);
+				
+				indices.Add(i);
+				indices.Add(i + 2);
+				indices.Add(i + 3);
+			}
+			
+			MasterIndexBuffer.ModifyBuffer(indices.ToArray(), Engine.Engine.Renderer.Device);
+			
 			
 			
 			MaterialDescription materialDescription = new MaterialDescription
@@ -370,18 +388,10 @@ namespace MCClone_Core.World_CS.Generation
 		/// <param name="z"></param>
 		/// <returns>whether it is safe to write or read from the block in the chunk</returns>
 		public static bool ValidPlace(int x, int y, int z)
-		{
-			if (x < 0 || x >= ChunkCs.MaxX || z < 0 || z >= ChunkCs.MaxZ)
-			{
-				return false;
-			}
-
-			if(y < 0 || y > ChunkCs.MaxY - 1)
-			{
-				return false;
-			}
-
-			return true;
+		{ 
+			return x >= 0 && x < ChunkCs.MaxX
+		                && z >= 0 && z < ChunkCs.MaxZ
+		                && y >= 0 && y <= ChunkCs.MaxY - 1;
 		}
 		
 		

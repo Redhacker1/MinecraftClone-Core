@@ -1,6 +1,6 @@
 ﻿using Engine.Utilities.MathLib;
 
-namespace Engine.Rendering.Abstract;
+namespace Engine.Rendering.Abstract.View;
 
 public struct Viewport
 {

@@ -4,7 +4,7 @@ using Veldrid;
 
 namespace Engine.Rendering.VeldridBackend;
 
-public class WindowRenderTarget : RenderTarget
+class WindowRenderTarget : RenderTarget
 {
     internal WindowRenderTarget(GraphicsDevice device) : base(device.SwapchainFramebuffer, device)
     {

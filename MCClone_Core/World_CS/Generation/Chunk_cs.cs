@@ -87,7 +87,7 @@ namespace MCClone_Core.World_CS.Generation
 			Instance3D = new Instance3D(_chunkMesh, ProcWorld.Instance._material);
 			AddChild(Instance3D);
 			
-			MinecraftCloneCore.Scene.Add(Instance3D);
+			MinecraftCloneCore.Scene.AddInstance(Instance3D);
 			
 		}
 
@@ -362,7 +362,7 @@ namespace MCClone_Core.World_CS.Generation
 			
 			BlockData.Dispose();
 			_visibilityMask.Dispose();
-			MinecraftCloneCore.Scene.Remove(Instance3D);
+			MinecraftCloneCore.Scene.RemoveInstance(Instance3D);
 
 			_freed = true;
 		}

@@ -32,8 +32,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="AssetLoading\DDSLoader" />
-      <Folder Include="AssetLoading\Shaders" />
       <Folder Include="GameUI" />
       <Folder Include="Rendering\" />
       <Folder Include="Rendering\Abstract\RenderStage\2D" />

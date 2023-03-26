@@ -78,7 +78,7 @@ namespace MCClone_Core
             script._Ready();
             player._Ready();
             
-            //_scene.AddPass(1, Pass);
+            Scene.AddStage(new DefaultRenderPass(Engine.Engine.Renderer));
 
 
             base.GameStart();

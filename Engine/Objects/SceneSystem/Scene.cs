@@ -46,14 +46,13 @@ public class Scene
     ReaderWriterLockSlim ReadWriteLock = new ReaderWriterLockSlim();
     CullingPanel PanelCullingTime;
 
-    RenderStage stage;
+    List<RenderStage> stages = new List<RenderStage>();
     List<Instance> _instances = new List<Instance>();
     readonly CommandList list;
 
     public Scene()
     {
         PanelCullingTime = new CullingPanel();
-        stage = new DefaultRenderPass(Engine.Renderer);
         list = Engine.Renderer.Device.ResourceFactory.CreateCommandList();
     }
 
@@ -73,7 +72,7 @@ public class Scene
         
         
         ReadWriteLock.EnterWriteLock();
-        CleanList(_instances);
+        RemoveInstances(_instances);
         ReadWriteLock.ExitWriteLock();
         
         ReadWriteLock.EnterReadLock();
@@ -108,12 +107,18 @@ public class Scene
 
         renderTarget.Bind(list);
         
-        stage.RunStage(new RenderState()
+        ReadWriteLock.EnterReadLock();
+        foreach (RenderStage stage in stages)
         {
-            Target = Engine.MainFrameBuffer,
-            Device = Engine.Renderer.Device, 
-            GlobalCommandList = list
-        }, renderTarget, 0, instance3Ds);
+            stage.RunStage(new RenderState()
+            {
+                Target = Engine.MainFrameBuffer,
+                Device = Engine.Renderer.Device, 
+                GlobalCommandList = list
+            }, renderTarget, 0, instance3Ds);
+        }
+        ReadWriteLock.ExitReadLock();
+
         Engine.Renderer.RenderImgGui(dt, list);
         list.End();
         Engine.Renderer.RunCommandList(list);
@@ -122,7 +127,7 @@ public class Scene
         
     }
 
-    public void Add(Instance instance3D)
+    public void AddInstance(Instance instance3D)
     {
         ReadWriteLock.EnterWriteLock();
         if (_instances.Contains(instance3D) == false)
@@ -133,7 +138,7 @@ public class Scene
 
     }
 
-    public void Remove(Instance instance3D)
+    public void RemoveInstance(Instance instance3D)
     {
         ReadWriteLock.EnterWriteLock();
         if (_instances.Contains(instance3D) == true)
@@ -142,8 +147,29 @@ public class Scene
         }
         ReadWriteLock.ExitWriteLock();
     }
+    
+    public void AddStage(RenderStage stage)
+    {
+        ReadWriteLock.EnterWriteLock();
+        if (stages.Contains(stage) == false)
+        {
+            stages.Add(stage);
+        }
+        ReadWriteLock.ExitWriteLock();
 
-    static void CleanList(List<Instance> instance3Ds)
+    }
+    
+    public void RemoveStage(RenderStage stage)
+    {
+        ReadWriteLock.EnterWriteLock();
+        if (stages.Contains(stage) == true)
+        { 
+            stages.Remove(stage);
+        }
+        ReadWriteLock.ExitWriteLock();
+    }
+
+    static void RemoveInstances(List<Instance> instance3Ds)
     {
         for (int index = 0; index < instance3Ds.Count; index++) 
         {

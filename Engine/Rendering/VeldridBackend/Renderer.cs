@@ -29,7 +29,7 @@ namespace Engine.Rendering.VeldridBackend
         internal Renderer(IView viewport)
         {
             Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
-                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
+                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
 
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
             

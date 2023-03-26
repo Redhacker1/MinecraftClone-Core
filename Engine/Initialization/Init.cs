@@ -24,7 +24,7 @@ namespace Engine.Initialization
                 Position = new Vector2D<int>(x, y),
                 Title = windowName,
                 VSync = false,
-                API = GraphicsAPI.Default with {Version = new APIVersion(4, 6)},
+                API = GraphicsAPI.DefaultVulkan,
                 PreferredBitDepth = new Vector4D<int>(32),
                 PreferredDepthBufferBits = 32,
                 PreferredStencilBufferBits = 8

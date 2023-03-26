@@ -153,7 +153,7 @@ public class NvgRenderer : INvgRenderer
         {
             return;
         }
-        
+
         CurrentCommandBuffer.Begin();
         CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer);
         Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
@@ -184,7 +184,7 @@ public class NvgRenderer : INvgRenderer
                 continue;
             }
             
-            if (drawCall.Pipeline != prevPipeline)
+            if (drawCall.Pipeline != prevPipeline && drawCall.Pipeline != null)
             {
                 prevPipeline = drawCall.Pipeline;
                 CurrentCommandBuffer.SetPipeline(drawCall.Pipeline);

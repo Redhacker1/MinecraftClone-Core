@@ -1,5 +1,0 @@
-﻿Currently this is in very early stages of development. There are a few things that need looked at.
-A: Reimplement all currently supported ASSIMP types. 
-B: Reimplement all methods and properties exposed in ASSIMP.
-C: Look into just wrapping ASSIMP types directly (NOTE: this is likely going to be cumbersome and might have overhead on modifying or even reading the data, this probably will not be worth it if not planning on moving back to C or C++ style code, at which point it defeats the purpose of this particular wrapper, also note generics don't work on pointers)
-D: Work on exporting data back out to ASSIMP for use with the limited exporters that exist. NOTE: Is this a desired feature? Would this even get used, it would likely have overhead with this if C is not implemented, that being said could be done independently of C. I am perfectly Ok without this feature so I need input here.

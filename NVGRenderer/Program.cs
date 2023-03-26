@@ -4,6 +4,7 @@ using Engine.Initialization;
 using Engine.Input;
 using Engine.MathLib;
 using Engine.Objects;
+using Engine.Objects.SceneSystem;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.Abstract.RenderStage;
 using Engine.Rendering.Abstract.View;
@@ -30,13 +31,23 @@ namespace NVGRenderer
         NvgItem DemoTest;
         NvgItem PerfGraph;
         NvgRenderPass pass;
+        public static Scene Scene;
+        
         protected override void GameStart()
         {
             pass = new NvgRenderPass(Engine.Engine.Renderer);
-            Engine.Engine.MainFrameBuffer.AddPass(1, pass);
+            Scene = new Scene();
+            
+            Scene.AddStage(pass);
 
             DemoTest = new LineBenchmark();
             PerfGraph = new PerfMonitor();
+        }
+        
+        protected override void OnRender(float deltaT)
+        {
+            base.OnRender(deltaT);
+            Scene?.Render(Camera.MainCamera, Engine.Engine.MainFrameBuffer, deltaT);
         }
     }
 
@@ -56,6 +67,8 @@ namespace NVGRenderer
             }
 
         }
+        
+        
     }
 
     public class NvgRenderPass : RenderStage, IDisposable
@@ -99,23 +112,22 @@ namespace NVGRenderer
                 _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);   
             }
             Thing = Nvg.Create(_nvgRenderer);
+        }
+
+        protected override void Stage(RenderState rendererState, RenderTarget target, float time, float deltaTime, IReadOnlyList<Instance> renderObjects)
+        {
+
             frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
             {
                 Framebuffer = Engine.Engine.Renderer.Device.SwapchainFramebuffer,
                 GraphicsDevice = Engine.Engine.Renderer.Device,
                 List = Engine.Engine.Renderer.Device.ResourceFactory.CreateCommandList()
             });
-        }
-
-        
-        protected override void Stage(RenderState rendererState, RenderTarget targetFrame, float time, float deltaTime)
-        {
-            frame.Framebuffer = rendererState.Device.SwapchainFramebuffer;
             
             _nvgRenderer.SetFrame(frame);
             if (WindowClass.Handle.Size.LengthSquared > 0)
             {
-                Thing.BeginFrame(targetFrame.Size.X, targetFrame.Size.Y, 1);
+                Thing?.BeginFrame(Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, 1);
                 foreach (WeakReference<NvgItem> panel in NvgItem.items)
                 {
                     if (panel.TryGetTarget(out NvgItem item))
@@ -123,9 +135,9 @@ namespace NVGRenderer
                         item.OnDraw(Thing, time, deltaTime);
                     }
                 }
-                Thing.EndFrame();
+                Thing?.EndFrame();
             
-                _nvgRenderer.Flush();   
+                _nvgRenderer?.Flush();   
             }
         }
 
@@ -134,5 +146,7 @@ namespace NVGRenderer
             Thing.Dispose();
             _nvgRenderer?.Dispose();
         }
+        
+        
     }
 }

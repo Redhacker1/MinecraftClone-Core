@@ -28,8 +28,7 @@ namespace Engine.Rendering.VeldridBackend
         
         internal Renderer(IView viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(
-                false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
 
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
             
@@ -44,8 +43,9 @@ namespace Engine.Rendering.VeldridBackend
 
         public void RenderImgGui(double time, CommandList list)
         {
+            _imGuiHandler.WindowResized(new Vector2D<int>((int) Device.SwapchainFramebuffer.Width, (int) Device.SwapchainFramebuffer.Height));
             _imGuiHandler.Update((float) time);
-            for (int index = 0; index < ImGUIPanel.Panels.Count; index++)
+            for (int index = ImGUIPanel.Panels.Count - 1; index >= 0; index--)
             {
                 ImGUIPanel uiPanel = ImGUIPanel.Panels[index];
                 if (uiPanel.Draggable == false)
@@ -76,10 +76,8 @@ namespace Engine.Rendering.VeldridBackend
             if (size.Length > 0)
             {
                 // Adjust the viewport to the new window size
-
                 Engine.MainFrameBuffer.Size = new Int2(size.X, size.Y);
-                _imGuiHandler.WindowResized(size);
-                
+
             }
         }
 
@@ -98,8 +96,7 @@ namespace Engine.Rendering.VeldridBackend
         internal void Resize(Vector2D<int> size)
         {
             Console.WriteLine("resized!");
-            Device.ResizeMainWindow((uint)size.X, (uint)size.Y);
-            _imGuiHandler.WindowResized(size);
+            ResizeMainSwapchain(size);
         }
 
         bool _disposing;

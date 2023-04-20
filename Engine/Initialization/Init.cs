@@ -1,65 +1,59 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using Engine.Windowing;
-using Silk.NET.Maths;
-using Silk.NET.Windowing;
+using Veldrid.Sdl2;
 
 namespace Engine.Initialization
 {
     public class Init
     {
-        public static void InitEngine(int x, int y, int width, int height, string windowName, GameEntry gameclass)
+        public static void InitEngine(ref WindowParams windowParams, GameEntry gameClass, RenderBackend backend = RenderBackend.Auto)
         {
-            InitWindow(x, y, width, height, windowName, gameclass);
-            WindowClass.Handle?.Run();
-           // WindowClass.Handle?.Dispose();
+            var window = InitWindow(ref windowParams, gameClass, backend);
+            WindowEvents windowEvents = new WindowEvents(window, gameClass);
+            windowEvents.Run();
+
         }
 
-        static WindowClass InitWindow(int x, int y, int width, int height, string windowName, GameEntry gameclass)
+        static Sdl2Window InitWindow(ref WindowParams windowParams, GameEntry gameClass, RenderBackend backend)
         {
-
-            WindowOptions options = new WindowOptions
+            SDL_WindowFlags flags = SDL_WindowFlags.MouseFocus;
+            if (backend == RenderBackend.OpenGL || backend == RenderBackend.Auto)
             {
-                Size = new Vector2D<int>(width, height),
-                Position = new Vector2D<int>(x, y),
-                Title = windowName,
-                VSync = false,
-                API = GraphicsAPI.DefaultVulkan,
-                PreferredBitDepth = new Vector4D<int>(32),
-                PreferredDepthBufferBits = 32,
-                PreferredStencilBufferBits = 8
-            };
+                flags |= SDL_WindowFlags.OpenGL;
+            }
 
-            WindowClass window = new WindowClass(options, gameclass);
+            //SDL_Window window;
 
-            return window;
+            return new Sdl2Window(windowParams.Name, windowParams.Location.X, windowParams.Location.Y,
+                windowParams.Size.X, windowParams.Size.Y, flags, false);
         }
 
         List<Parameter> ParseLaunchOptions(params string[] commands)
         {
-            List<Parameter> LaunchOptions = new List<Parameter>();
+            List<Parameter> launchOptions = new List<Parameter>();
             bool expectsCommand = true;
-            Parameter currentparam = new Parameter();
-            StringBuilder workingstringBuilder = new StringBuilder();
+            Parameter currentParam = new Parameter();
+            StringBuilder workingStringBuilder = new StringBuilder();
             bool stringCMD = false;
             char characterize = (char) 0;
             
             foreach (var str in commands)
             {
-                var workingstring = str;
+                string workingString = str;
 
                 bool isCommand = str.StartsWith('-');
                 if (!stringCMD)
                 {
-                    workingstring = workingstring.Trim();
+                    workingString = workingString.Trim();
                 }
 
                 if (!isCommand)
                 {
                     if (!stringCMD)
                     {
-                        workingstring = workingstring.Trim();
-                        LaunchOptions.Add(currentparam);
+                        workingString = workingString.Trim();
+                        launchOptions.Add(currentParam);
  
                     }
                     if (expectsCommand)
@@ -67,50 +61,50 @@ namespace Engine.Initialization
                         continue;
                     }
 
-                    characterize = workingstring[0] switch
+                    characterize = workingString[0] switch
                     {
                         '"' => '"',
                         ',' => ',',
                         _ => characterize
                     };
 
-                    if (characterize != (char)0 && workingstring[^1] != characterize)
+                    if (characterize != (char)0 && workingString[^1] != characterize)
                     {
-                        workingstringBuilder.Append(workingstring);
+                        workingStringBuilder.Append(workingString);
                         stringCMD = true;
                     }
                     else if(stringCMD)
                     {
-                        workingstringBuilder.Append(workingstring);
-                        if (workingstring[^1] == characterize)
+                        workingStringBuilder.Append(workingString);
+                        if (workingString[^1] == characterize)
                         {
                             characterize = (char)0;
-                            workingstring = workingstringBuilder.ToString();
-                            currentparam.variable = workingstring;
+                            workingString = workingStringBuilder.ToString();
+                            currentParam.variable = workingString;
                             expectsCommand = true;
-                            LaunchOptions.Add(currentparam);
+                            launchOptions.Add(currentParam);
 
                         }
                     }
                     else
                     {
-                        currentparam.variable = str;
+                        currentParam.variable = str;
                         expectsCommand = true;
-                        LaunchOptions.Add(currentparam);
+                        launchOptions.Add(currentParam);
                     }
 
                 }
                 else
                 {
-                    currentparam = new Parameter
+                    currentParam = new Parameter
                     {
-                        prefix = workingstring
+                        prefix = workingString
                     };
                     expectsCommand = false;
                 }
             }
 
-            return LaunchOptions;
+            return launchOptions;
         }
 
 

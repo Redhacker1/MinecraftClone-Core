@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Diagnostics;
-using Engine.Input;
 using Engine.Renderable;
 using Engine.Rendering.Abstract.View;
 using Engine.Utilities.MathLib;
 using ImGuiNET;
 using Silk.NET.Maths;
-using Silk.NET.Windowing;
-using Silk.NET.Windowing.Extensions.Veldrid;
 using Veldrid;
+using Veldrid.Sdl2;
 
 // TODO: This should be seperated into implementation and Logic files, Veldrid should NOT be a core dependency.
 // TODO: Look into making user definable or events to trigger on user defined times, say when a frame is completed or a new frame is starting.
@@ -26,25 +24,22 @@ namespace Engine.Rendering.VeldridBackend
         readonly ImGuiRenderer _imGuiHandler;
         
         
-        internal Renderer(IView viewport)
+        internal Renderer(Sdl2Window viewport)
         {
-            Device = viewport.CreateGraphicsDevice(new GraphicsDeviceOptions(false, PixelFormat.R32_Float, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Direct3D11);
+            Device = Veldrid.StartupUtilities.VeldridStartup.CreateGraphicsDevice(viewport ,new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
 
-            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport, InputHandler.Context);
+            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport.Width, viewport.Height);
             
             _stopwatch.Start();
         }
-        
-        Stopwatch _stopwatch = new Stopwatch();
-        public float FPS;
-        public GraphicsDevice Device;
 
-        Vector2D<int> newSize = new Vector2D<int>();
+        readonly Stopwatch _stopwatch = new Stopwatch();
+        public float FPS;
+        public readonly GraphicsDevice Device;
 
         public void RenderImgGui(double time, CommandList list)
         {
-            _imGuiHandler.WindowResized(new Vector2D<int>((int) Device.SwapchainFramebuffer.Width, (int) Device.SwapchainFramebuffer.Height));
-            _imGuiHandler.Update((float) time);
+            //_imGuiHandler.Update((float) time);
             for (int index = ImGUIPanel.Panels.Count - 1; index >= 0; index--)
             {
                 ImGUIPanel uiPanel = ImGUIPanel.Panels[index];
@@ -68,10 +63,9 @@ namespace Engine.Rendering.VeldridBackend
             _stopwatch.Restart();
 
         }
-        
 
 
-        void ResizeMainSwapchain(Vector2D<int> size)
+        static void ResizeMainSwapchain(Vector2D<int> size)
         {
             if (size.Length > 0)
             {
@@ -91,12 +85,36 @@ namespace Engine.Rendering.VeldridBackend
         {
             Device.SwapBuffers();
         }
+        
+        
+        Int2 lastSize;
+        internal bool OnRenderHook()
+        {
+            Debug.Assert(Engine.IsRenderThread);
+            
+            
+            if (lastSize != Engine.MainFrameBuffer.Size)
+            {
+                Vector2D<int> size = new Vector2D<int>(Engine.MainFrameBuffer.Size.X, Engine.MainFrameBuffer.Size.Y);
+                lastSize = Engine.MainFrameBuffer.Size;
+                
+                ResizeMainSwapchain(size);
+                Device.ResizeMainWindow((uint)size.X,(uint)size.Y);
+                Engine.MainFrameBuffer.Framebuffer = Device.SwapchainFramebuffer;
+            
+                _imGuiHandler.WindowResized((int) Device.SwapchainFramebuffer.Width, (int) Device.SwapchainFramebuffer.Height);
+
+                return true;
+            }
+
+            return false;
+        }
 
 
-        internal void Resize(Vector2D<int> size)
+        internal static void Resize(Vector2D<int> size)
         {
             Console.WriteLine("resized!");
-            ResizeMainSwapchain(size);
+            Engine.MainFrameBuffer.Resize(new Int2(size.X, size.Y));
         }
 
         bool _disposing;

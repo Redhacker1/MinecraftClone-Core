@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Engine.Utilities.Concurrency;
 using Engine.Utilities.MathLib;
 using Veldrid;
@@ -16,15 +17,17 @@ public class RenderTarget : IDisposable
     public Viewport Viewport { private get; set; }
     
     public Camera viewCamera;
+
+    protected Int2 size;
     
     public Int2 Size
     {
-        get => new Int2((int)_framebuffer.Width, (int)_framebuffer.Height);
+        get => size;
         set => Resize(value);
     }
     
 
-    protected internal Framebuffer _framebuffer;
+    public Framebuffer Framebuffer;
 
     readonly RenderStage.RenderStage[] _stages = new RenderStage.RenderStage[16];
 
@@ -33,15 +36,17 @@ public class RenderTarget : IDisposable
 
     internal RenderTarget(Framebuffer  framebuffer, GraphicsDevice device)
     {
-        _framebuffer = framebuffer;
+        Framebuffer = framebuffer;
         _framebufferCommandList = device.ResourceFactory.CreateCommandList();
         Device = device;
         Targets.Add(this);
         ValidTarget = true;
+        
+        size = new Int2((int)Framebuffer.Width, (int)Framebuffer.Height);
     }
     
     
-    internal RenderTarget(GraphicsDevice device, Int2 size, PixelFormat[] pixelFormats, PixelFormat? depthStencil)
+    internal RenderTarget(GraphicsDevice device, Int2 size, IReadOnlyList<PixelFormat> pixelFormats, PixelFormat? depthStencil)
     {
 
         Texture depthAttachment = null;
@@ -51,15 +56,15 @@ public class RenderTarget : IDisposable
                 depthStencil.Value, TextureUsage.DepthStencil, TextureType.Texture2D));
         }
 
-        Texture[] textures = new Texture[pixelFormats.Length];
-        for (int index = 0; index < pixelFormats.Length; index++)
+        Texture[] textures = new Texture[pixelFormats.Count];
+        for (int index = 0; index < pixelFormats.Count; index++)
         {
             textures[index] = device.ResourceFactory.CreateTexture(new TextureDescription((uint)size.X, (uint)size.Y, 1, 1, 0,
                 pixelFormats[index], TextureUsage.RenderTarget, TextureType.Texture2D));
         }
 
 
-        _framebuffer = device.ResourceFactory.CreateFramebuffer(new FramebufferDescription(depthAttachment, textures));
+        Framebuffer = device.ResourceFactory.CreateFramebuffer(new FramebufferDescription(depthAttachment, textures));
         _framebufferCommandList = device.ResourceFactory.CreateCommandList();
         Device = device;
         Targets.Add(this);
@@ -68,14 +73,14 @@ public class RenderTarget : IDisposable
 
     public virtual void Resize(Int2 size)
     {
-        int colorTargetLength = _framebuffer.ColorTargets.Count;
+        int colorTargetLength = Framebuffer.ColorTargets.Count;
 
         Texture[] colourTextures = new Texture[colorTargetLength];
         Texture depthTarget = null;
 
         for (int i = 0; i < colorTargetLength; i++)
         {
-            Texture currentTexture = _framebuffer.ColorTargets[i].Target;
+            Texture currentTexture = Framebuffer.ColorTargets[i].Target;
             colourTextures[i] = Device.ResourceFactory.CreateTexture(
                 new TextureDescription(
                     (uint) size.X,
@@ -92,9 +97,9 @@ public class RenderTarget : IDisposable
             Device.DisposeWhenIdle(currentTexture);
         }
         
-        if (_framebuffer.DepthTarget.HasValue)
+        if (Framebuffer.DepthTarget.HasValue)
         {
-            Texture depthTexture = _framebuffer.DepthTarget.Value.Target;
+            Texture depthTexture = Framebuffer.DepthTarget.Value.Target;
             depthTarget = Device.ResourceFactory.CreateTexture(
                 new TextureDescription(
                     (uint) size.X,
@@ -111,8 +116,8 @@ public class RenderTarget : IDisposable
             Device.DisposeWhenIdle(depthTexture);
         }
 
-        Device.DisposeWhenIdle(_framebuffer);
-        _framebuffer = Device.ResourceFactory.CreateFramebuffer(new FramebufferDescription(depthTarget, colourTextures));
+        Device.DisposeWhenIdle(Framebuffer);
+        Framebuffer = Device.ResourceFactory.CreateFramebuffer(new FramebufferDescription(depthTarget, colourTextures));
     }
 
 
@@ -122,13 +127,13 @@ public class RenderTarget : IDisposable
         GC.SuppressFinalize(this);
         
         Targets.Remove(this);
-        _framebuffer?.Dispose();
+        Framebuffer?.Dispose();
         _framebufferCommandList?.Dispose();
         
     }
 
     public void Bind(CommandList list)
     {
-        list.SetFramebuffer(_framebuffer);
+        list.SetFramebuffer(Framebuffer);
     }
 }

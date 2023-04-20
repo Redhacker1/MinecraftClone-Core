@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Numerics;
 using System.Threading;
 using Engine.Renderable;
@@ -95,6 +94,7 @@ public class Scene
     /// <param name="instance3Ds">the Instances to render</param>
     /// <param name="camera">The camera to render from</param>
     /// <param name="renderTarget">The target to render to</param>
+    /// <param name="dt">Delta Time/time in between executions</param>
     protected virtual void DoRender( IReadOnlyList<Instance> instance3Ds, ref CameraInfo camera, RenderTarget renderTarget, float dt)
     {
         // Clear the screen, 
@@ -104,18 +104,23 @@ public class Scene
         list.ClearColorTarget(0, new RgbaFloat(.29804f,.29804f, .32157f, 1f));
         list.ClearDepthStencil(1, 0);
         list.PopDebugGroup();
-
+        list.End();
+        Engine.Renderer.RunCommandList(list);
+        
+        list.Begin();
         renderTarget.Bind(list);
+        
+        RenderState state = new RenderState()
+        {
+            Target = renderTarget,
+            Device = Engine.Renderer.Device,
+            GlobalCommandList = list
+        };
         
         ReadWriteLock.EnterReadLock();
         foreach (RenderStage stage in stages)
         {
-            stage.RunStage(new RenderState()
-            {
-                Target = Engine.MainFrameBuffer,
-                Device = Engine.Renderer.Device, 
-                GlobalCommandList = list
-            }, renderTarget, 0, instance3Ds);
+            stage.RunStage(state, renderTarget, 0, instance3Ds);
         }
         ReadWriteLock.ExitReadLock();
 

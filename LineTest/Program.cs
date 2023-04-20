@@ -2,6 +2,8 @@
 // https://vitaliburkov.wordpress.com/2016/09/17/simple-and-fast-high-quality-antialiased-lines-with-opengl/
 
 using Engine;
+using Engine.Initialization;
+using Engine.Utilities.MathLib;
 using ObjDemo;
 
 namespace LineTest
@@ -10,7 +12,13 @@ namespace LineTest
     {
         static void Main()
         {
-            Engine.Initialization.Init.InitEngine(1024, 768, 1920, 1080, "TestLines", new LinesDemo());
+            WindowParams windowParams = new WindowParams()
+            {
+                Location = Int2.Zero,
+                Size = new Int2(1280, 720),
+                Name = "Default window",
+            };
+            Engine.Initialization.Init.InitEngine(ref windowParams, new LinesDemo());
         }
     }
 

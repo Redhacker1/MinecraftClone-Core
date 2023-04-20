@@ -4,6 +4,7 @@ using Engine;
 using Engine.Initialization;
 using Engine.Input;
 using Engine.Objects;
+using Engine.Utilities.MathLib;
 
 namespace InputTest
 {
@@ -11,7 +12,14 @@ namespace InputTest
     {
         static void Main(string[] args)
         {
-            Init.InitEngine(10, 10, 1024, 768, "InputTest", new GameClass());
+            
+            WindowParams windowParams = new WindowParams()
+            {
+                Location = Int2.Zero,
+                Size = new Int2(1920, 1080),
+                Name = "Default window",
+            };
+            Init.InitEngine(ref windowParams, new GameClass());
         }
     }
 
@@ -36,9 +44,9 @@ namespace InputTest
         protected override void _Process(double delta)
         {
             base._Process(delta);
-            if (InputHandler.MouseDelta(0) != Vector2.Zero)
+            if (InputHandler.MouseDelta() != Vector2.Zero)
             {
-                Console.WriteLine(InputHandler.MousePos(0));
+                Console.WriteLine(InputHandler.MousePos());
             }
         }
     }

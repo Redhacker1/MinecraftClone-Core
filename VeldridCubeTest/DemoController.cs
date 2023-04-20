@@ -1,7 +1,6 @@
 ﻿using System.Numerics;
 using Engine.Input;
 using Engine.Rendering.Abstract;
-using Silk.NET.Input;
 
 namespace VeldridCubeTest
 {

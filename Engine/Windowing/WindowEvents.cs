@@ -3,17 +3,13 @@ using System.Diagnostics;
 using System.Threading;
 using Engine.Input;
 using Engine.Rendering.VeldridBackend;
-using Silk.NET.Input;
 using Silk.NET.Maths;
-using Silk.NET.Windowing;
+using Veldrid.Sdl2;
 
 namespace Engine.Windowing
 {
-    public class WindowClass
+    public class WindowEvents
     {
-        [Obsolete]
-        public static Renderer Renderer { get; protected set; }
-
         static Thread _renderThread;
         
         public Action<Vector2D<int>> OnResize;
@@ -22,24 +18,13 @@ namespace Engine.Windowing
 
         [Obsolete]
         readonly GameEntry _gameInstance;
-        public static IWindow Handle;
+        public static Sdl2Window Handle;
 
-        public WindowClass(WindowOptions options, GameEntry gameClass)
-        {
-            Handle = Window.Create(options);
-            Handle.IsContextControlDisabled = true;
-            Handle.Closing += OnClose;
-            Handle.Load += OnLoad;
-
-            _gameInstance = gameClass;
-        }
-        
-        public WindowClass(IWindow windowHandle, GameEntry gameClass)
+        public WindowEvents(Sdl2Window windowHandle, GameEntry gameClass)
         {
             
             Handle = windowHandle;
             Handle.Closing += OnClose;
-            Handle.Load += OnLoad;
 
             _gameInstance = gameClass;
         }
@@ -49,43 +34,77 @@ namespace Engine.Windowing
             return Environment.CurrentManagedThreadId == _renderThread.ManagedThreadId;
         }
         
-
+        
         void OnLoad()
         {
-            IInputContext context = Handle.CreateInput();
-            InputHandler.InitInputHandler(context);
+            InputHandler.InitInputHandler(Handle);
             
             Engine.Renderer = new Renderer(Handle);
             Engine.MainFrameBuffer = new WindowRenderTarget(Engine.Renderer.Device);
 
             //Assign events.
-            Handle.FramebufferResize += OnResize;
-            OnResize += Engine.Renderer.Resize;
+            Handle.Resized += () =>
+            {
+                OnResize(new Vector2D<int>(Handle.Width, Handle.Height));
+            };
+            
+            OnResize += Renderer.Resize;
 
             _renderThread = new Thread(() =>
             {
                 float deltaT = 0f;
-                Stopwatch stopwatch = new Stopwatch();
-                while (Handle.IsClosing != true)
+                Stopwatch stopwatch = Stopwatch.StartNew();
+                while (Handle?.Exists == true)
                 {
                     Engine.OnRender(deltaT);
                     deltaT = (float)stopwatch.Elapsed.TotalSeconds;
-                    stopwatch.Restart();
+                    stopwatch.Restart(); 
                 }
             });
-            Engine.OnRender += _gameInstance.OnRender;
+            
+            Engine.OnRender += dt =>
+            {
+                Engine.Renderer.OnRenderHook();
+                
+                _gameInstance.OnRender(dt);
+            };
 
-            Handle.Update += _gameInstance.Update;
+            //Handle.Update += _gameInstance.Update;
             _gameInstance.GameStart();
             _renderThread.Start();
             
         }
+
+        void Update(double delta)
+        {
+            _gameInstance.Update(delta);
+        }
+
+
+        bool closed = false;
+
+        internal void Run()
+        {
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            OnLoad();
+            while (!closed)
+            {
+                var evnt = Handle.PumpEvents();
+                Engine.CurrentInput = evnt;
+                
+                Update(stopwatch.Elapsed.Seconds);
+                stopwatch.Restart();
+
+            }
+        }
+        
 
         void OnClose()
         {
             _gameInstance.GameEnded();
             Engine.Renderer.Dispose();
             Console.WriteLine("Closed!");
+            closed = true;
         }
     }
 }

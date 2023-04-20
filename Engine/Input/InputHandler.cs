@@ -1,63 +1,83 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
-using Engine.Input.Default_Devices;
-using Silk.NET.Input;
+using Veldrid;
+using Veldrid.Sdl2;
 
 namespace Engine.Input
 {
     public class InputHandler
     {
-        static List<Keyboard> _keyboards = new List<Keyboard>();
-        static List<Mouse> _mice = new List<Mouse>();
-        static internal IInputContext Context;
+        internal static Sdl2Window Context;
 
-        public static void InitInputHandler(IInputContext inputContext)
+        static Dictionary<Key, KeyState> _keyStates = new Dictionary<Key, KeyState>();
+        static Vector2 mousePos;
+        static bool TrappedMouse = false;
+
+        public static void InitInputHandler(Sdl2Window inputContext)
         {
             Context = inputContext;
-            for (int i = 0; i < inputContext.Keyboards.Count; i++)
+
+            Context.KeyDown += KeyDown;
+            Context.KeyUp += KeyUp;
+            Context.MouseMove += OnMouseMove;
+
+            var keys = Enum.GetValues<Key>();
+
+            foreach (Key key in keys)
             {
-                _keyboards.Add(new Keyboard(i, inputContext.Keyboards[i]));
-            }
-            
-            for (int i = 0; i < inputContext.Mice.Count; i++)
-            {
-                _mice.Add(new Mouse(i, inputContext.Mice[i]));
+                if (_keyStates.ContainsKey(key))
+                    continue;
+                _keyStates.Add(key, KeyState.Released);
             }
 
 
         }
 
+        static void OnMouseMove(MouseMoveEventArgs mouseData)
+        {
+            mousePos = mouseData.MousePosition;
+        }
+
+        static void KeyDown(KeyEvent eventData)
+        {
+            _keyStates[eventData.Key] = KeyState.Released;
+            
+        }
+
+        static void KeyUp(KeyEvent eventData)
+        {
+            _keyStates[eventData.Key] = eventData.Repeat ? KeyState.Pressed : KeyState.JustPressed;
+        }
+        
+        [Obsolete]
         public static void PollInputs()
         {
-            for (int i = 0; i < _keyboards.Count; i++)
-            {
-                _keyboards[i].Poll();
-            }
-            for (int i = 0; i < _mice.Count; i++)
-            {
-                _mice[i].Poll();
-            }
         }
         
 
-        public static Vector2 MousePos(int id)
+        public static Vector2 MousePos()
         {
-            return _mice[id].Position;
+            return mousePos;
         }
         
-        public static Vector2 MouseDelta(int id)
+        public static Vector2 MouseDelta()
         {
-            return _mice[id].Delta;
+            return Context.MouseDelta;
         }
 
-        public static void SetMouseMode(int id, CursorMode mode)
+        public static void SetMouseMode(bool Shown, bool Trapped)
         {
-            _mice[id].SetMouseMode(mode);
+            Sdl2Native.SDL_ShowCursor(Shown ? 1 : 0);
+            Sdl2Native.SDL_SetRelativeMouseMode(Trapped);
+            TrappedMouse = Trapped;
         }
         
-        public static CursorMode GetMouseMode(int id)
+        public static (bool, bool) GetMouseMode(int id)
         {
-            return _mice[id].GetMouseMode();
+            bool mouseVisibility = Sdl2Native.SDL_ShowCursor(Sdl2Native.SDL_QUERY) == Sdl2Native.SDL_ENABLE;
+
+            return (mouseVisibility, TrappedMouse);
         }
         
         
@@ -70,7 +90,7 @@ namespace Engine.Input
         /// <returns>Whether the key is currently pressed</returns>
         public static bool KeyboardKeyDown(int keyboard, Key desiredKey)
         {
-            return _keyboards[keyboard].KeyPressed(desiredKey);
+            return _keyStates[desiredKey] == KeyState.Released;
         }
         
         /// <summary>
@@ -81,18 +101,18 @@ namespace Engine.Input
         /// <returns>Whether the key was just pressed</returns>
         public static bool KeyboardJustKeyPressed(int keyboard, Key desiredKey)
         {
-           return _keyboards[keyboard].KeyJustPressed(desiredKey);
+           return _keyStates[desiredKey] == KeyState.JustPressed;
         }
         
         /// <summary>
-        /// Gets if the key was just released on the desired keyboard
+        /// Gets if the key was just pressed on the desired keyboard
         /// </summary>
         /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
         /// <param name="desiredKey">Key you are testing for</param>
-        /// <returns>Whether the key was just released</returns>
-        public static bool KeyboardJustKeyReleased(int keyboard, Key desiredKey)
+        /// <returns>Whether the key was just pressed</returns>
+        public static bool KeyboardKeyPressed(int keyboard, Key desiredKey)
         {
-            return _keyboards[keyboard].KeyJustReleased(desiredKey);
+            return _keyStates[desiredKey] == KeyState.Pressed;
         }
     }
 }

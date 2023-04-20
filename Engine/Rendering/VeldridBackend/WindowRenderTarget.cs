@@ -8,11 +8,12 @@ class WindowRenderTarget : RenderTarget
 {
     internal WindowRenderTarget(GraphicsDevice device) : base(device.SwapchainFramebuffer, device)
     {
+        Targets.Remove(this);
     }
 
     public override void Resize(Int2 size)
     {
-        Device.ResizeMainWindow((uint)size.X, (uint)size.Y);
-        this._framebuffer = Device.SwapchainFramebuffer;
+        this.size = size;
     }
+
 }

@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using Engine.Rendering.Abstract.View;
+using Silk.NET.Maths;
 using Veldrid;
 
 namespace NVGRenderer.Rendering
@@ -8,7 +9,7 @@ namespace NVGRenderer.Rendering
         public GraphicsDevice GraphicsDevice;
         public CommandList List;
         public Vector2D<uint> Size;
-        public Framebuffer Framebuffer;
+        public RenderTarget Framebuffer;
         
     }
     

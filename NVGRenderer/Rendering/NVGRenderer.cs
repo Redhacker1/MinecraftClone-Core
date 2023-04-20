@@ -155,7 +155,7 @@ public class NvgRenderer : INvgRenderer
         }
 
         CurrentCommandBuffer.Begin();
-        CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer);
+        CurrentCommandBuffer.SetFramebuffer(_frame.Framebuffer.Framebuffer);
         Viewport viewport = new Viewport(0, 0, _viewSize.X, _viewSize.Y, 0, 1);
         CurrentCommandBuffer.SetViewport(0, viewport);
         CurrentCommandBuffer.SetScissorRect(0, 0, 0, (uint)_viewSize.X, (uint)_viewSize.Y);

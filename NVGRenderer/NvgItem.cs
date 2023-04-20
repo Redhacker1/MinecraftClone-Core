@@ -64,7 +64,7 @@ public class DemoTest : NvgItem
     {
         testDemo ??= new Demo(nvg);
 
-        Vector2 mouseInput = InputHandler.MousePos(0);
+        Vector2 mouseInput = InputHandler.MousePos();
         testDemo.Render(mouseInput.X, mouseInput.Y, Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, elapsed, false);
     }
         

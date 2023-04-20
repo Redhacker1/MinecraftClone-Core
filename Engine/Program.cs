@@ -3,6 +3,7 @@ using Engine.Initialization;
 using Engine.Objects;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
+using Engine.Utilities.MathLib;
 
 namespace Engine
 {
@@ -16,7 +17,15 @@ namespace Engine
 
 
             // TODO: This is where the engine should always init. 
-            Init.InitEngine(0,0, 1024,768, "BaseEngine", new GameTest());
+
+            WindowParams windowParams = new WindowParams()
+            {
+                Location = Int2.Zero,
+                Size = new Int2(1920, 1080),
+                Name = "Default window",
+            };
+            
+            Init.InitEngine(ref windowParams, new GameTest());
         }
     }
 

@@ -70,6 +70,8 @@ namespace Engine.Rendering.Abstract
             if (Camera.MainCamera == null) return;
 
             CommandList list = rendererState.GlobalCommandList;
+            list.SetFramebuffer(targetFrame.Framebuffer);
+            
             CameraInfo cameraInfo = new CameraInfo(Camera.MainCamera);
 
 

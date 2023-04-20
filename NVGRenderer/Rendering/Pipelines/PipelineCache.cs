@@ -155,7 +155,7 @@ public class PipelineCache
         BlendStateDescription blendState = ColourBlendState(ColorBlendAttachmentState(settings));
 
         Pipeline pipeline = device.ResourceFactory.CreateGraphicsPipeline(
-            new GraphicsPipelineDescription(blendState, depthStencil, rasterizerState, settings.Topology, shaderSet, new []{renderer.DescriptorSetLayout}, frame.Framebuffer.OutputDescription, ResourceBindingModel.Default));
+            new GraphicsPipelineDescription(blendState, depthStencil, rasterizerState, settings.Topology, shaderSet, new []{renderer.DescriptorSetLayout}, frame.Framebuffer.Framebuffer.OutputDescription, ResourceBindingModel.Default));
 
         _settings.Add(settings);
         _pipelines.Add(pipeline);
@@ -171,8 +171,10 @@ public class PipelineCache
     public static BlendStateDescription ColourBlendState(BlendAttachmentDescription colourBlendAttachmentState)
     {
 
-        BlendStateDescription Blendstate = new BlendStateDescription();
-        Blendstate.AttachmentStates = new[] {colourBlendAttachmentState};
+        BlendStateDescription Blendstate = new BlendStateDescription
+        {
+            AttachmentStates = new[] {colourBlendAttachmentState}
+        };
         return Blendstate;
     }
     

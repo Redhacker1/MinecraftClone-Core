@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Engine.Rendering.Abstract.View;
 using Engine.Rendering.VeldridBackend;
 using NVGRenderer.Rendering.Calls;
 using NVGRenderer.Rendering.Pipelines;
@@ -24,7 +25,7 @@ public class NvgFrame : IDisposable
 
     public readonly UniformManager UniformAllocator;
 
-    public Framebuffer Framebuffer;
+    public RenderTarget Framebuffer;
 
     public VertexBuffer<byte> FragmentUniformBuffer { get; }
     public readonly CallQueue Queue;

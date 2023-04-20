@@ -1,6 +1,7 @@
 ﻿using System;
 using Engine.Rendering.Abstract.View;
 using Engine.Rendering.VeldridBackend;
+using Veldrid;
 
 namespace Engine;
 
@@ -15,7 +16,12 @@ public static class Engine
 
     public static Renderer Renderer { get; internal set; }
     
-    public static Action<float> OnRender = _ => { };
+    public static Action<float> OnRender = _ =>
+    {
+        
+    };
 
-    public static bool IsRenderThread => Windowing.WindowClass.IsRenderThread();
+    public static InputSnapshot CurrentInput = null;
+
+    public static bool IsRenderThread => Windowing.WindowEvents.IsRenderThread();
 }

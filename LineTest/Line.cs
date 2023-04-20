@@ -4,7 +4,6 @@ using Engine.Objects.SceneSystem;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;
 using Engine.Windowing;
-using Silk.NET.Maths;
 using Veldrid;
 
 namespace LineTest;
@@ -69,7 +68,7 @@ public struct LineFrag
 
 class LineRenderer : RenderPass
 {    
-    static Vector2D<int> ScreenResolution => WindowClass.Handle.Size;
+    static Vector2 ScreenResolution => WindowEvents.Handle.Bounds.Size;
 
     public LineRenderer(CommandList _list, Renderer renderer) : base(_list, renderer)
     {

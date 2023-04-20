@@ -7,6 +7,7 @@ using Engine.Initialization;
 using Engine.Objects.SceneSystem;
 using Engine.Renderable;
 using Engine.Rendering.Abstract;
+using Engine.Utilities.MathLib;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
@@ -19,7 +20,14 @@ namespace MCClone_Core
     {
         static void Main(string[] args)
         {
-            Init.InitEngine( 10,10, 1600, 900, "Hello World", new MinecraftCloneCore());
+            
+            WindowParams windowParams = new WindowParams()
+            {
+                Location = Int2.Zero,
+                Size = new Int2(1920, 1080),
+                Name = "Default window",
+            };
+            Init.InitEngine( ref windowParams, new MinecraftCloneCore());
 
         }
     }

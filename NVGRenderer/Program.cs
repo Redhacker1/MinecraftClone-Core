@@ -9,9 +9,9 @@ using Engine.Rendering.Abstract;
 using Engine.Rendering.Abstract.RenderStage;
 using Engine.Rendering.Abstract.View;
 using Engine.Rendering.VeldridBackend;
+using Engine.Utilities.MathLib;
 using Engine.Windowing;
 using NVGRenderer.Rendering;
-using Silk.NET.Input;
 using SilkyNvg;
 using Veldrid;
 
@@ -21,7 +21,13 @@ namespace NVGRenderer
     {
         public static void Main()
         {
-            Init.InitEngine(0,0, 1000, 600, "NVG", new NvgRendererDemo());
+            WindowParams windowParams = new WindowParams()
+            {
+                Location = Int2.Zero,
+                Size = new Int2(1920, 1080),
+                Name = "Default window",
+            };
+            Init.InitEngine(ref windowParams, new NvgRendererDemo());
         }
     }
 
@@ -40,7 +46,7 @@ namespace NVGRenderer
             
             Scene.AddStage(pass);
 
-            DemoTest = new LineBenchmark();
+            DemoTest = new DemoTest();
             PerfGraph = new PerfMonitor();
         }
         
@@ -51,7 +57,7 @@ namespace NVGRenderer
         }
     }
 
-    class GameObject: EngineObject
+    class GameObject : EngineObject
     {
         public GameObject()
         {
@@ -101,32 +107,28 @@ namespace NVGRenderer
             };
             
             
-            // Stencil strokes in OpenGL are expensive due to needing all the VertexAttribPtr calls needed to set up the new renderstate that veldrid makes, so disable them, it makes it look worse, but it improves performance 3-4 times 
-            if (renderer.Device.BackendType == GraphicsBackend.OpenGL ||
-                renderer.Device.BackendType == GraphicsBackend.OpenGLES)
+            // Stencil strokes in OpenGL are expensive due to needing all the VertexAttribPtr calls needed to set up the new render-state that veldrid makes, so disable them, it makes it look worse, but it improves performance 3-4 times 
+            RenderFlags flags = RenderFlags.Antialias;// | RenderFlags.StencilStrokes;
+            if (renderer.Device.BackendType is not GraphicsBackend.OpenGL and not GraphicsBackend.OpenGLES)
             {
-                _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.Antialias);
+               //flags |= RenderFlags.StencilStrokes;
             }
-            else
-            {
-                _nvgRenderer = new NvgRenderer(rendererParams, RenderFlags.StencilStrokes | RenderFlags.Antialias);   
-            }
+            _nvgRenderer = new NvgRenderer(rendererParams, flags);
             Thing = Nvg.Create(_nvgRenderer);
+            
+            frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
+            {
+                Framebuffer = Engine.Engine.MainFrameBuffer,
+                GraphicsDevice = Engine.Engine.Renderer.Device,
+                List = Engine.Engine.Renderer.Device.ResourceFactory.CreateCommandList()
+            });
         }
 
         protected override void Stage(RenderState rendererState, RenderTarget target, float time, float deltaTime, IReadOnlyList<Instance> renderObjects)
         {
-
-            frame = new NvgFrame(_nvgRenderer, new NvgFrameBufferParams()
+            if (WindowEvents.Handle.Bounds.Size.LengthSquared() > 0)
             {
-                Framebuffer = Engine.Engine.Renderer.Device.SwapchainFramebuffer,
-                GraphicsDevice = Engine.Engine.Renderer.Device,
-                List = Engine.Engine.Renderer.Device.ResourceFactory.CreateCommandList()
-            });
-            
-            _nvgRenderer.SetFrame(frame);
-            if (WindowClass.Handle.Size.LengthSquared > 0)
-            {
+                _nvgRenderer.SetFrame(frame);
                 Thing?.BeginFrame(Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, 1);
                 foreach (WeakReference<NvgItem> panel in NvgItem.items)
                 {

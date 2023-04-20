@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using Engine.Debugging;
 using Engine.Input;
 using Engine.Objects;

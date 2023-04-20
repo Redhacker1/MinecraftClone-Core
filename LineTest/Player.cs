@@ -8,7 +8,7 @@ using Engine.Input;
 using Engine.MathLib;
 using Engine.Rendering.Abstract;
 using LineTest;
-using Silk.NET.Input;
+using Veldrid;
 
 namespace ObjDemo
 {
@@ -28,7 +28,7 @@ namespace ObjDemo
 			Rotation = Quaternion.Identity;
 			_fpCam = new Camera(this.WorldTransform, -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true );
 			_fpCam.Rotation = Quaternion.Identity;
-			InputHandler.SetMouseMode(0, CursorMode.Raw);
+			InputHandler.SetMouseMode(false, true);
 			_controller = new DemoController(this);
 			Camera.MainCamera = _fpCam;
 		}
@@ -40,12 +40,12 @@ namespace ObjDemo
 			{
 				if (MoveMouse)
 				{
-					InputHandler.SetMouseMode(0, CursorMode.Normal);
+					InputHandler.SetMouseMode(true, false);
 					MoveMouse = false;
 				}
 				else
 				{
-					InputHandler.SetMouseMode(0, CursorMode.Raw);
+					InputHandler.SetMouseMode(false, true);
 					MoveMouse = true;
 				}
 				
@@ -71,8 +71,8 @@ namespace ObjDemo
 		{
 			if (Camera.MainCamera != null)
 			{
-				float xOffset = InputHandler.MouseDelta(0).X * 0.1f;
-				float yOffset = InputHandler.MouseDelta(0).Y * 0.1f;
+				float xOffset = InputHandler.MouseDelta().X * 0.1f;
+				float yOffset = InputHandler.MouseDelta().Y * 0.1f;
 				
 				Camera.MainCamera.Yaw += xOffset;
 				Camera.MainCamera.Pitch -= yOffset;

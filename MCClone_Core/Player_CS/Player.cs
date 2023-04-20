@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Numerics;
 using Engine.Debugging;
@@ -9,7 +7,7 @@ using Engine.Rendering.Abstract;
 using MCClone_Core.Physics;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
-using Silk.NET.Input;
+using Veldrid;
 using Raycast = MCClone_Core.Utility.Raycast;
 
 namespace MCClone_Core.Player_CS
@@ -68,7 +66,7 @@ namespace MCClone_Core.Player_CS
 			//.FOV = 100;
 			#if Core
 			MoveMouse = true;
-			InputHandler.SetMouseMode(0, CursorMode.Raw);
+			InputHandler.SetMouseMode(false, true);
 			#else
 				SetPos(new Vector3(Translation.x, Translation.y, Translation.z));
 			#endif
@@ -94,16 +92,16 @@ namespace MCClone_Core.Player_CS
 		protected override void _Process(double delta)
 		{
 
-			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
+			if (InputHandler.KeyboardJustKeyPressed(0, Key.Escape))
 			{
 				if (MoveMouse)
 				{
-					InputHandler.SetMouseMode(0, CursorMode.Normal);
+					InputHandler.SetMouseMode(true, false);
 					MoveMouse = false;
 				}
 				else
 				{
-					InputHandler.SetMouseMode(0, CursorMode.Raw);
+					InputHandler.SetMouseMode(false, true);
 					MoveMouse = true;
 				}
 				
@@ -272,8 +270,8 @@ namespace MCClone_Core.Player_CS
 		{
 			if (!_paused && Camera.MainCamera != null)
 			{
-				float xOffset = InputHandler.MouseDelta(0).X * 0.1f;
-				float yOffset = InputHandler.MouseDelta(0).Y * 0.1f;
+				float xOffset = InputHandler.MouseDelta().X * 0.1f;
+				float yOffset = InputHandler.MouseDelta().Y * 0.1f;
 
 				if (Camera.MainCamera != null)
 				{

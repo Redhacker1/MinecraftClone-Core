@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using Engine.GUI;
 using Engine.Renderable;
 using Engine.Rendering.Abstract.View;
 using Engine.Utilities.MathLib;
@@ -21,12 +22,12 @@ namespace Engine.Rendering.VeldridBackend
     {
 
 
-        readonly ImGuiRenderer _imGuiHandler;
+        internal readonly ImGuiRenderer _imGuiHandler;
         
         
         internal Renderer(Sdl2Window viewport)
         {
-            Device = Veldrid.StartupUtilities.VeldridStartup.CreateGraphicsDevice(viewport ,new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true), GraphicsBackend.Vulkan);
+            Device = Veldrid.StartupUtilities.VeldridStartup.CreateGraphicsDevice(viewport ,new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true));
 
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport.Width, viewport.Height);
             
@@ -39,7 +40,6 @@ namespace Engine.Rendering.VeldridBackend
 
         public void RenderImgGui(double time, CommandList list)
         {
-            //_imGuiHandler.Update((float) time);
             for (int index = ImGUIPanel.Panels.Count - 1; index >= 0; index--)
             {
                 ImGUIPanel uiPanel = ImGUIPanel.Panels[index];
@@ -83,7 +83,17 @@ namespace Engine.Rendering.VeldridBackend
         
         internal void SwapBuffers()
         {
-            Device.SwapBuffers();
+            if (!Device.SwapchainFramebuffer.IsDisposed)
+            {
+                try
+                {
+                    Device.SwapBuffers();
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("fix swapbuffer race condition!");
+                }
+            }
         }
         
         

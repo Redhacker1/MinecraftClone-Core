@@ -13,7 +13,7 @@ public interface ILevelContract
 {
     
     protected internal void EntityTransformUpdated(EngineObject engineObject);
-    protected internal void OnTick(double deltaT);
+    protected internal void OnTick(double delta);
 
     public void AddEntityToLevel(EngineObject entity);
 

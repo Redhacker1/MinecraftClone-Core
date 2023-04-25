@@ -3,6 +3,8 @@
 #if !Core
 using Godot;
 #endif
+using System;
+using System.Diagnostics;
 using System.Numerics;
 using Engine.Input;
 using Engine.Rendering.Abstract;
@@ -20,8 +22,13 @@ namespace MCClone_Core.Player_CS
             pawn = PawnReference;
         }
 
+        Stopwatch _stopwatch;
+        int counter = 0;
+
         public void Player_move(double delta)
         {
+
+
             Vector3 direction = new Vector3();
             //direction.X = 1;
             //direction.Z = 1;

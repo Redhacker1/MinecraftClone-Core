@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Engine.Windowing;
-using Veldrid.Sdl2;
+using static SharpInterop.SDL2.SDL;
 
 namespace Engine.Initialization
 {
@@ -9,24 +10,33 @@ namespace Engine.Initialization
     {
         public static void InitEngine(ref WindowParams windowParams, GameEntry gameClass, RenderBackend backend = RenderBackend.Auto)
         {
-            var window = InitWindow(ref windowParams, gameClass, backend);
+            InitSDL();
+            var window = InitWindow(ref windowParams, backend);
             WindowEvents windowEvents = new WindowEvents(window, gameClass);
             windowEvents.Run();
 
         }
 
-        static Sdl2Window InitWindow(ref WindowParams windowParams, GameEntry gameClass, RenderBackend backend)
+        static void InitSDL()
         {
-            SDL_WindowFlags flags = SDL_WindowFlags.MouseFocus;
-            if (backend == RenderBackend.OpenGL || backend == RenderBackend.Auto)
+            SDL_Init(SDL_INIT_EVERYTHING);
+        }
+
+        static IntPtr InitWindow(ref WindowParams windowParams, RenderBackend backend)
+        {
+            
+            SDL_WindowFlags flags = SDL_WindowFlags.SDL_WINDOW_RESIZABLE;
+
+            if (backend == RenderBackend.Auto)
             {
-                flags |= SDL_WindowFlags.OpenGL;
+                flags = SDL_WindowFlags.SDL_WINDOW_METAL | SDL_WindowFlags.SDL_WINDOW_OPENGL |
+                        SDL_WindowFlags.SDL_WINDOW_VULKAN;
             }
 
-            //SDL_Window window;
+            IntPtr handle = SDL_CreateWindow(windowParams.Name, windowParams.Location.X, windowParams.Location.Y, windowParams.Size.X,
+                windowParams.Size.Y, flags);
 
-            return new Sdl2Window(windowParams.Name, windowParams.Location.X, windowParams.Location.Y,
-                windowParams.Size.X, windowParams.Size.Y, flags, false);
+            return handle;
         }
 
         List<Parameter> ParseLaunchOptions(params string[] commands)

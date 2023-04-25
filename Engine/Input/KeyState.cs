@@ -2,7 +2,9 @@
 
 public enum KeyState
 {
-    JustPressed = 1,
-    Pressed = 2 ,
-    Released = 0,
+    Released = 0b00,
+    JustPressed = 0b01,
+    Pressed = 0b10,
+    CTRLpressed = 0b100,
+    ShiftPressed = 0b1000,
 }

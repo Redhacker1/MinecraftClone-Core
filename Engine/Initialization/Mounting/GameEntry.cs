@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Engine.Debugging;
 using Engine.Input;
 using Engine.Objects;
@@ -83,14 +84,15 @@ namespace Engine
         }
 
 
-        float tickTime = 0;
-        
-        internal void Update(double delta)
-        {
-            InputHandler.PollInputs();
+        Stopwatch _stopwatch = Stopwatch.StartNew();
+        float tickTime;
 
-            tickTime = (float)delta;
-            PinnedObject?.OnTick((float)delta);
+        internal void Update(float ticktime) 
+        {
+            tickTime = ticktime;
+            PinnedObject?.OnTick(tickTime);
+            InputHandler.PollInputs();
+            _stopwatch.Restart();
 
         }
         

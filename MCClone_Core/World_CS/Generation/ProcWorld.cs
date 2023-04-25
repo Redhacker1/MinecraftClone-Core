@@ -399,6 +399,10 @@ namespace MCClone_Core.World_CS.Generation
 
 		public void change_block(int cx, int cz, int bx, int by, int bz, byte T)
 		{
+			if (!LoadedChunks.ContainsKey(new Vector2(cx, cz)))
+			{
+				_load_chunk(cx, cz);
+			}
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
 			if (c.BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;

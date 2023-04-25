@@ -124,12 +124,11 @@ public class Scene
         }
         ReadWriteLock.ExitReadLock();
 
-        Engine.Renderer.RenderImgGui(dt, list);
+        //Engine.Renderer.RenderImgGui(dt, list);
         list.End();
         Engine.Renderer.RunCommandList(list);
-        Engine.Renderer.SwapBuffers();
-        
-        
+
+
     }
 
     public void AddInstance(Instance instance3D)

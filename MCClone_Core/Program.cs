@@ -24,7 +24,7 @@ namespace MCClone_Core
             WindowParams windowParams = new WindowParams()
             {
                 Location = Int2.Zero,
-                Size = new Int2(1920, 1080),
+                Size = new Int2(1600, 900),
                 Name = "Default window",
             };
             Init.InitEngine( ref windowParams, new MinecraftCloneCore());
@@ -71,7 +71,7 @@ namespace MCClone_Core
             
             world = new ProcWorld(1337) {World = worldPath};
             script = new WorldScript(world);
-            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero)
+            player = new Player(new Vector3( 0 , 75, 0), Vector2.Zero)
             {
                 Noclip = false
             };

@@ -23,8 +23,8 @@ namespace NVGRenderer
         {
             WindowParams windowParams = new WindowParams()
             {
-                Location = Int2.Zero,
-                Size = new Int2(1920, 1080),
+                Location = new Int2(100, 100),
+                Size = new Int2(1280, 720),
                 Name = "Default window",
             };
             Init.InitEngine(ref windowParams, new NvgRendererDemo());

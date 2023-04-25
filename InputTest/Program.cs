@@ -15,8 +15,7 @@ namespace InputTest
             
             WindowParams windowParams = new WindowParams()
             {
-                Location = Int2.Zero,
-                Size = new Int2(1920, 1080),
+                Size = new Int2(800, 600),
                 Name = "Default window",
             };
             Init.InitEngine(ref windowParams, new GameClass());

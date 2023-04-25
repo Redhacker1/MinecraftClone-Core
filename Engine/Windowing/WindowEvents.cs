@@ -4,7 +4,6 @@ using System.Threading;
 using Engine.Input;
 using Engine.Rendering.VeldridBackend;
 using Silk.NET.Maths;
-using Veldrid.Sdl2;
 
 namespace Engine.Windowing
 {
@@ -18,11 +17,11 @@ namespace Engine.Windowing
 
         [Obsolete]
         readonly GameEntry _gameInstance;
-        public static Sdl2Window Handle;
+        public static Sdl_W Handle;
 
-        public WindowEvents(Sdl2Window windowHandle, GameEntry gameClass)
+        public WindowEvents(IntPtr windowHandle, GameEntry gameClass)
         {
-            
+
             Handle = windowHandle;
             Handle.Closing += OnClose;
 
@@ -59,6 +58,7 @@ namespace Engine.Windowing
                     Engine.OnRender(deltaT);
                     deltaT = (float)stopwatch.Elapsed.TotalSeconds;
                     stopwatch.Restart(); 
+                    Engine.Renderer.SwapBuffers();
                 }
             });
             
@@ -77,7 +77,7 @@ namespace Engine.Windowing
 
         void Update(double delta)
         {
-            _gameInstance.Update(delta);
+            _gameInstance.Update((float)delta);
         }
 
 
@@ -85,16 +85,15 @@ namespace Engine.Windowing
 
         internal void Run()
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
             OnLoad();
-            while (!closed)
+            float deltaT = 0f;
+            Stopwatch stopwatch = new Stopwatch();
+            while (Handle.Exists)
             {
-                var evnt = Handle.PumpEvents();
-                Engine.CurrentInput = evnt;
-                
-                Update(stopwatch.Elapsed.Seconds);
                 stopwatch.Restart();
-
+                Engine.Renderer._imGuiHandler.Update((float) deltaT, Handle.PumpEvents());
+                Update(deltaT);
+                deltaT = (float)stopwatch.Elapsed.TotalSeconds;
             }
         }
         

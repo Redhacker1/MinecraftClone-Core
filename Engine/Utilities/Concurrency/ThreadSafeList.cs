@@ -8,7 +8,7 @@ namespace Engine.Utilities.Concurrency;
 public sealed class ThreadSafeList<T> : IList<T>
 {
     private readonly List<T> _list = new List<T>();
-    readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
+    public readonly ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
 
 
     public IEnumerator<T> GetEnumerator()

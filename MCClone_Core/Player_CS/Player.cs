@@ -129,7 +129,7 @@ namespace MCClone_Core.Player_CS
 
 				if (InputHandler.KeyboardJustKeyPressed(0, Key.C))
 				{
-					var test = Noclip ? "Enabled" : "Disabled";
+					string test = Noclip ? "Enabled" : "Disabled";
 					Console.WriteLine($"Noclip {test}");
 					ConsoleLibrary.SendCommand($"Noclip");
 				}

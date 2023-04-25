@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Engine.Collision.BEPUPhysics;
 using Engine.Collision.BEPUPhysics.Implementation;
@@ -31,28 +32,36 @@ public class BaseLevel : EngineObject,  ILevelContract
         if (BaseLevel != null)
         {
             base.OnLevelTick(deltaT);
-            ((ILevelContract) this).OnTick(deltaT);   
+            ((ILevelContract) this).OnTick((float)deltaT);   
         }
     }
 
-    double physicsDelta;
-    void ILevelContract.OnTick(double deltaT)
+    double _physicsDelta;
+
+    // Complete hack...
+    Stopwatch _stopwatch = Stopwatch.StartNew();
+
+
+    void ILevelContract.OnTick(double delta)
     {
+        _physicsDelta = _stopwatch.Elapsed.TotalSeconds;
+        bool physicsProcess = _physicsDelta - FixedStepTime > 0;
 
-        physicsDelta += deltaT;
-        bool physicsProcess = physicsDelta >= FixedStepTime;
-
-        ImmutableArray<EngineObject> objectSnapshot = _levelObjects.ToImmutableArray();
-
-        FrameUpdate(deltaT, objectSnapshot);
+        List<EngineObject> objectSnapshot = _levelObjects.GetListUnsafe();
+        
+        _levelObjects._readerWriterLock.EnterReadLock();
+        FrameUpdate(delta, objectSnapshot);
         if (physicsProcess)
         {
-            PhysicsWorld.Simulate((float)physicsDelta);
+            PhysicsWorld.Simulate((float)_physicsDelta);
             FixedUpdate(FixedStepTime, objectSnapshot);
-            physicsDelta -= FixedStepTime;
             //Clean up empty objects
             Task.Run(Clean);
+            _stopwatch.Restart();
         }
+        _levelObjects._readerWriterLock.ExitReadLock();
+
+
     }
 
     protected override void OnChildRemoved(EngineObject removedChild)
@@ -81,8 +90,9 @@ public class BaseLevel : EngineObject,  ILevelContract
         }
     }
 
-    protected void FrameUpdate(double delta, ImmutableArray<EngineObject> objectSnapshot)
+    internal void FrameUpdate(double delta, List<EngineObject> objectSnapshot)
     {
+
         OnLevelTick(delta);   
         foreach (EngineObject engineObject in objectSnapshot)
         {
@@ -93,9 +103,8 @@ public class BaseLevel : EngineObject,  ILevelContract
         }
     }
 
-    protected void FixedUpdate(double delta, ImmutableArray<EngineObject> objectSnapshot)
+    internal void FixedUpdate(double delta, List<EngineObject> objectSnapshot)
     {
-
         _PhysicsProcess(delta);
         foreach (EngineObject engineObject in objectSnapshot)
         {
@@ -134,7 +143,7 @@ public class BaseLevel : EngineObject,  ILevelContract
         }
         
         // Occasionally do some housekeeping
-            if (_levelObjects.Capacity > _levelObjects.Count * 1.5)
+        if (_levelObjects.Capacity > _levelObjects.Count * 1.5)
         {
             _levelObjects.TrimExcess();
         }
@@ -153,6 +162,7 @@ public class BaseLevel : EngineObject,  ILevelContract
 
     void ILevelContract.OnLevelUnload()
     {
+        PhysicsWorld.Dispose();
         OnFree();
     }
 

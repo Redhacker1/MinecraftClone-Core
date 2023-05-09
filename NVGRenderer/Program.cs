@@ -66,7 +66,7 @@ namespace NVGRenderer
         protected override void _Process(double delta)
         {
             base._Process(delta);
-            if (InputHandler.KeyboardJustKeyPressed(0, Key.D))
+            if (InputHandler.KeyboardJustKeyPressed(0, Keycode.D))
             {
                 Console.WriteLine("Garbage collected!");
                 GC.Collect(0, GCCollectionMode.Forced, true, true);
@@ -126,7 +126,7 @@ namespace NVGRenderer
 
         protected override void Stage(RenderState rendererState, RenderTarget target, float time, float deltaTime, IReadOnlyList<Instance> renderObjects)
         {
-            if (WindowEvents.Handle.Bounds.Size.LengthSquared() > 0)
+            if (WindowEvents.Size.LengthSquared() > 0)
             {
                 _nvgRenderer.SetFrame(frame);
                 Thing?.BeginFrame(Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, 1);

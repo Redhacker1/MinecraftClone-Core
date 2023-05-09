@@ -1,13 +1,11 @@
 using System.Runtime.InteropServices;
-using static SDL2.SDL;
+using static SharpInterop.SDL2.SDL;
 
 namespace Engine.Audio
 {
     public unsafe partial class SdlAudioUtil
     {
-        [LibraryImport("SDL2_mixer", EntryPoint = "SDL_GetAudioDeviceSpec")]
-        public static partial int SDL_GetAudioDeviceSpec(int index, int iscapture, void* spec);
-        
+
         private string?[] _deviceNames;
         private SDL_AudioSpec[] _deviceSpecs;
 

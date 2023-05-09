@@ -7,7 +7,6 @@ using Engine.Utilities.MathLib;
 using ImGuiNET;
 using Silk.NET.Maths;
 using Veldrid;
-using Veldrid.Sdl2;
 
 // TODO: This should be seperated into implementation and Logic files, Veldrid should NOT be a core dependency.
 // TODO: Look into making user definable or events to trigger on user defined times, say when a frame is completed or a new frame is starting.
@@ -25,11 +24,11 @@ namespace Engine.Rendering.VeldridBackend
         internal readonly ImGuiRenderer _imGuiHandler;
         
         
-        internal Renderer(Sdl2Window viewport)
+        internal Renderer(IntPtr WindowPtr, Int2 size)
         {
             Device = Veldrid.StartupUtilities.VeldridStartup.CreateGraphicsDevice(viewport ,new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true));
 
-            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, viewport.Width, viewport.Height);
+            _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, size.X, size.Y);
             
             _stopwatch.Start();
         }
@@ -121,10 +120,10 @@ namespace Engine.Rendering.VeldridBackend
         }
 
 
-        internal static void Resize(Vector2D<int> size)
+        internal static void Resize(Int2 size)
         {
             Console.WriteLine("resized!");
-            Engine.MainFrameBuffer.Resize(new Int2(size.X, size.Y));
+            Engine.MainFrameBuffer.Resize(size);
         }
 
         bool _disposing;

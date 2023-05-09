@@ -1,7 +1,7 @@
 using System;
 using System.Diagnostics;
 using LoudPizza.Core;
-using SDL2;
+using SharpInterop.SDL2;
 using static SharpInterop.SDL2.SDL;
 
 namespace LoudPizza.TestApp
@@ -11,10 +11,10 @@ namespace LoudPizza.TestApp
         private Stopwatch wat = new();
         private int loops;
 
-        public SDL.SDL_AudioSpec gActiveAudioSpec;
+        public SDL_AudioSpec gActiveAudioSpec;
         public uint gAudioDeviceID;
 
-        private SDL.SDL_AudioCallback audioCallback;
+        private SDL_AudioCallback audioCallback;
 
         public SoLoud SoLoud { get; }
 
@@ -35,25 +35,25 @@ namespace LoudPizza.TestApp
 
             audioCallback = soloud_sdl2static_audiomixer;
 
-            SDL.SDL_AudioSpec spec;
+            SDL_AudioSpec spec;
             spec.silence = default;
             spec.userdata = default;
             spec.size = default;
             spec.callback = audioCallback;
 
             spec.freq = (int)sampleRate;
-            spec.format = SDL.AUDIO_F32;
+            spec.format = AUDIO_F32;
             spec.channels = (byte)channels;
             spec.samples = (ushort)bufferSize;
 
-            int flags = (int)(SDL.SDL_AUDIO_ALLOW_ANY_CHANGE & (~SDL.SDL_AUDIO_ALLOW_FORMAT_CHANGE));
+            int flags = (int)(SDL_AUDIO_ALLOW_ANY_CHANGE & (~SDL_AUDIO_ALLOW_FORMAT_CHANGE));
 
-            gAudioDeviceID = SDL.SDL_OpenAudioDevice(IntPtr.Zero, 0, ref spec, out SDL.SDL_AudioSpec activeSpec, flags);
+            gAudioDeviceID = SDL_OpenAudioDevice(IntPtr.Zero, 0, ref spec, out SDL_AudioSpec activeSpec, flags);
             if (gAudioDeviceID == 0)
             {
-                spec.format = SDL.AUDIO_S16;
+                spec.format = AUDIO_S16;
 
-                gAudioDeviceID = SDL.SDL_OpenAudioDevice(IntPtr.Zero, 0, ref spec, out activeSpec, flags);
+                gAudioDeviceID = SDL_OpenAudioDevice(IntPtr.Zero, 0, ref spec, out activeSpec, flags);
             }
 
             if (gAudioDeviceID == 0)
@@ -67,7 +67,7 @@ namespace LoudPizza.TestApp
             SoLoud.mBackendCleanupFunc = soloud_sdl2_deinit;
             SoLoud.mBackendString = "SDL2";
 
-            SDL.SDL_PauseAudioDevice(gAudioDeviceID, 0); // start playback
+            SDL_PauseAudioDevice(gAudioDeviceID, 0); // start playback
 
             return SoLoudStatus.Ok;
         }
@@ -75,7 +75,7 @@ namespace LoudPizza.TestApp
         private void soloud_sdl2static_audiomixer(IntPtr userdata, IntPtr stream, int length)
         {
             wat.Start();
-            if (gActiveAudioSpec.format == SDL.AUDIO_F32)
+            if (gActiveAudioSpec.format == AUDIO_F32)
             {
                 int samples = length / (gActiveAudioSpec.channels * sizeof(float));
                 SoLoud.mix((float*)stream, (uint)samples);
@@ -98,7 +98,7 @@ namespace LoudPizza.TestApp
 
         private void soloud_sdl2_deinit(SoLoud aSoloud)
         {
-            SDL.SDL_CloseAudioDevice(gAudioDeviceID);
+            SDL_CloseAudioDevice(gAudioDeviceID);
         }
     }
 }

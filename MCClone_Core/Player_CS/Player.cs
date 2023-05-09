@@ -92,7 +92,7 @@ namespace MCClone_Core.Player_CS
 		protected override void _Process(double delta)
 		{
 
-			if (InputHandler.KeyboardJustKeyPressed(0, Key.Escape))
+			if (InputHandler.KeyboardJustKeyPressed(0, Keycode.Escape))
 			{
 				if (MoveMouse)
 				{
@@ -121,13 +121,13 @@ namespace MCClone_Core.Player_CS
 
 			if (MoveMouse)
 			{
-				if (InputHandler.KeyboardKeyDown(0, Key.E))
+				if (InputHandler.KeyboardKeyDown(0, Keycode.E))
 				{
 					Vector3 norm = result.Normal;
 					_on_Player_destroy_block(pos, norm);
 				}
 
-				if (InputHandler.KeyboardJustKeyPressed(0, Key.C))
+				if (InputHandler.KeyboardJustKeyPressed(0, Keycode.C))
 				{
 					string test = Noclip ? "Enabled" : "Disabled";
 					Console.WriteLine($"Noclip {test}");
@@ -164,7 +164,7 @@ namespace MCClone_Core.Player_CS
 				#if Core
 				_controller.Player_move(delta);
 				
-				if (InputHandler.KeyboardJustKeyPressed(0, Key.E))
+				if (InputHandler.KeyboardJustKeyPressed(0, Keycode.E))
 				{
 					Console.WriteLine("Pressed");
 					Vector3 norm = result.Normal;

@@ -1,29 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using SharpInterop.SDL2;
 using Veldrid;
 
 namespace Engine.Input
 {
     public class InputHandler
     {
-        internal static Sdl2Window Context;
+        internal static IntPtr Context;
 
-        static readonly Dictionary<Key, KeyState> KeyStates = new Dictionary<Key, KeyState>();
+        static readonly Dictionary<Keycode, KeyState> KeyStates = new Dictionary<Keycode, KeyState>();
         static Vector2 _mousePos;
         static bool _trappedMouse;
 
-        public static void InitInputHandler(Sdl2Window inputContext)
+        public static void InitInputHandler(IntPtr inputContext)
         {
             Context = inputContext;
 
-            Context.KeyDown += KeyDown;
-            Context.KeyUp += KeyUp;
-            Context.MouseMove += OnMouseMove;
+            Keycode[] keys = Enum.GetValues<Keycode>();
 
-            Key[] keys = Enum.GetValues<Key>();
-
-            foreach (Key key in keys)
+            foreach (Keycode key in keys)
             {
                 if (KeyStates.ContainsKey(key))
                     continue;
@@ -107,7 +104,7 @@ namespace Engine.Input
         /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
         /// <param name="desiredKey">Key you are testing for</param>
         /// <returns>Whether the key is currently pressed</returns>
-        public static bool KeyboardKeyDown(int keyboard, Key desiredKey)
+        public static bool KeyboardKeyDown(int keyboard, Keycode desiredKey)
         {
             return KeyStates[desiredKey] == KeyState.JustPressed || KeyStates[desiredKey] == KeyState.Pressed;
         }
@@ -118,7 +115,7 @@ namespace Engine.Input
         /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
         /// <param name="desiredKey">Key you are testing for</param>
         /// <returns>Whether the key was just pressed</returns>
-        public static bool KeyboardJustKeyPressed(int keyboard, Key desiredKey)
+        public static bool KeyboardJustKeyPressed(int keyboard, Keycode desiredKey)
         {
            return KeyStates[desiredKey] == KeyState.JustPressed;
         }
@@ -129,7 +126,7 @@ namespace Engine.Input
         /// <param name="keyboard">which keyboard to use, if unsure leave at 0</param>
         /// <param name="desiredKey">Key you are testing for</param>
         /// <returns>Whether the key was just pressed</returns>
-        public static bool KeyboardKeyUp(int keyboard, Key desiredKey)
+        public static bool KeyboardKeyUp(int keyboard, Keycode desiredKey)
         {
             return KeyStates[desiredKey] == KeyState.Released;
         }

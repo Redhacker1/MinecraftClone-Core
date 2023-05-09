@@ -21,7 +21,5 @@ public static class Engine
         
     };
 
-    public static InputSnapshot CurrentInput = null;
-
     public static bool IsRenderThread => Windowing.WindowEvents.IsRenderThread();
 }

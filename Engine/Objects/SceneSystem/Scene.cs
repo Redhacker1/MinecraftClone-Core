@@ -78,6 +78,8 @@ public class Scene
         instance3Ds = Cull(_instances, ref cameraInfo);
         ReadWriteLock.ExitReadLock();
         
+        
+
         PanelCullingTime.UpdateMetrics(new CullingMetrics()
         {
             TimeTaken = (float)stopwatch.Elapsed.TotalMilliseconds,
@@ -124,7 +126,7 @@ public class Scene
         }
         ReadWriteLock.ExitReadLock();
 
-        //Engine.Renderer.RenderImgGui(dt, list);
+        Engine.Renderer.RenderImgGui(dt, list);
         list.End();
         Engine.Renderer.RunCommandList(list);
 
@@ -213,6 +215,7 @@ public class Scene
     /// <param name="cameraInfo">Camera reference</param>
     protected virtual void Sort(List<Instance> instances, CameraInfo cameraInfo)
     {
+        
         instances.Sort((item, comparator) => SortCriteria(item, comparator, ref cameraInfo));
     }
 

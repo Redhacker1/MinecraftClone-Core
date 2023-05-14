@@ -21,8 +21,7 @@ namespace Engine.Rendering.Abstract
         internal UniformBuffer<Matrix4x4> ViewProjBuffer;
         protected Renderer BackingRenderer;
         public string Name;
-        public bool FrustumCull = true;
-        
+
         ThreadSafeList<WeakReference<Instance3D>> Instances = new ThreadSafeList<WeakReference<Instance3D>>();
 
         protected RenderPass(CommandList _list, Renderer renderer, string name = null )

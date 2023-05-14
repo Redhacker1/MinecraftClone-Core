@@ -1,4 +1,6 @@
-﻿using System;
+﻿//TODO: FIX ImGUI
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -382,10 +384,10 @@ namespace Engine.GUI
         /// <summary>
         /// Updates ImGui input and IO configuration state.
         /// </summary>
-        public void Update(float deltaSeconds, InputSnapshot snapshot)
+        public void Update(float deltaSeconds)
         {
             BeginUpdate(deltaSeconds);
-            UpdateImGuiInput(snapshot);
+            UpdateImGuiInput();
             EndUpdate();
         }
 
@@ -432,16 +434,17 @@ namespace Engine.GUI
             ImGui.GetIO().AddInputCharacter(c);
         }
 
-        private unsafe void UpdateImGuiInput(InputSnapshot snapshot)
+        private unsafe void UpdateImGuiInput()
         {
             ImGuiIOPtr io = ImGui.GetIO();
+            
 
             // Determine if any of the mouse buttons were pressed during this snapshot period, even if they are no longer held.
             bool leftPressed = false;
             bool middlePressed = false;
             bool rightPressed = false;
 
-            List<MouseEvent> mouseEvents = snapshot.MouseEvents.ToList();
+            /*List<MouseEvent> mouseEvents = snapshot.MouseEvents.ToList();
             
             
             for (int i = 0; i < mouseEvents.Count; i++)
@@ -469,16 +472,20 @@ namespace Engine.GUI
             io.MouseDown[2] = middlePressed || snapshot.IsMouseDown(MouseButton.Middle);
             io.MousePos = snapshot.MousePosition;
             io.MouseWheel = snapshot.WheelDelta;
+            */
             
             
-            List<KeyEvent> keyEvents = snapshot.KeyEvents.ToList();
-            if (keyEvents.Count > 0)
+            
+            var keys = InputHandler.GetKeysPressedThisFrame();
+            if (keys.Count > 0)
             {
-                for (int i = 0; i < keyEvents.Count; i++)
+                foreach (var keycodes in keys)
                 {
-                    KeyEvent keyEvent = keyEvents[i];
-                    io.KeysDown[(int)keyEvent.Key] = keyEvent.Down;
-                    if (keyEvent.Key == Keycode.LeftCtrl)
+                    
+                    
+                    Keycode keyEvent = keycodes.Key;
+                    io.KeysDown[(int)keyEvent] = keys[keyEvent] == KeyState.Pressed;
+                    /*if (keyEvent.Key == Keycode.LeftCtrl)
                     {
                         _controlDown = keyEvent.Down;
                     }
@@ -489,7 +496,7 @@ namespace Engine.GUI
                     if (keyEvent.Key == Keycode.LeftAlt)
                     {
                         _altDown = keyEvent.Down;
-                    }
+                    }*/
                 }    
             }
             

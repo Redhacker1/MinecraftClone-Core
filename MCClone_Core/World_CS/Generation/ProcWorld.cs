@@ -77,10 +77,12 @@ namespace MCClone_Core.World_CS.Generation
 
 		public override void _Ready()
 		{
+			Ticks = true;
+			
 			if (Instance != null)
 				return;
 			Instance = this;
-			List<uint> indices = new List<uint>();
+			List<uint> indices = new List<uint>((int)MasterIndexBuffer.Length);
 
 			for (uint i = 0; i < MasterIndexBuffer.Length; i += 4)
 			{
@@ -244,7 +246,7 @@ namespace MCClone_Core.World_CS.Generation
 					}
 					else
 					{
-						// We increment here idk why
+						
 						if (_currentLoadRadius < _loadRadius)
 						{
 							_currentLoadRadius++;
@@ -414,9 +416,9 @@ namespace MCClone_Core.World_CS.Generation
 		void _update_chunk(int cx, int cz)
 		{
 			Vector2 cpos = new Vector2(cx, cz);
-			if (LoadedChunks.ContainsKey(cpos))
+			if (LoadedChunks.TryGetValue(cpos, out ChunkCs chunk))
 			{
-				Mesher.AddMesh(LoadedChunks[cpos]);
+				Mesher.AddMesh(chunk);
 			}
 		}
 
@@ -436,10 +438,8 @@ namespace MCClone_Core.World_CS.Generation
 		void _unloadChunk(int cx, int cz)
 		{
 			Vector2 cpos = new Vector2(cx, cz);
-			if (LoadedChunks.ContainsKey(cpos))
+			if (LoadedChunks.TryGetValue(cpos, out ChunkCs chunk))
 			{
-				ChunkCs chunk = LoadedChunks[cpos];
-	
 				LoadedChunks.TryRemove(cpos, out _);
 				RemoveChild(chunk);
 			}

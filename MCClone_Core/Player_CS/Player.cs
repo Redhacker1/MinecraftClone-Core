@@ -58,6 +58,7 @@ namespace MCClone_Core.Player_CS
 		public override void _Ready()
 		{
 			PhysicsTick = true;
+			Ticks = true;
 
 			FPCam = new Camera(new Transform(), -Vector3.UnitZ, Vector3.UnitY,1600f/900f, true )
 			{
@@ -91,7 +92,6 @@ namespace MCClone_Core.Player_CS
 
 		protected override void _Process(double delta)
 		{
-
 			if (InputHandler.KeyboardJustKeyPressed(0, Keycode.Escape))
 			{
 				if (MoveMouse)
@@ -272,6 +272,7 @@ namespace MCClone_Core.Player_CS
 			{
 				float xOffset = InputHandler.MouseDelta().X * 0.1f;
 				float yOffset = InputHandler.MouseDelta().Y * 0.1f;
+				
 
 				if (Camera.MainCamera != null)
 				{
@@ -280,14 +281,15 @@ namespace MCClone_Core.Player_CS
                     
 					//We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
 					Camera.MainCamera.Pitch = Math.Clamp(Camera.MainCamera.Pitch, -89.0f, 89.0f);
-                
-					Vector3 CameraDirection = Vector3.Zero;
-					CameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					CameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					CameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
-					Camera.MainCamera.Front = Vector3.Normalize(CameraDirection);
+
+					Vector3 cameraDirection = Vector3.Zero;
+					cameraDirection.X = MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					cameraDirection.Y = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					cameraDirection.Z = MathF.Sin(MathHelper.DegreesToRadians(Camera.MainCamera.Yaw)) * MathF.Cos(MathHelper.DegreesToRadians(Camera.MainCamera.Pitch));
+					Camera.MainCamera.Front = Vector3.Normalize(cameraDirection);
 				}
 			}
+			
 		}
 	}
 }

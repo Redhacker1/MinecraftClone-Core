@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Engine.Rendering.Abstract.View;
 using Engine.Rendering.VeldridBackend;
+using Engine.Windowing;
 using Veldrid;
 
 namespace Engine;
@@ -21,5 +23,7 @@ public static class Engine
         
     };
 
-    public static bool IsRenderThread => Windowing.WindowEvents.IsRenderThread();
+    static List<HighLevelInputAbstraction> InputHandlers;
+
+    public static bool IsRenderThread => Windowing.Window.IsRenderThread();
 }

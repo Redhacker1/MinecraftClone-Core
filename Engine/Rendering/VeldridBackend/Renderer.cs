@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using Engine.GUI;
+//using Engine.GUI;
 using Engine.Renderable;
 using Engine.Rendering.Abstract.View;
 using Engine.Utilities.MathLib;
@@ -20,13 +21,13 @@ namespace Engine.Rendering.VeldridBackend
     public class Renderer : IDisposable
     {
 
-
+        
         internal readonly ImGuiRenderer _imGuiHandler;
         
         
         internal Renderer(IntPtr WindowPtr, Int2 size)
         {
-            Device = Veldrid.StartupUtilities.VeldridStartup.CreateGraphicsDevice(viewport ,new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true));
+            Device = Veldrid.StartupUtilities.VeldridStartup.CreateGraphicsDevice(WindowPtr ,new GraphicsDeviceOptions(false, PixelFormat.D32_Float_S8_UInt, false, ResourceBindingModel.Improved, true, true));
 
             _imGuiHandler = new ImGuiRenderer(Device, Device.SwapchainFramebuffer.OutputDescription, size.X, size.Y);
             
@@ -88,7 +89,7 @@ namespace Engine.Rendering.VeldridBackend
                 {
                     Device.SwapBuffers();
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     Console.WriteLine("fix swapbuffer race condition!");
                 }

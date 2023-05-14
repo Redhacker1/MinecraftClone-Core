@@ -1,20 +1,75 @@
-﻿using System;
+﻿using Engine.Windowing;
+using SharpInterop.SDL2;
+using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
-using Engine.Windowing;
 using static SharpInterop.SDL2.SDL;
 
 namespace Engine.Initialization
 {
-    public class Init
+    public static class Init
     {
         public static void InitEngine(ref WindowParams windowParams, GameEntry gameClass, RenderBackend backend = RenderBackend.Auto)
         {
+            InitEnvironment();
+            
             InitSDL();
-            var window = InitWindow(ref windowParams, backend);
-            WindowEvents windowEvents = new WindowEvents(window, gameClass);
+            IntPtr window = InitWindow(ref windowParams, backend);
+            Window windowEvents = new Window(window, gameClass);
             windowEvents.Run();
 
+        }
+
+
+        static void InitEnvironment()
+        {
+            NativeLibrary.SetDllImportResolver(typeof(SDL).Assembly, Resolver);
+        }
+        
+        static DllImportResolver Resolver = EngineInputResolver;
+
+        static IntPtr EngineInputResolver(string libraryname, Assembly assembly, DllImportSearchPath? searchpath)
+        {
+            string path = libraryname;
+            string fileType;
+            string Platform;
+            string ProcessorType = Environment.Is64BitProcess ? "x64" :  "x32";
+            
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Platform = "Windows";
+                fileType = "dll";
+            }
+            else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Platform = "Linux";
+                fileType = "so";
+            }
+            else
+            {
+                // Not a supported OS
+                return IntPtr.Zero;
+            }
+            
+
+            if (File.Exists(libraryname))
+            {
+                
+            }
+            else if(string.IsNullOrEmpty(libraryname) != true)
+            {
+
+                path = Path.Combine($"{Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\\Dependencies", Platform, ProcessorType, $"{libraryname}.{fileType}");
+            }
+            else
+            {
+                return IntPtr.Zero;
+            }
+            
+            return NativeLibrary.Load(path);
         }
 
         static void InitSDL()
@@ -29,17 +84,42 @@ namespace Engine.Initialization
 
             if (backend == RenderBackend.Auto)
             {
-                flags = SDL_WindowFlags.SDL_WINDOW_METAL | SDL_WindowFlags.SDL_WINDOW_OPENGL |
-                        SDL_WindowFlags.SDL_WINDOW_VULKAN;
+                flags |= SDL_WindowFlags.SDL_WINDOW_METAL| SDL_WindowFlags.SDL_WINDOW_VULKAN;
+            }
+            else switch (backend)
+            {
+                   case RenderBackend.Vulkan:
+                   {
+                       flags = SDL_WindowFlags.SDL_WINDOW_VULKAN;
+                       break;
+                   }
+                   case RenderBackend.Metal:
+                   {
+                       flags = SDL_WindowFlags.SDL_WINDOW_METAL;
+                       break;
+                   }
+                   case RenderBackend.OpenGL:
+                   case RenderBackend.DirecX11:
+                   default:
+                       break;
             }
 
             IntPtr handle = SDL_CreateWindow(windowParams.Name, windowParams.Location.X, windowParams.Location.Y, windowParams.Size.X,
                 windowParams.Size.Y, flags);
 
+            SDL.SDL_SetRelativeMouseMode(SDL_bool.SDL_FALSE);
+
+            string error = SDL_GetError();
+
+            if (!string.IsNullOrEmpty(error))
+            {
+                Console.WriteLine(error);
+            }
+
             return handle;
         }
 
-        List<Parameter> ParseLaunchOptions(params string[] commands)
+        static List<Parameter> ParseLaunchOptions(params string[] commands)
         {
             List<Parameter> launchOptions = new List<Parameter>();
             bool expectsCommand = true;
@@ -115,12 +195,6 @@ namespace Engine.Initialization
             }
 
             return launchOptions;
-        }
-
-
-        public void LoadGame()
-        {
-            
         }
     }
 }

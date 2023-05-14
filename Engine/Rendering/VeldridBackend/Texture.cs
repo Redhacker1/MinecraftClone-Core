@@ -36,7 +36,7 @@ namespace Engine.Rendering.VeldridBackend
 
             if (Path.GetExtension(path) != ".dds")
             {
-                img = (IS.Image<Rgba32>) IS.Image.Load(cfg, path);
+                img = (IS.Image<Rgba32>) IS.Image.Load(path);
             }
             else
             {
@@ -109,6 +109,7 @@ namespace Engine.Rendering.VeldridBackend
                 // Since image sharp can't handle data with line padding in a stride
                 // we create an stripped down array if any padding is detected
                 int tightStride = width * height;
+                
 
 
 
@@ -134,15 +135,22 @@ namespace Engine.Rendering.VeldridBackend
             {
                 img.Mutate(x => x.Flip(FlipMode.Vertical));
             }
-
-            if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
+            
+            
+            Rgba32[] texture = new Rgba32[img.Width * img.Height];
+            for (int row = 0; row < img.Height; ++row)
             {
 
+                Span<Rgba32> rowData = texture.AsSpan().Slice(row * img.Width, img.Width);
+                if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
+                {
+                    memory.Span[..img.Width].CopyTo(rowData);
+                }
+                else
+                {
+                    throw new Exception("Engine failed to read texture");
+                }
                 Load(device, memory.Span, (uint) img.Width, (uint) img.Height);
-            }
-            else
-            {
-                throw new Exception("Engine failed to read texture");
             }
 
             img.Dispose();
@@ -177,17 +185,35 @@ namespace Engine.Rendering.VeldridBackend
 
             IS.Configuration cfg = IS.Configuration.Default;
             cfg.PreferContiguousImageBuffers = true;
-            IS.Image<Rgba32> img = IS.Image.Load<Rgba32>(cfg, data);
+            IS.Image<Rgba32> img = IS.Image.Load<Rgba32>(data);
+            
             Texture tex = new Texture(device);
 
-            if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
+            Rgba32[] texture = new Rgba32[img.Width * img.Height];
+
+            int height = img.Height;
+            int width = img.Width;
+
+            for (int row = 0; row < height; ++row)
             {
+
+                Span<Rgba32> rowData = texture.AsSpan().Slice(height * width, width);
+                if (img.DangerousTryGetSinglePixelMemory(out Memory<Rgba32> memory))
+                {
+                    memory.Span.CopyTo(rowData);
+                }
+                else
+                {
+                    throw new Exception("Engine failed to read texture");
+                }
                 tex.Load(device, memory.Span, (uint) img.Width, (uint) img.Height);
             }
-            else
-            {
-                throw new Exception("Engine failed to read texture");
-            }
+            
+
+
+
+            
+            
 
             img.Dispose();
         }

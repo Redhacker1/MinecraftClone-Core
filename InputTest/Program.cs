@@ -16,6 +16,7 @@ namespace InputTest
             WindowParams windowParams = new WindowParams()
             {
                 Size = new Int2(800, 600),
+                Location = new Int2(100, 100),
                 Name = "Default window",
             };
             Init.InitEngine(ref windowParams, new GameClass());
@@ -42,8 +43,9 @@ namespace InputTest
 
         protected override void _Process(double delta)
         {
+            Console.WriteLine("Tick");
             base._Process(delta);
-            if (InputHandler.MouseDelta() != Vector2.Zero)
+            if (InputHandler.MouseDelta() != Int2.Zero)
             {
                 Console.WriteLine(InputHandler.MousePos());
             }

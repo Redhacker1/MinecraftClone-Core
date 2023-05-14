@@ -126,7 +126,7 @@ namespace NVGRenderer
 
         protected override void Stage(RenderState rendererState, RenderTarget target, float time, float deltaTime, IReadOnlyList<Instance> renderObjects)
         {
-            if (WindowEvents.Size.LengthSquared() > 0)
+            if (Window.Size.LengthSquared() > 0)
             {
                 _nvgRenderer.SetFrame(frame);
                 Thing?.BeginFrame(Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, 1);

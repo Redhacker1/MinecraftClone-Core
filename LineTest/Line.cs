@@ -3,6 +3,7 @@ using Engine.Collision.Simple;
 using Engine.Objects.SceneSystem;
 using Engine.Rendering.Abstract;
 using Engine.Rendering.VeldridBackend;
+using Engine.Utilities.MathLib;
 using Engine.Windowing;
 using Veldrid;
 
@@ -67,8 +68,8 @@ public struct LineFrag
 
 
 class LineRenderer : RenderPass
-{    
-    static Vector2 ScreenResolution => WindowEvents.Handle.Bounds.Size;
+{
+    static Int2 ScreenResolution => Window.Size;
 
     public LineRenderer(CommandList _list, Renderer renderer) : base(_list, renderer)
     {

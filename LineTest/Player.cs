@@ -36,7 +36,7 @@ namespace ObjDemo
 		protected override void _Process(double delta)
 		{
 			_fpCam.Position = Position;
-			if (InputHandler.KeyboardJustKeyPressed(0,Key.Escape))
+			if (InputHandler.KeyboardJustKeyPressed(0,Keycode.Escape))
 			{
 				if (MoveMouse)
 				{

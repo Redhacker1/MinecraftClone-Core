@@ -86,6 +86,15 @@ namespace Engine.Utilities.MathLib
             }
         }
 
+        public int Length()
+        {
+            return (int)Math.Floor(Math.Sqrt(LengthSquared()));
+        }
+        public int LengthSquared()
+        {
+            return X + Y;
+        }
+
         public static Int2 operator -(Int2 other, int integer)
         {
             if (Sse2.IsSupported)

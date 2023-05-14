@@ -1,23 +1,35 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Engine.Utilities.MathLib;
+using Engine.Windowing;
 using SharpInterop.SDL2;
 using Veldrid;
 
 namespace Engine.Input
 {
-    public class InputHandler
+    public static class InputHandler
     {
-        internal static IntPtr Context;
 
         static readonly Dictionary<Keycode, KeyState> KeyStates = new Dictionary<Keycode, KeyState>();
-        static Vector2 _mousePos;
+        static Int2 _mousePos;
         static bool _trappedMouse;
+        static Window _windowContext;
+        static Int2 _lastmousePos;
+        
 
-        public static void InitInputHandler(IntPtr inputContext)
+        static Int2 _delta;
+
+        public static void InitInputHandler(Window Window)
         {
-            Context = inputContext;
 
+            _windowContext = Window;
+
+            _windowContext.KeyPressedEvent += KeyDown;
+            _windowContext.KeyReleasedEvent += KeyUp;
+            _windowContext.MouseMovedEvent += OnMouseMove;
+            
+            
             Keycode[] keys = Enum.GetValues<Keycode>();
 
             foreach (Keycode key in keys)
@@ -30,37 +42,57 @@ namespace Engine.Input
 
         }
 
-        static void OnMouseMove(MouseMoveEventArgs mouseData)
+
+        public static Dictionary<Keycode, KeyState> GetKeysPressedThisFrame()
         {
-            _mousePos = mouseData.MousePosition;
+            return new Dictionary<Keycode, KeyState>(KeyStates);
         }
 
-        static void KeyDown(KeyEvent eventData)
+        static void OnMouseMove(Int2 absPos, Int2 relativePos)
         {
-            if(eventData.Down)
+            _lastmousePos = _mousePos;
+            _mousePos = absPos;
+            _delta = relativePos;
+        }
+
+        static void KeyDown(Keycode keycode, KeyModifiers modifiers, char character, bool repeat)
+        {
+            if (!KeyStates.ContainsKey(keycode))
             {
-                KeyState state = KeyState.JustPressed;
-                if (KeyStates[eventData.Key] != KeyState.Released && eventData.Down)
-                {
-                    state = KeyState.Pressed;
-                }
-                KeyStates[eventData.Key] = state;   
+                Console.WriteLine($"Error, unknown key {Enum.GetName(keycode)}");
+                return;
             }
+            
+            KeyState state = KeyState.JustPressed;
+            if (KeyStates[keycode] != KeyState.Released)
+            {
+                state = KeyState.Pressed;
+            }
+            KeyStates[keycode] = state;   
 
         }
 
-        static void KeyUp(KeyEvent eventData)
+        static void KeyUp(Keycode keycode)
         {
-            if (!eventData.Down)
+            
+            if (!KeyStates.ContainsKey(keycode))
             {
-                KeyStates[eventData.Key] = KeyState.Released;    
+                Console.WriteLine($"Error, unknown key {Enum.GetName((SDL.SDL_Keycode)keycode)}");
+                return;
             }
+            
+            if (!KeyStates.ContainsKey(keycode))
+            {
+                return;
+            }
+            
+            KeyStates[keycode] = KeyState.Released;    
             
         }
         
         public static void PollInputs()
         {
-            foreach ((Key key, KeyState state) in KeyStates)
+            foreach ((Keycode key, KeyState state) in KeyStates)
             {
                 if (state == KeyState.JustPressed)
                 {
@@ -72,28 +104,38 @@ namespace Engine.Input
         public static Action<char> KeyPressed = c => { };
 
 
-        public static Vector2 MousePos()
+        public static Int2 MousePos()
         {
             return _mousePos;
         }
         
-        public static Vector2 MouseDelta()
+        public static Int2 MouseDelta()
         {
-            return Context.MouseDelta;
+            return _delta;
         }
 
         public static void SetMouseMode(bool Shown, bool Trapped)
         {
-            Sdl2Native.SDL_ShowCursor(Shown ? 1 : 0);
-            Sdl2Native.SDL_SetRelativeMouseMode(Trapped);
-            _trappedMouse = Trapped;
+            _windowContext.SetCursorMode(new MouseState()
+            {
+                MouseTrapped = Trapped,
+                MouseVisible = Shown
+            });
         }
         
+        [Obsolete]
         public static (bool, bool) GetMouseMode(int id)
         {
-            bool mouseVisibility = Sdl2Native.SDL_ShowCursor(Sdl2Native.SDL_QUERY) == Sdl2Native.SDL_ENABLE;
+            MouseState mouseMode = _windowContext.GetMouseMode();
+            
+            bool mouseVisibility = mouseMode.MouseVisible;
 
-            return (mouseVisibility, _trappedMouse);
+            return (mouseVisibility, mouseMode.MouseTrapped);
+        }
+        
+        public static MouseState GetMouseMode()
+        {
+            return _windowContext.GetMouseMode();
         }
         
         

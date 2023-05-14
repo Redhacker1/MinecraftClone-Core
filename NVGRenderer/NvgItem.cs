@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 using Engine.Input;
+using Engine.Utilities.MathLib;
 using NvgExample;
 using Silk.NET.Maths;
 using SilkyNvg;
@@ -64,7 +65,7 @@ public class DemoTest : NvgItem
     {
         testDemo ??= new Demo(nvg);
 
-        Vector2 mouseInput = InputHandler.MousePos();
+        Int2 mouseInput = InputHandler.MousePos();
         testDemo.Render(mouseInput.X, mouseInput.Y, Engine.Engine.MainFrameBuffer.Size.X, Engine.Engine.MainFrameBuffer.Size.Y, elapsed, false);
     }
         

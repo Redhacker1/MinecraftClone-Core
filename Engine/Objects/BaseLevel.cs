@@ -1,13 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Threading.Tasks;
-using Engine.Collision.BEPUPhysics;
+﻿using Engine.Collision.BEPUPhysics;
 using Engine.Collision.BEPUPhysics.Implementation;
 using Engine.Collision.Simple;
 using Engine.Rendering.Abstract;
 using Engine.Utilities.Concurrency;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace Engine.Objects;
 
@@ -29,11 +29,9 @@ public class BaseLevel : EngineObject,  ILevelContract
 
     internal override void OnLevelTick(double deltaT)
     {
-        if (BaseLevel != null)
-        {
-            base.OnLevelTick(deltaT);
-            ((ILevelContract) this).OnTick((float)deltaT);   
-        }
+        if (BaseLevel == null) return;
+        base.OnLevelTick(deltaT);
+        ((ILevelContract) this).OnTick((float)deltaT);
     }
 
     double _physicsDelta;
@@ -50,6 +48,7 @@ public class BaseLevel : EngineObject,  ILevelContract
         List<EngineObject> objectSnapshot = _levelObjects.GetListUnsafe();
         
         _levelObjects._readerWriterLock.EnterReadLock();
+        _Process(delta);
         FrameUpdate(delta, objectSnapshot);
         if (physicsProcess)
         {
@@ -92,7 +91,6 @@ public class BaseLevel : EngineObject,  ILevelContract
 
     internal void FrameUpdate(double delta, List<EngineObject> objectSnapshot)
     {
-
         OnLevelTick(delta);   
         foreach (EngineObject engineObject in objectSnapshot)
         {

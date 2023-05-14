@@ -22,21 +22,21 @@ namespace ObjDemo
             Vector3 cameraForward = Camera.MainCamera.Front;
             Vector3 cameraLeft = -Camera.MainCamera.Right;
 
-            if (InputHandler.KeyboardKeyDown(0,Key.W))
+            if (InputHandler.KeyboardKeyDown(0, Keycode.W))
             {
                 direction += cameraForward;
             }
-            if (InputHandler.KeyboardKeyDown(0,Key.S))
+            if (InputHandler.KeyboardKeyDown(0,Keycode.S))
             {
                 direction -= cameraForward;
             }
                 
-            if (InputHandler.KeyboardKeyDown(0,Key.A))
+            if (InputHandler.KeyboardKeyDown(0,Keycode.A))
             {
                 direction -= cameraLeft;
             }
                 
-            if (InputHandler.KeyboardKeyDown(0,Key.D))
+            if (InputHandler.KeyboardKeyDown(0,Keycode.D))
             {
                 direction += cameraLeft;
             }

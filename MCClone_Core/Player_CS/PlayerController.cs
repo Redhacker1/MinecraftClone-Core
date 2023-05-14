@@ -30,8 +30,6 @@ namespace MCClone_Core.Player_CS
 
 
             Vector3 direction = new Vector3();
-            //direction.X = 1;
-            //direction.Z = 1;
 
             Vector3 CameraForward = Camera.MainCamera.Front;
             Vector3 CameraLeft = -Camera.MainCamera.Right;

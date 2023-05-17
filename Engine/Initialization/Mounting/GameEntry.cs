@@ -91,7 +91,6 @@ namespace Engine
         {
             tickTime = ticktime;
             PinnedObject?.OnTick(tickTime);
-            InputHandler.PollInputs();
             _stopwatch.Restart();
 
         }

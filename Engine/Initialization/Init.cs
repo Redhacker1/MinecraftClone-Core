@@ -12,7 +12,7 @@ namespace Engine.Initialization
 {
     public static class Init
     {
-        public static void InitEngine(ref WindowParams windowParams, GameEntry gameClass, RenderBackend backend = RenderBackend.Auto)
+        public static void InitEngine(WindowParams windowParams, GameEntry gameClass, RenderBackend backend = RenderBackend.Auto)
         {
             InitEnvironment();
             

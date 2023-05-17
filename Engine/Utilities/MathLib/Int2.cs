@@ -7,7 +7,7 @@ namespace Engine.Utilities.MathLib
     public struct Int2 : IEquatable<Int2>
     {
         
-        Vector64<int> _backingVec = new Vector64<int>();
+        internal Vector64<int> _backingVec = new Vector64<int>();
         
         public int X
         {

@@ -97,11 +97,17 @@ namespace Engine.Windowing
             {
                 OnLoad();
                 Stopwatch stopwatch = new Stopwatch();
-                    
+                
+                Int2 mousePos = Int2.Zero;
+
                 while (closed == false)
                 {
-                    float deltaT = (float)stopwatch.Elapsed.TotalSeconds;
+                    bool NoMouseMove = true;
+                    float deltaT = (float) stopwatch.Elapsed.TotalMilliseconds;
+                    Int2 delta = Int2.Zero;
+                    
                     stopwatch.Restart();
+                    
                     while (SDL.SDL_PollEvent(out SDL.SDL_Event sdlEvent) != (int) SDL.SDL_bool.SDL_FALSE)
                     {
                         switch (sdlEvent.type)
@@ -118,8 +124,11 @@ namespace Engine.Windowing
                             }
                             case SDL.SDL_EventType.SDL_MOUSEMOTION:
                             {
+                                NoMouseMove = false;
                                 SDL.SDL_MouseMotionEvent mouseEvent  = sdlEvent.motion;
-                                MouseMoved(mouseEvent.x, mouseEvent.y, mouseEvent.xrel, mouseEvent.yrel);
+
+                                mousePos = new Int2(mouseEvent.x, mouseEvent.y);
+                                delta += new Int2(mouseEvent.xrel, mouseEvent.yrel);
                                 break;
                             }
                             case SDL.SDL_EventType.SDL_MOUSEWHEEL:
@@ -145,10 +154,12 @@ namespace Engine.Windowing
                                 break;
 
                         }
-
-
-                        Update(deltaT);
+                        
                     }
+
+                    MouseMovedEvent(mousePos, delta);
+                    Update(deltaT);
+                    InputHandler.PollInputs();
                 }
                 OnClose();
             }
@@ -172,12 +183,10 @@ namespace Engine.Windowing
                 Keycode Enginekeycode = (Keycode) (int) scancode;
                 KeyReleasedEvent(Enginekeycode);
             }
-
-            int hackForMouseY = 0;
-            void MouseMoved(int X, int Y, int RelativeX, int RelativeY)
+        
+            void MouseMoved(Int2 pos, Int2 relativePos)
             {
-                hackForMouseY = Y;
-                MouseMovedEvent(new Int2(X, Y), new Int2(RelativeX, RelativeY));
+                MouseMovedEvent(pos, relativePos);
             }
 
             void OnMouseWheel()
@@ -205,16 +214,10 @@ namespace Engine.Windowing
                 closed = true;
             }
 
-            public Action<Keycode, KeyModifiers,char, bool> KeyPressedEvent = (_, _, _, _) =>
-            {
-            };
-            
-            public Action<Keycode> KeyReleasedEvent = _ =>
-            {
-            };
-            
-            public Action<Int2, Int2> MouseMovedEvent =  (_, _) =>
-            {
-            };
+            public Action<Keycode, KeyModifiers, char, bool> KeyPressedEvent;
+
+            public Action<Keycode> KeyReleasedEvent;
+
+            public Action<Int2, Int2> MouseMovedEvent;
     }
 }

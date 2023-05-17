@@ -75,8 +75,7 @@ namespace MCClone_Core.Player_CS
 
 		protected override void _Process(double delta)
 		{
-			Console.WriteLine(Position);
-			
+
 			if (InputHandler.KeyboardJustKeyPressed(0, Keycode.Escape))
 			{
 				if (MoveMouse)

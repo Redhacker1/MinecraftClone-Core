@@ -25,7 +25,7 @@ namespace Engine
                 Name = "Default window",
             };
             
-            Init.InitEngine(ref windowParams, new GameTest());
+            Init.InitEngine(windowParams, new GameTest());
         }
     }
 

@@ -71,7 +71,7 @@ namespace MCClone_Core
             
             world = new ProcWorld(1337) {World = worldPath};
             script = new WorldScript(world);
-            player = new Player(new Vector3( 0 , 75, 0), Vector2.Zero)
+            player = new Player(new Vector3( 0 , 200, 0), Vector2.Zero)
             {
                 Noclip = false
             };
@@ -79,7 +79,7 @@ namespace MCClone_Core
             PinnedObject = world;
             world.AddChild(script);
             world.AddChild(player);
-            
+
             script._player = player;
             player.World = world;
             
@@ -90,6 +90,7 @@ namespace MCClone_Core
 
 
             base.GameStart();
+            player.Position = new Vector3(0, 200, 0);
         }
 
         protected override void GameEnded()

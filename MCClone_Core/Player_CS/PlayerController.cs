@@ -15,7 +15,6 @@ namespace MCClone_Core.Player_CS
     public class PlayerController
     {
         readonly Player pawn;
-        Vector3 _velocity;
 
         public PlayerController(Player PawnReference)
         {
@@ -27,7 +26,7 @@ namespace MCClone_Core.Player_CS
 
         public void Player_move(double delta)
         {
-
+            Vector3 velocity = Vector3.Zero;   
 
             Vector3 direction = new Vector3();
 
@@ -57,28 +56,32 @@ namespace MCClone_Core.Player_CS
 
             if (InputHandler.KeyboardKeyDown(0, Keycode.Space) && pawn.OnGround)
             {
-                _velocity.Y = 6f;
+                velocity.Y = 6f;
             }
             else if (!pawn.OnGround && !pawn.Noclip)
             {
-                _velocity.Y -= .2f * (float)delta;
+                velocity.Y -= .2f * (float)delta;
             }
             else
             {
-                _velocity.Y = 0;
+                velocity.Y = 0;
             }
 
-            //direction = Vector3.Normalize(direction);
+            direction = Vector3.Normalize(direction);
 
-            _velocity.X = (float)(direction.X * Player.Speed * delta);
-            _velocity.Z = (float)(direction.Z * Player.Speed * delta);
-            _velocity.Y = (float)(direction.Y * Player.Speed * delta);
+            if (float.IsNaN(direction.LengthSquared()))
+            {
+                direction = Vector3.Zero;
+            }
+
+            velocity.X = (float)(direction.X * Player.Speed * delta);
+            velocity.Z = (float)(direction.Z * Player.Speed * delta);
+            velocity.Y = (float)(direction.Y * Player.Speed * delta);
             
             
-            
-            pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
-            pawn.Move(_velocity);
-            
+            pawn.MoveRelative(velocity.X, velocity.Z, Player.Speed);
+            pawn.Move(velocity, pawn.Position);
+
         }
     }
 }

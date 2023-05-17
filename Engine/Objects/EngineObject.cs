@@ -54,7 +54,7 @@ namespace Engine.Objects
         /// <summary>
         /// The position, location rotation of the object in World space.
         /// </summary>
-        public Transform WorldTransform
+        protected Transform WorldTransform
         {
             get
             {
@@ -146,9 +146,9 @@ namespace Engine.Objects
             OnChildAdded(engineObject);
             Children.Add(engineObject);   
         }
-        
 
-        public void RemoveChild(EngineObject engineObject)
+
+        protected void RemoveChild(EngineObject engineObject)
         {
             BaseLevel?.RemoveEntityFromLevel(engineObject);
             Children.Remove(engineObject);
@@ -231,7 +231,7 @@ namespace Engine.Objects
         ///  Runs every frame without exception
         /// </summary>
         /// <param name="delta">Time elapsed since last call in milliseconds</param>
-        protected internal virtual void _Process(double delta)
+        protected virtual void _Process(double delta)
         {
         }
         

@@ -15,47 +15,41 @@ namespace MCClone_Core.Physics
         public bool Noclip = false;
         
 
-        public virtual void Move(Vector3 accel)
+        public virtual void Move(Vector3 accel, Vector3 currentPos)
         {
+            Aabb.Move(accel);
 
-            Vector3 acceleration = accel;
 
-            Vector3 o = acceleration;
+            OnGround = accel.Y <= 0.001f && accel.Y < 0;
+
+            Vector3 tempPos = currentPos;
+            
+            Aabb.GetMinMax(out Vector3 MinLoc, out Vector3 MaxLoc);
+
+
+            tempPos.X = (MinLoc.X + MaxLoc.X) / 2.0f;
+            tempPos.Y = (MinLoc.Y + EyeOffset);
+            tempPos.Z = (MinLoc.Z + MaxLoc.Z) / 2.0f;
             
             
-            Aabb.Move(acceleration);
-
-
-            OnGround = MathF.Abs(o.Y - acceleration.Y) > 0.001f && o.Y < 0;
-
-            if (Math.Abs(o.X - acceleration.X) > 0.001f) PosDelta.X = 0;
-            if (Math.Abs(o.Y - acceleration.Y) > 0.001f) PosDelta.Y = 0;
-            if (Math.Abs(o.Z - acceleration.Z) > 0.001f) PosDelta.Z = 0;
-
-
-            Vector3 tempPos = Position;
-
-            tempPos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
-            tempPos.Y = (Aabb.MinLoc.Y + EyeOffset);
-            tempPos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
-
-            Position = tempPos;
+            SetPos(Position + tempPos);
 
         }
         
         
-        public Aabb Aabb;
+        public AABB Aabb;
         public CharacterEntity(Vector3 position, Vector2 rotation)
         {
             PhysicsTick = true;
             Ticks = true;
-            
-            
+
+            Position = position;
+            //Rotation = ;
             //Aabb
-            
-            
+
+
             //Aabb = new Aabb(new Vector3(position.X - w, position.Y - h, position.Z - w), new Vector3(position.X + w, position.Y + h, position.Z + w));
-            
+
         }
         
         public CharacterEntity()
@@ -88,7 +82,7 @@ namespace MCClone_Core.Physics
             Position = pos;
             //float w = AabbWidth / 2.0f;
             //float h = AabbHeight / 2.0f;
-            
+
             //Aabb.MinLoc = new Vector3(pos.X - w, pos.Y - h, pos.Z - w);
             //Aabb.MaxLoc = new Vector3(pos.X + w, pos.Y + h, pos.Z + w);
         }

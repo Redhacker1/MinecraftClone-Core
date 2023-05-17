@@ -39,14 +39,15 @@ namespace MCClone_Core.Player_CS
 		void toggle_pause()
 		{
 			_paused =! _paused;
-			#if !Core
-			GetTree().Paused = _paused;
-			Input.SetMouseMode(_paused ? Input.MouseMode.Visible : Input.MouseMode.Captured);
-			#endif
 		}
 
-		public Player(Vector3 pos, Vector2 dir) : base(pos, dir)
+		public Player(Vector3 pos, Vector2 dir)
 		{
+			Position = pos;
+			
+			Console.WriteLine($"New position is: {Position}");
+			SetTransform(new Transform(pos, Quaternion.Identity, Vector3.One));
+			
 			ConsoleLibrary.BindCommand("Noclip", "Enables or Disables noclip", "Noclip", _ =>
 			{
 				ToggleNoclip();
@@ -63,34 +64,19 @@ namespace MCClone_Core.Player_CS
 			{
 				Position = new Vector3(Position.X, Position.Y + .8f, Position.Z)
 			};
-			//.FOV = 100;
-			#if Core
 			MoveMouse = true;
 			InputHandler.SetMouseMode(false, true);
-			#else
-				SetPos(new Vector3(Translation.x, Translation.y, Translation.z));
-			#endif
+			
 			_controller = new PlayerController(this);
 
 			_selectedBlock = BlockHelper.IdToString[_selectedBlockIndex];
-
-			#if Core
-			#else
-			_console = GetNode("CameraBase/Camera/Control") as Control;
-
-			_fpCam = GetNode<Camera>("CameraBase/Camera");
-			_raycast = GetNode<RayCast>("CameraBase/Camera/RayCast");
-			_infoLabel = GetNode<Label>("CameraBase/Camera/Debug_line_01");
-
-			if (!Engine.EditorHint)
-			{
-				Input.SetMouseMode(Input.MouseMode.Captured);	
-			}'
-			#endif
+			
 		}
 
 		protected override void _Process(double delta)
 		{
+			Console.WriteLine(Position);
+			
 			if (InputHandler.KeyboardJustKeyPressed(0, Keycode.Escape))
 			{
 				if (MoveMouse)
@@ -107,7 +93,7 @@ namespace MCClone_Core.Player_CS
 			}
 			
 			
-			FPCam.Position = new Vector3(Position.X, Position.Y + 0, Position.Z);
+			FPCam.Position = new Vector3(Position.X, Position.Y, Position.Z);
 			if (MoveMouse)
 			{
 				Freelook();
@@ -159,8 +145,7 @@ namespace MCClone_Core.Player_CS
 				Vector3 Location = Position;
 				HitResult result = Raycast.CastInDirection(Location,forward, -1, 5);
 				Vector3 pos = result.Location;
-
-				#if Core
+				
 				_controller.Player_move(delta);
 				
 				if (InputHandler.KeyboardJustKeyPressed(0, Keycode.E))
@@ -169,13 +154,6 @@ namespace MCClone_Core.Player_CS
 					Vector3 norm = result.Normal;
 					_on_Player_destroy_block(pos, norm);
 				}
-				#else
-				if (!Engine.EditorHint)
-				{
-					_controller.Player_move(delta);
-					WorldScript.lines.DrawBlock((int) pos.X, (int) pos.Y, (int) pos.Z, delta);
-				}
-				#endif
 
 				if (result.Hit)
 				{

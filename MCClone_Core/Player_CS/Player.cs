@@ -7,7 +7,6 @@ using Engine.Rendering.Abstract;
 using MCClone_Core.Physics;
 using MCClone_Core.World_CS.Blocks;
 using MCClone_Core.World_CS.Generation;
-using Veldrid;
 using Raycast = MCClone_Core.Utility.Raycast;
 
 namespace MCClone_Core.Player_CS
@@ -272,7 +271,7 @@ namespace MCClone_Core.Player_CS
 			{
 				float xOffset = InputHandler.MouseDelta().X * 0.1f;
 				float yOffset = InputHandler.MouseDelta().Y * 0.1f;
-				
+
 
 				if (Camera.MainCamera != null)
 				{

@@ -93,7 +93,7 @@ namespace Engine.GUI
             ImGui.NewFrame();
             _frameBegun = true;
 
-            InputHandler.KeyPressed += AddKeyChar;
+            //InputHandler.KeyPressed += AddKeyChar;
         }
 
         public void WindowResized(int width, int height)

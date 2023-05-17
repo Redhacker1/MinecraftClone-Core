@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using Engine.Utilities.MathLib;
 using Engine.Windowing;
 using SharpInterop.SDL2;
-using Veldrid;
 
 namespace Engine.Input
 {
@@ -100,8 +98,7 @@ namespace Engine.Input
                 }
             }
         }
-
-        public static Action<char> KeyPressed = c => { };
+        
 
 
         public static Int2 MousePos()

@@ -119,7 +119,7 @@ namespace Engine.Windowing
                             case SDL.SDL_EventType.SDL_MOUSEMOTION:
                             {
                                 SDL.SDL_MouseMotionEvent mouseEvent  = sdlEvent.motion;
-                                MouseMoved(mouseEvent.x, mouseEvent.y, mouseEvent.xrel, mouseEvent.y);
+                                MouseMoved(mouseEvent.x, mouseEvent.y, mouseEvent.xrel, mouseEvent.yrel);
                                 break;
                             }
                             case SDL.SDL_EventType.SDL_MOUSEWHEEL:
@@ -177,7 +177,7 @@ namespace Engine.Windowing
             void MouseMoved(int X, int Y, int RelativeX, int RelativeY)
             {
                 hackForMouseY = Y;
-                MouseMovedEvent(new Int2(X, Y), new Int2(RelativeX, Y - hackForMouseY));
+                MouseMovedEvent(new Int2(X, Y), new Int2(RelativeX, RelativeY));
             }
 
             void OnMouseWheel()

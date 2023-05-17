@@ -24,7 +24,7 @@ namespace MCClone_Core
             WindowParams windowParams = new WindowParams()
             {
                 Location = Int2.Zero,
-                Size = new Int2(1600, 900),
+                Size = new Int2(1280, 720),
                 Name = "Default window",
             };
             Init.InitEngine( ref windowParams, new MinecraftCloneCore());

@@ -1,4 +1,6 @@
 ﻿using System.Numerics;
+using Engine.Collision.Simple;
+using Engine.MathLib;
 
 namespace Engine.Objects
 {
@@ -7,19 +9,16 @@ namespace Engine.Objects
     /// a position, rotation and are able to interact with the world like a game object,
     /// if they are purely for running a script and dont require any of that, use a GameObject instead
     /// </summary>
-    public class Entity : GameObject
+    public class Entity : EngineObject
     {
-        public float AabbWidth = 0;
-        public float AabbHeight = 0;
-        
+        public AABB bbox { get; set; }
+
         public Vector3 PosDelta;
 
 
-        public Entity(Vector3 pos, Vector2 rotation)
+        public Entity(Transform transform, EngineObject parent = null) : base(transform, parent)
         {
-            Pos = pos;
-            Rotation.X = (Rotation.X - rotation.X * 0.15f);
-            Rotation.Y = ((Rotation.Y + rotation.Y * 0.15f) % 360.0f);
+            
         }
 
         protected Entity()

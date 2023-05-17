@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Engine.Debug
+namespace Engine.Debugging
 {
     public class Convar
     {

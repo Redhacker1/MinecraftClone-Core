@@ -4,6 +4,7 @@ using Engine;
 using Engine.Initialization;
 using Engine.Input;
 using Engine.Objects;
+using Engine.Utilities.MathLib;
 
 namespace InputTest
 {
@@ -11,33 +12,49 @@ namespace InputTest
     {
         static void Main(string[] args)
         {
-            Init.InitEngine(10, 10, 1024, 768, "InputTest", new GameClass());
+            
+            WindowParams windowParams = new WindowParams()
+            {
+                Size = new Int2(800, 600),
+                Location = new Int2(100, 100),
+                Name = "Default window",
+            };
+            Init.InitEngine(ref windowParams, new GameClass());
         }
     }
 
-    internal class GameClass : Game
+    internal class GameClass : GameEntry
     {
-        public override void Gamestart()
+
+        BaseLevel _level;
+        protected override void GameStart()
         {
             Console.WriteLine("Game started");
-            base.Gamestart();
+            base.GameStart();
             InputObject game = new InputObject();
+
+            _level = new BaseLevel();
+            
+            _level.AddEntityToLevel(game);
+            _level.Ticks = true;
 
         }
     }
 
-    internal class InputObject : GameObject
+    internal class InputObject : EngineObject
     {
         internal InputObject()
         {
             Ticks = true;
         }
-        public override void _Process(double delta)
+
+        protected override void _Process(double delta)
         {
+            Console.WriteLine("Tick");
             base._Process(delta);
-            if (InputHandler.MouseDelta(0) != Vector2.Zero)
+            if (InputHandler.MouseDelta() != Int2.Zero)
             {
-                Console.WriteLine(InputHandler.MousePos(0));
+                Console.WriteLine(InputHandler.MousePos());
             }
         }
     }

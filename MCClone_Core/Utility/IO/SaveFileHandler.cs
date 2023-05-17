@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Numerics;
+using Engine.Utilities.MathLib;
 using MCClone_Core.World_CS.Generation;
 
 namespace MCClone_Core.Utility.IO
@@ -11,11 +12,11 @@ namespace MCClone_Core.Utility.IO
         // Possible Save Handlers
         static readonly List<BaseFileHandler> ValidFormats = new List<BaseFileHandler>();
         
-        // TODO: Save files in reigon file
+        // TODO: Save files in region file
         static readonly BaseFileHandler DefaultSaveFileFormat = new ChunkFilesV1();
         
         
-        public static void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world, bool optimizeSave = true)
+        public static void WriteChunkData(Span<byte> blocks, Int2 chunkCoords, WorldData world, bool optimizeSave = true)
         {
             foreach (BaseFileHandler format in ValidFormats)
             {
@@ -25,6 +26,7 @@ namespace MCClone_Core.Utility.IO
                     File.Delete(format.GetFilename(chunkCoords, world, false));
                 }
             }
+            
             DefaultSaveFileFormat.WriteChunkData(blocks,chunkCoords,world,optimizeSave);
         }
 
@@ -51,7 +53,7 @@ namespace MCClone_Core.Utility.IO
                     }
                 }   
             }
-            
+
             return data;
         }
     }

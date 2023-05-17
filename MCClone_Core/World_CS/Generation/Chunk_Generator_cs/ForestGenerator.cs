@@ -1,7 +1,6 @@
 using System;
 using Engine.MathLib;
 using MCClone_Core.Random;
-using Random = MCClone_Core.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
@@ -35,7 +34,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 				}
 				else
 				{
-					Chunk._set_block_data(X,(Height - 1) - I, Z,4);	
+					Chunk._set_block_data(X,Height - 1 - I, Z,4);	
 				}
 			}
 		}

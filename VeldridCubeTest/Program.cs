@@ -1,13 +1,16 @@
 ﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using Engine;
 using Engine.Initialization;
+using Engine.MathLib;
 using Engine.Objects;
+using Engine.Objects.SceneSystem;
 using Engine.Renderable;
-using Engine.Rendering;
-using Engine.Windowing;
+using Engine.Rendering.Abstract;
+using Engine.Rendering.VeldridBackend;
 using Veldrid;
-using Shader = Engine.Rendering.Shader;
-using Texture = Engine.Rendering.Texture;
+using Texture = Engine.Rendering.VeldridBackend.Texture;
+using Vector3 = System.Numerics.Vector3;
 
 namespace VeldridCubeTest
 {
@@ -15,21 +18,39 @@ namespace VeldridCubeTest
     {
         static void Main()
         {
-	        Camera fpCam = new Camera(new Vector3(0, 0, 0), -Vector3.UnitZ, Vector3.UnitX , 1.333333F, true );
-            Init.InitEngine(0,0, 1024, 768, "Demo Cube", new CubeDemo());
+	        Init.InitEngine(0,0, 1024, 768, "Demo Cube", new CubeDemo());
         }
     }
 
-    class CubeDemo : Game
+    class CubeDemo : GameEntry
     {
+	    Instance3D _instance3D;
 	    Material material;
 	    Entity Object;
 	    Player _player;
-        public override void Gamestart()
-        {
+
+	    BaseLevel _level = new BaseLevel();
+	    DefaultRenderPass pass;
+	    
+
+	    protected override void GameStart()
+	    {
+		    base.GameStart();
+
+		    PinnedObject = _level;
 	        _player = new Player();
+	        _level.AddChild(_player);
+	        _player._Ready();
+
+	        pass = new DefaultRenderPass(Engine.Engine.Renderer);
+
+	        Engine.Engine.MainFrameBuffer.AddPass(0, pass);
+	        Camera.MainCamera = new Camera(new Transform(), Vector3.UnitZ, Vector3.UnitY,1024/768, true );
 	        
-	        Camera.MainCamera = new Camera(new Vector3(10, 1, 1), Vector3.UnitZ, Vector3.UnitY,1024/768, true );
+	        ShaderSet set = new ShaderSet(
+		        ShaderExtensions.CreateShaderFromFile(ShaderType.Vertex, "./Assets/shader.vert", "main", ShaderExtensions.ShadingLanguage.GLSL),
+		        ShaderExtensions.CreateShaderFromFile(ShaderType.Fragment, "./Assets/shader.frag", "main", ShaderExtensions.ShadingLanguage.GLSL));
+	        
 	        MaterialDescription materialDescription = new MaterialDescription
 			{
 				BlendState = BlendStateDescription.SingleDisabled,
@@ -40,88 +61,71 @@ namespace VeldridCubeTest
 				WriteDepthBuffer = true,
 				FaceDir = FrontFace.Clockwise,
 				FillMode = PolygonFillMode.Solid,
-				Shaders = new Dictionary<ShaderStages, Shader>
-				{
-					{
-						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
-					},
-					{
-						ShaderStages.Vertex,
-						new Shader("./Assets/vert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
-					}
-
-
-				}
+				Shaders = set,
 			};
 
 			ResourceLayoutDescription vertexLayout = new ResourceLayoutDescription(
 				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("WorldBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
 				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment));
 			
 			material = new Material(materialDescription, 
-				new VertexLayoutDescription(
-					new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
-					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3)),
-				WindowClass._renderer,
-				vertexLayout,
-				fragmentLayout
+				new VertexLayoutDescription[2]
+				{
+					new VertexLayoutDescription((uint)Unsafe.SizeOf<Matrix4x4>(), 1, 
+						new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+						new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+					
+					new VertexLayoutDescription(
+						new VertexElementDescription("Position", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3),
+						new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float3))
+				},
+				Engine.Engine.Renderer,
+				new []{				
+					vertexLayout,
+					fragmentLayout
+					
+				}
 			);
 			
 			
-			var atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+			Texture atlas = new Texture(Engine.Engine.Renderer.Device, @"Assets\TextureAtlas.tga");
+			TextureSampler pointSampler = new TextureSampler(Engine.Engine.Renderer.Device.PointSampler);
 			
-			material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			material.ResourceSet(1,WindowClass._renderer.WorldBuffer, pointSampler, atlas);
+			material.ResourceSet(1, pointSampler, atlas);
 
 
 			MeshData data = new MeshData
 			{
 				_vertices = new[]
 				{
-					new Vector3(-0.5f, +0.5f, -0.5f), new Vector3(+0.5f, +0.5f, -0.5f),
-					new Vector3(+0.5f, +0.5f, +0.5f), new Vector3(-0.5f, +0.5f, +0.5f),
-					new Vector3(-0.5f, -0.5f, +0.5f), new Vector3(+0.5f, -0.5f, +0.5f),
-					new Vector3(+0.5f, -0.5f, -0.5f), new Vector3(-0.5f, -0.5f, -0.5f),
-					new Vector3(-0.5f, +0.5f, -0.5f), new Vector3(-0.5f, +0.5f, +0.5f),
-					new Vector3(-0.5f, -0.5f, +0.5f), new Vector3(-0.5f, -0.5f, -0.5f),
-					new Vector3(+0.5f, +0.5f, +0.5f), new Vector3(+0.5f, +0.5f, -0.5f),
-					new Vector3(+0.5f, -0.5f, -0.5f), new Vector3(+0.5f, -0.5f, +0.5f),
-					new Vector3(+0.5f, +0.5f, -0.5f), new Vector3(-0.5f, +0.5f, -0.5f),
-					new Vector3(-0.5f, -0.5f, -0.5f), new Vector3(+0.5f, -0.5f, -0.5f),
-					new Vector3(-0.5f, +0.5f, +0.5f), new Vector3(+0.5f, +0.5f, +0.5f),
-					new Vector3(+0.5f, -0.5f, +0.5f), new Vector3(-0.5f, -0.5f, +0.5f)
+					new Vector3(-1f, +1f, +1f), new Vector3(-1f, +1f, -1f),
+					new Vector3(-1f, -1f, -1f), new Vector3(-1f, -1f, +1f),
 				},
 				_uvs = new []
 				{
 					new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0),
 					new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0),
-					new Vector3(1, 1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
-					new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0),
-					new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(1, 1, 0),
-					new Vector3(0, 1, 0), new Vector3(0, 0, 0), new Vector3(1, 0, 0),
-					new Vector3(1, 1, 0), new Vector3(0, 1, 0), new Vector3(0, 0, 0),
-					new Vector3(1, 0, 0), new Vector3(1, 1, 0), new Vector3(0, 1, 0)
 				},
 				_indices = new uint[] 
 				{
-					0,1,2, 0,2,3, 
-					4,5,6, 4,6,7, 
-					8,9,10, 8,10,11, 
-					12,13,14, 12,14,15, 
-					16,17,18, 16,18,19, 
-					20,21,22, 20,22,23,
+					0,1,2, 0,2,3
 				}
 			};
-			Object = new Entity(Vector3.One, Vector2.Zero);
-			Mesh mesh = new Mesh(Object, material);
+			Mesh mesh = new Mesh();
 			mesh.GenerateMesh(data);
-			material.AddReference(mesh);
+
+			_instance3D = new Instance3D(mesh, material);
+			_instance3D.SetTransform(new Transform());
+			
+			_level.AddChild(_instance3D);
+			
+			pass.AddInstance(_instance3D);
+
 
         }
         

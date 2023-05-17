@@ -68,6 +68,7 @@ namespace MCClone_Core.World_CS.Blocks
             List<string> borderTags = new List<string> {"Unbreakable"};
             RegisterBlock(new Vector2(4, 2), borderTags, "Barrier", 13);
             RegisterBlock(new Vector2(5, 0), borderTags, "Barrier_02", 14);
+            
         }
 
         static void RegisterBlock(Vector2[] sides, ICollection<string> tags, string name, byte id, bool ForceAir = false)

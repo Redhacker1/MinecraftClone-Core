@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using Engine.Utilities.MathLib;
 using MCClone_Core.World_CS.Generation;
 
 namespace MCClone_Core.Utility.IO
@@ -88,7 +89,7 @@ namespace MCClone_Core.Utility.IO
             throw new NotImplementedException();
         }
 
-        public override void WriteChunkData(byte[] blocks, Int2 chunkCoords, WorldData world,
+        public override void WriteChunkData(Span<byte> blocks, Int2 chunkCoords, WorldData world,
             bool optimizeSave = true)
         {
             throw new NotImplementedException();

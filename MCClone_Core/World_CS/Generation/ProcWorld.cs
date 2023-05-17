@@ -6,24 +6,26 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Engine.Debug;
+using Engine.Attributes;
+using Engine.Collision.Simple;
+using Engine.Debugging;
 using Engine.MathLib;
-using Engine.Rendering;
-using Engine.Windowing;
-using MCClone_Core.Physics;
+using Engine.Objects;
+using Engine.Rendering.Abstract;
+using Engine.Rendering.VeldridBackend;
+using Engine.Utilities.MathLib;
 using MCClone_Core.Utility.IO;
 using MCClone_Core.Utility.Threading;
 using MCClone_Core.World_CS.Blocks;
 using Veldrid;
-using Material = Engine.Rendering.Material;
-using Shader = Engine.Rendering.Shader;
-using Texture = Engine.Rendering.Texture;
+using Material = Engine.Rendering.VeldridBackend.Material;
+using Texture = Engine.Rendering.VeldridBackend.Texture;
 
 namespace MCClone_Core.World_CS.Generation
 {
-	public class ProcWorld : Level
+	public class ProcWorld : BaseLevel
 	{
 		public static readonly ChunkMesher Mesher = new ChunkMesher();
 		
@@ -32,8 +34,6 @@ namespace MCClone_Core.World_CS.Generation
 
 		public static bool Threaded = true;
 
-		bool ForceRenderDistanceCheck;
-
 		public static ProcWorld Instance;
 
 		readonly ThreadPoolClass _threads = new ThreadPoolClass();
@@ -41,8 +41,8 @@ namespace MCClone_Core.World_CS.Generation
 		// Max chunks radius comes out to (_loadRadius*2)^2 
 		public int _loadRadius = 35;
 
-		public static Random.Random WorldRandom;
-		public static long WorldSeed;
+		public readonly Random.Random WorldRandom;
+		public readonly long WorldSeed;
 		
 		public WorldData World;
 
@@ -61,8 +61,13 @@ namespace MCClone_Core.World_CS.Generation
 		public Material _material;
 		static Texture atlas;
 
+
+		public static readonly IndexBuffer<uint> MasterIndexBuffer = new IndexBuffer<uint>(Engine.Engine.Renderer.Device,
+			((ChunkCs.MaxX * ChunkCs.MaxY * ChunkCs.MaxZ) / 2) * 4 * 6);
+
 		public ProcWorld(long seed)
 		{
+		
 			Ticks = true;
 			PhysicsTick = true;
 			WorldSeed = seed;
@@ -70,18 +75,29 @@ namespace MCClone_Core.World_CS.Generation
 			ChunkCs.LoadedChunks = LoadedChunks;
 		}
 
-		struct AtlasInfo
-		{
-			public uint length;
-			public uint width;
-			public Int2 TextureSize;
-		}
-
 		public override void _Ready()
 		{
+			Ticks = true;
+			
 			if (Instance != null)
 				return;
 			Instance = this;
+			List<uint> indices = new List<uint>((int)MasterIndexBuffer.Length);
+
+			for (uint i = 0; i < MasterIndexBuffer.Length; i += 4)
+			{
+				indices.Add(i);
+				indices.Add(i + 1);
+				indices.Add(i + 2);
+				
+				indices.Add(i);
+				indices.Add(i + 2);
+				indices.Add(i + 3);
+			}
+			
+			MasterIndexBuffer.ModifyBuffer(indices.ToArray(), Engine.Engine.Renderer.Device);
+			
+			
 			
 			MaterialDescription materialDescription = new MaterialDescription
 			{
@@ -93,73 +109,49 @@ namespace MCClone_Core.World_CS.Generation
 				WriteDepthBuffer = true,
 				FaceDir = FrontFace.Clockwise,
 				FillMode = PolygonFillMode.Solid,
-				Shaders = new Dictionary<ShaderStages, Shader>
-				{
-					{
-						ShaderStages.Fragment,
-						new Shader("./Assets/frag.spv", WindowClass._renderer.Device, ShaderStages.Fragment)
-					},
-					{
-						ShaderStages.Vertex,
-						new Shader("./Assets/intvert.spv", WindowClass._renderer.Device, ShaderStages.Vertex)
-					}
-
-
-				}
+				Shaders = new ShaderSet(
+					ShaderExtensions.CreateShaderFromFile(ShaderType.Vertex, "./Assets/IntVertShader.vert", "main", ShaderExtensions.ShadingLanguage.GLSL),
+					ShaderExtensions.CreateShaderFromFile(ShaderType.Fragment, "./Assets/shader.frag", "main", ShaderExtensions.ShadingLanguage.GLSL)
+					)
 			};
 
 			ResourceLayoutDescription ProjectionLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ViewProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			ResourceLayoutDescription ModelLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("ModelProjBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
-			
-			
-			
+				new ResourceLayoutElementDescription("ProjectionBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex));
+
+
+
 
 			ResourceLayoutDescription fragmentLayout = new ResourceLayoutDescription(
-				new ResourceLayoutElementDescription("AtlasBuffer", ResourceKind.UniformBuffer, ShaderStages.Vertex),
 				new ResourceLayoutElementDescription("SurfaceSampler", ResourceKind.Sampler, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
-				new ResourceLayoutElementDescription("Lighting", ResourceKind.UniformBuffer, ShaderStages.Fragment));
-			
-			_material = new Material(materialDescription, 
-				new VertexLayoutDescription(
-					new VertexElementDescription("PositionX", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
-					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)),
-				WindowClass._renderer,
-				ProjectionLayout,
-				ModelLayout,
-				fragmentLayout
-			);
-			
-			atlas = new Texture(WindowClass._renderer.Device, @"Assets\TextureAtlas.tga");
-			var pointSampler = new TextureSampler(WindowClass._renderer.Device.PointSampler);
+				new ResourceLayoutElementDescription("SurfaceTexture", ResourceKind.TextureReadOnly,
+					ShaderStages.Fragment));
 
-			AtlasInfo info = new AtlasInfo()
+			VertexLayoutDescription[] vertexlayout = new[]
 			{
-				TextureSize = new Int2((int)atlas._texture.Width, (int)atlas._texture.Height),
-				length = 8,
-				width = 4,
+				new VertexLayoutDescription((uint)Unsafe.SizeOf<Matrix4x4>(), 1, 
+					new VertexElementDescription("Matrix1xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+					new VertexElementDescription("Matrix2xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+					new VertexElementDescription("Matrix3xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4),
+					new VertexElementDescription("Matrix4xx", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float4)),
+				new VertexLayoutDescription(12, 0,
+					new VertexElementDescription("PositionXYZ", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Int1),
+					new VertexElementDescription("TexCoords", VertexElementSemantic.TextureCoordinate, VertexElementFormat.Float2)
+				)
 			};
-			Span<AtlasInfo> info_1 = stackalloc AtlasInfo[1];
-			info_1[0] = info;
 
-			Span<Vector4> Light = stackalloc Vector4[1];
-			Light[0] = new Vector4(1,1,1,0);
-
+			_material = new Material(materialDescription, vertexlayout, Engine.Engine.Renderer,
+				new[] {ProjectionLayout, fragmentLayout});
 			
-			UniformBuffer<Vector4> AmbientLight = new UniformBuffer<Vector4>(WindowClass._renderer.Device, Light);
-			UniformBuffer<AtlasInfo> buffer = new UniformBuffer<AtlasInfo>(WindowClass._renderer.Device, info_1);
-			_material.ResourceSet(0, WindowClass._renderer.ViewProjBuffer);
-			_material.ResourceSet(1, WindowClass._renderer.WorldBuffer);
-			_material.ResourceSet(2, buffer, pointSampler, atlas, AmbientLight);
+			atlas = new Texture(Engine.Engine.Renderer.Device, @"Assets\TextureAtlas.tga");
+			TextureSampler pointSampler = new TextureSampler(Engine.Engine.Renderer.Device.PointSampler);
+			_material.ResourceSet(1, pointSampler, atlas);
 
 
 
 			ConsoleLibrary.DebugPrint("Starting procworld");
 			
 			ConsoleLibrary.DebugPrint("Preparing Threadpool");
-			// Starts the threadpool;
+			// Starts the thread-pool;
 			_threads.InitializePool();
 
 			ConsoleLibrary.DebugPrint("Registering Blocks");
@@ -178,14 +170,15 @@ namespace MCClone_Core.World_CS.Generation
 
 			ConsoleLibrary.DebugPrint("Binding Console Commands");
 			// Console Binds
-			ConsoleLibrary.BindCommand("reload_chunks", "reloads all currently loaded chunks", "reload_chunks", ReloadChunks, false);
-			ConsoleLibrary.BindCommand("reset", "Reloads world after saving, ","reset", Restart, false);
-			ConsoleLibrary.BindCommand("GCCall", "Runs the GC, ","GCCall", GCCall, false);
+			ConsoleLibrary.BindCommand("reload_chunks", "reloads all currently loaded chunks", "reload_chunks", ReloadChunks);
+			ConsoleLibrary.BindCommand("reset", "Reloads world after saving, ","reset", Restart);
+			ConsoleLibrary.BindCommand("GCCall", "Runs the GC, ","GCCall", GCCall);
 			
 		}
 
-		public override void _Process(double delta)
+		protected override void _Process(double delta)
 		{
+			base._Process(delta);
 			if (!Threaded)
 			{
 				for (int i = 0; i < _chunksPerFrame; i++)
@@ -195,6 +188,8 @@ namespace MCClone_Core.World_CS.Generation
 			}
 		}
 
+		// This is a template ConCommand Attribute explantation for later
+		[ConCommand("GCCall", "Runs the GC", "GCCall")]
 		static string GCCall(params string[] args)
 		{
 			GC.Collect(2, GCCollectionMode.Forced, true, true);
@@ -204,7 +199,7 @@ namespace MCClone_Core.World_CS.Generation
 		public void UpdateRenderDistance(int distance)
 		{
 			_loadRadius = distance;
-			ForceRenderDistanceCheck = true;
+			enforce_render_distance(_currentChunkPos);
 		}
 
 
@@ -238,20 +233,20 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					// Either go right or up
 					// Prioritize going right
-					if ((Math.Abs(deltaPos.Y - _currentLoadRadius) < 0.001f) && (Math.Abs(-deltaPos.X - _currentLoadRadius) > 0.001f))
+					if (Math.Abs(deltaPos.Y - _currentLoadRadius) < 0.001f && Math.Abs(-deltaPos.X - _currentLoadRadius) > 0.001f)
 					{
 						//Go right
 						_lastChunk = _load_chunk((int)_lastChunk.X - 1, (int) _lastChunk.Y);
 					}
 					// Either moving in constant x or we just reached bottom right. Addendum by donovan: this looping on the X axis has happened to me actually
-					else if ((MathF.Abs(-deltaPos.X - _currentLoadRadius) < 0.001f) || (MathF.Abs(-deltaPos.X - deltaPos.Y) < 0.001f))
+					else if (MathF.Abs(-deltaPos.X - _currentLoadRadius) < 0.001f || MathF.Abs(-deltaPos.X - deltaPos.Y) < 0.001f)
 					{
 						// Go up
 						_lastChunk = _load_chunk((int) _lastChunk.X, (int) _lastChunk.Y - 1);
 					}
 					else
 					{
-						// We increment here idk why
+						
 						if (_currentLoadRadius < _loadRadius)
 						{
 							_currentLoadRadius++;
@@ -262,12 +257,12 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					//Either go left or down
 					//Prioritize going left
-					if ((Math.Abs(-deltaPos.Y - _currentLoadRadius) < 0.001f) && (Math.Abs(deltaPos.X - _currentLoadRadius) > 0.001f))
+					if (Math.Abs(-deltaPos.Y - _currentLoadRadius) < 0.001f && Math.Abs(deltaPos.X - _currentLoadRadius) > 0.001f)
 					{
 						//Go left
 						_lastChunk = _load_chunk((int) _lastChunk.X + 1, (int) _lastChunk.Y);	
 					}
-					else if ((MathF.Abs(deltaPos.X - _currentLoadRadius) < 0.001f) || (MathF.Abs(deltaPos.X - (-deltaPos.Y)) < 0.001f))
+					else if (MathF.Abs(deltaPos.X - _currentLoadRadius) < 0.001f || MathF.Abs(deltaPos.X - -deltaPos.Y) < 0.001f)
 					{
 						// Go down
 						// Stop the last one where we'd go over the limit
@@ -293,9 +288,8 @@ namespace MCClone_Core.World_CS.Generation
 		Vector2 _load_chunk(int cx, int cz)
 		{
 			Int2 cpos = new Int2(cx, cz);
-			bool loadChunk;
-			loadChunk = !LoadedChunks.ContainsKey(new Vector2(cpos.X, cpos.Y));
-
+			bool loadChunk = !LoadedChunks.ContainsKey(new Vector2(cpos.X, cpos.Y));
+			
 			if (loadChunk)
 			{
 				ChunkCs c;
@@ -312,37 +306,43 @@ namespace MCClone_Core.World_CS.Generation
 				LoadedChunks[new Vector2(cpos.X, cpos.Y)] = c;
 				c.UpdateVisMask();
 				_update_chunk(cx, cz);
+				AddChild(c);
+
 			}
-			
+
 			return new Vector2(cpos.X, cpos.Y);
 		}
 
 		public string ReloadChunks(params string[] args)
 		{
-			ICollection<Vector2> chunks = LoadedChunks.Keys;
-			var chunkpos = _newChunkPos;
-			update_player_pos(Vector2.Zero);
-			update_player_pos(chunkpos);
-			
-			
-			return $"{chunks.Count} Chunks sent to threadpool for processing...";
-		}
+			ICollection<ChunkCs> chunks = LoadedChunks.Values;
 
-		public override List<Aabb> GetAabbs(int collisionlayer, Aabb aabb)
-		{
-			List<Aabb> aabbs = new List<Aabb>();
-			Vector3 a = new Vector3(aabb.MinLoc.X - 1, aabb.MinLoc.Y - 1, aabb.MinLoc.Z - 1);
-			Vector3 b = aabb.MaxLoc;
-
-			for (int z = (int) a.Z; z < b.Z; z++)
+			foreach (ChunkCs chunk in chunks)
 			{
-				for (int y = (int) a.Y; y < b.Y; y++)
+				Mesher.AddMesh(chunk);
+			}
+			
+			return $"Reloading {chunks.Count}";
+		}
+		
+
+		public List<AABB> GetAabbs(int collisionlayer, Entity ent)
+		{
+			List<AABB> aabbs = new List<AABB>();
+			AABB aabb = ent.bbox;
+			aabb.GetMinMax(out Vector3 MinLoc, out Vector3 MaxLoc);
+			
+			Vector3 a = new Vector3(MinLoc.X - 1, MinLoc.Y - 1, MinLoc.Z - 1);
+
+			for (int z = (int) a.Z; z < MaxLoc.Z; z++)
+			{
+				for (int y = (int) a.Y; y < MaxLoc.Y; y++)
 				{
-					for (int x = (int) a.X; x < b.X; x++)
+					for (int x = (int) a.X; x < MaxLoc.X; x++)
 					{
 						byte block = GetBlockIdFromWorldPos(x, y, z);
 						if (BlockHelper.BlockTypes[block].NoCollision || block == 0) continue;
-						Aabb c = new Aabb(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
+						AABB c = new AABB(new Vector3(x, y, z), new Vector3(x + 1, y + 1, z + 1));
 						aabbs.Add(c);
 					}
 				}
@@ -371,11 +371,11 @@ namespace MCClone_Core.World_CS.Generation
 			int bx = MathHelper.Modulo(x, ChunkCs.MaxX);
 			int bz = MathHelper.Modulo(z, ChunkCs.MaxZ);
 
-			Vector2 chunkpos = new Vector2(cx, cz);
+			Vector2 chunkPos = new Vector2(cx, cz);
 
-			if (LoadedChunks.ContainsKey(chunkpos) && ValidPlace(bx, y, bz))
+			if (LoadedChunks.ContainsKey(chunkPos) && ValidPlace(bx, y, bz))
 			{
-				return LoadedChunks[chunkpos].BlockData[ChunkCs.GetFlattenedIndex(bx, y, bz)];
+				return LoadedChunks[chunkPos].BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, y, bz)];
 			}
 
 			return 0;
@@ -390,18 +390,10 @@ namespace MCClone_Core.World_CS.Generation
 		/// <param name="z"></param>
 		/// <returns>whether it is safe to write or read from the block in the chunk</returns>
 		public static bool ValidPlace(int x, int y, int z)
-		{
-			if (x < 0 || x >= ChunkCs.MaxX || z < 0 || z >= ChunkCs.MaxZ)
-			{
-				return false;
-			}
-
-			if(y < 0 || y > ChunkCs.MaxY - 1)
-			{
-				return false;
-			}
-
-			return true;
+		{ 
+			return x >= 0 && x < ChunkCs.MaxX
+		                && z >= 0 && z < ChunkCs.MaxZ
+		                && y >= 0 && y <= ChunkCs.MaxY - 1;
 		}
 		
 		
@@ -409,33 +401,34 @@ namespace MCClone_Core.World_CS.Generation
 
 		public void change_block(int cx, int cz, int bx, int by, int bz, byte T)
 		{
+			if (!LoadedChunks.ContainsKey(new Vector2(cx, cz)))
+			{
+				_load_chunk(cx, cz);
+			}
 			ChunkCs c = LoadedChunks[new Vector2(cx, cz)];
 
-			if (c.BlockData[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;
+			if (c.BlockData.FullSpan[ChunkCs.GetFlattenedIndex(bx, by, bz)] == T) return;
 			ConsoleLibrary.DebugPrint($"Changed block at {bx} {by} {bz} in chunk {cx}, {cz}");
-			c?._set_block_data(bx,by,bz,T);
+			c._set_block_data(bx,by,bz,T);
 			_update_chunk(cx, cz);
 		}
 
 		void _update_chunk(int cx, int cz)
 		{
 			Vector2 cpos = new Vector2(cx, cz);
-			if (LoadedChunks.ContainsKey(cpos))
+			if (LoadedChunks.TryGetValue(cpos, out ChunkCs chunk))
 			{
-				Mesher.AddMesh(LoadedChunks[cpos]);
+				Mesher.AddMesh(chunk);
 			}
 		}
 
 		void enforce_render_distance(Vector2 currentChunkPos)
 		{
-			foreach (var key in LoadedChunks.Keys)
+			foreach (Vector2 key in LoadedChunks.Keys)
 			{
 				if (Math.Abs(key.X - currentChunkPos.X) > _loadRadius || Math.Abs(key.Y - currentChunkPos.Y) > _loadRadius)
 					_unloadChunk((int) key.X, (int) key.Y);
 			}
-
-			GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-			//GC.Collect(2, GCCollectionMode.Optimized, false, true);
 		}
 		
 		
@@ -445,13 +438,10 @@ namespace MCClone_Core.World_CS.Generation
 		void _unloadChunk(int cx, int cz)
 		{
 			Vector2 cpos = new Vector2(cx, cz);
-			if (LoadedChunks.ContainsKey(cpos))
+			if (LoadedChunks.TryGetValue(cpos, out ChunkCs chunk))
 			{
-				var chunk = LoadedChunks[cpos];
-				
-				SaveFileHandler.WriteChunkData(chunk.BlockData, chunk.ChunkCoordinate, World);
-				chunk.Free();
 				LoadedChunks.TryRemove(cpos, out _);
+				RemoveChild(chunk);
 			}
 
 		}
@@ -470,19 +460,22 @@ namespace MCClone_Core.World_CS.Generation
 			_bKillThread = true;
 			
 			_threads.ShutDownHandler();
+			Console.WriteLine("Threads shut down!");
 		}
 
 		string Restart(params string[] parameters)
 		{
-			// Shuts down the old threadpool and saves the game state.
 			SaveAndQuit();
+
+			ProcWorld.Instance = new ProcWorld(this.WorldSeed);
+
 			return "Restarting...";
 			
 		}
 		
 		public void SaveAndQuit()
 		{
-			
+			Console.WriteLine("Save And Quit!");
 			Mesher.Stop();
 		#if !Core
 			var tree = GetTree();
@@ -502,15 +495,16 @@ namespace MCClone_Core.World_CS.Generation
 				{
 					_threads.AddRequest(() =>
 					{
-						SaveFileHandler.WriteChunkData(chunk.Value.BlockData,
+						SaveFileHandler.WriteChunkData(chunk.Value.BlockData.FullSpan,
 							chunk.Value.ChunkCoordinate, World);
-						chunk.Value.Free();
-						
+						RemoveChild(chunk.Value);
 
 						return null; 
 					});	
 				}
 			}
+			
+			Console.WriteLine("All chunks saved!");
 	            
 	            
 			// Hack: this needs to be corrected, probably doable with a monitor.Lock() and then a callback to evaluate the END
@@ -518,6 +512,8 @@ namespace MCClone_Core.World_CS.Generation
 			{
 		            
 			}
+			
+			Console.WriteLine("All threads are idle!");
 			kill_thread();
 		}
 		

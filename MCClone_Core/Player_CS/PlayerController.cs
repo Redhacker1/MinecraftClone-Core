@@ -3,10 +3,12 @@
 #if !Core
 using Godot;
 #endif
+using System;
+using System.Diagnostics;
 using System.Numerics;
 using Engine.Input;
-using Engine.Rendering;
-using Silk.NET.Input;
+using Engine.Rendering.Abstract;
+using Veldrid;
 
 namespace MCClone_Core.Player_CS
 {
@@ -20,68 +22,63 @@ namespace MCClone_Core.Player_CS
             pawn = PawnReference;
         }
 
+        Stopwatch _stopwatch;
+        int counter = 0;
+
         public void Player_move(double delta)
         {
+
+
             Vector3 direction = new Vector3();
-            //direction.X = 1;
-            //direction.Z = 1;
 
             Vector3 CameraForward = Camera.MainCamera.Front;
             Vector3 CameraLeft = -Camera.MainCamera.Right;
 
-            if (InputHandler.KeyboardKeyDown(0, Key.W))
+            if (InputHandler.KeyboardKeyDown(0, Keycode.W))
             {
                 direction += CameraForward;
             }
 
-            if (InputHandler.KeyboardKeyDown(0, Key.S))
+            if (InputHandler.KeyboardKeyDown(0, Keycode.S))
             {
                 direction -= CameraForward;
             }
 
-            if (InputHandler.KeyboardKeyDown(0, Key.A))
+            if (InputHandler.KeyboardKeyDown(0, Keycode.A))
             {
                 direction -= CameraLeft;
             }
 
-            if (InputHandler.KeyboardKeyDown(0, Key.D))
+            if (InputHandler.KeyboardKeyDown(0, Keycode.D))
             {
                 direction += CameraLeft;
             }
 
 
-            if (InputHandler.KeyboardKeyDown(0, Key.Space) && pawn.OnGround)
+            if (InputHandler.KeyboardKeyDown(0, Keycode.Space) && pawn.OnGround)
             {
-                _velocity.Y = 6f * (float)delta;
+                _velocity.Y = 6f;
             }
-
-            if (!pawn.OnGround && !pawn.Noclip)
+            else if (!pawn.OnGround && !pawn.Noclip)
             {
                 _velocity.Y -= .2f * (float)delta;
             }
             else
             {
-                if (InputHandler.KeyboardKeyDown(0, Key.Space))
-                {
-                    _velocity.Y = 6f * (float)delta;
-                }
-                else
-                {
-                    _velocity.Y = 0;
-                }
-
+                _velocity.Y = 0;
             }
+
+            //direction = Vector3.Normalize(direction);
 
             _velocity.X = (float)(direction.X * Player.Speed * delta);
             _velocity.Z = (float)(direction.Z * Player.Speed * delta);
-            if (pawn.Noclip)
-            {
-                _velocity.Y = (float)(direction.Y * Player.Speed * delta);
-            }
-
+            _velocity.Y = (float)(direction.Y * Player.Speed * delta);
+            
+            
+            
             pawn.MoveRelative(_velocity.X, _velocity.Z, Player.Speed);
             pawn.Move(_velocity);
-            //pawn.Pos = _velocity;
+            
         }
     }
 }

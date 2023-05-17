@@ -401,7 +401,7 @@ namespace MCClone_Core.Random
 
             Float2 g = Grad2D[hash & 7];
 
-            return (xd * g.X + yd * g.Y);
+            return xd * g.X + yd * g.Y;
         }
         
         static double GradCoord3D(long seed, int x, int y, int z, double xd, double yd, double zd)
@@ -416,7 +416,7 @@ namespace MCClone_Core.Random
 
             Float3 g = Grad3D[hash & 15];
 
-            return (xd * g.X + yd * g.Y + zd * g.Z);
+            return xd * g.X + yd * g.Y + zd * g.Z;
         }
         
         static double GradCoord4D(long seed, int x, int y, int z, int w, double xd, double yd, double zd, double wd)
@@ -438,7 +438,7 @@ namespace MCClone_Core.Random
                 case 2: a = zd; b = wd; c = xd; break;     // Z,W,X
                 case 3: a = yd; b = zd; c = wd; break;     // Y,Z,W
             }
-            return (((hash & 4) == 0 ? -a : a) + ((hash & 2) == 0 ? -b : b) + ((hash & 1) == 0 ? -c : c));
+            return ((hash & 4) == 0 ? -a : a) + ((hash & 2) == 0 ? -b : b) + ((hash & 1) == 0 ? -c : c);
         }
 
 
@@ -729,7 +729,7 @@ namespace MCClone_Core.Random
                 sum += SingleValue(++seed, x, y, z) * amp;
             }
 
-            return (sum * _mFractalBounding);
+            return sum * _mFractalBounding;
         }
 
         double SingleValueFractalBillow(double x, double y, double z)
@@ -970,7 +970,7 @@ namespace MCClone_Core.Random
                 sum += SinglePerlin(++seed, x, y, z) * amp;
             }
 
-            return  (sum * _mFractalBounding);
+            return  sum * _mFractalBounding;
         }
 
         double SinglePerlinFractalBillow(double x, double y, double z)
@@ -1204,7 +1204,7 @@ namespace MCClone_Core.Random
                 sum += SingleSimplex(++seed, x, y, z) * amp;
             }
 
-            return  (sum * _mFractalBounding);
+            return  sum * _mFractalBounding;
         }
 
         double SingleSimplexFractalBillow(double x, double y, double z)
@@ -1223,7 +1223,7 @@ namespace MCClone_Core.Random
                 sum += (Math.Abs(SingleSimplex(++seed, x, y, z)) * 2 - 1) * amp;
             }
 
-            return  (sum * _mFractalBounding);
+            return  sum * _mFractalBounding;
         }
 
         double SingleSimplexFractalRigidMulti(double x, double y, double z)
@@ -1250,8 +1250,8 @@ namespace MCClone_Core.Random
             return  SingleSimplex(_mSeed, x * _mFrequency, y * _mFrequency, z * _mFrequency);
         }
 
-        const double F3 = (1.0 / 3.0);
-        const double G3 = (1.0 / 6.0);
+        const double F3 = 1.0 / 3.0;
+        const double G3 = 1.0 / 6.0;
         const double G33 = G3 * 3 - 1;
 
         static double SingleSimplex(long seed, double x, double y, double z)
@@ -1454,8 +1454,8 @@ namespace MCClone_Core.Random
             return  SingleSimplex(_mSeed, x * _mFrequency, y * _mFrequency);
         }
 
-        const double F2 = (1.0 / 2.0);
-        const double G2 = (1.0 / 4.0);
+        const double F2 = 1.0 / 2.0;
+        const double G2 = 1.0 / 4.0;
 
         static double SingleSimplex(long seed, double x, double y)
         {
@@ -1531,8 +1531,8 @@ namespace MCClone_Core.Random
         2,1,0,3,0,0,0,0,0,0,0,0,0,0,0,0,3,1,0,2,0,0,0,0,3,2,0,1,3,2,1,0
     };
 
-        const double F4 = ((2.23606797 - 1.0) / 4.0);
-        const double G4 = ((5.0 - 2.23606797) / 20.0);
+        const double F4 = (2.23606797 - 1.0) / 4.0;
+        const double G4 = (5.0 - 2.23606797) / 20.0;
 
         double SingleSimplex(long seed, double x, double y, double z, double w)
         {
@@ -1669,7 +1669,7 @@ namespace MCClone_Core.Random
                 sum += SingleCubic(++seed, x, y, z) * amp;
             }
 
-            return  (sum * _mFractalBounding);
+            return  sum * _mFractalBounding;
         }
 
         double SingleCubicFractalBillow(double x, double y, double z)
@@ -1689,7 +1689,7 @@ namespace MCClone_Core.Random
                 sum += (Math.Abs(SingleCubic(++seed, x, y, z)) * 2 - 1) * amp;
             }
 
-            return  (sum * _mFractalBounding);
+            return  sum * _mFractalBounding;
         }
 
         double SingleCubicFractalRigidMulti(double x, double y, double z)
@@ -1870,7 +1870,7 @@ namespace MCClone_Core.Random
             double xs = x - x1;
             double ys = y - y1;
 
-            return (CubicLerp(
+            return CubicLerp(
                 CubicLerp(ValCoord2D(seed, x0, y0), ValCoord2D(seed, x1, y0), ValCoord2D(seed, x2, y0), ValCoord2D(seed, x3, y0),
                     xs),
                 CubicLerp(ValCoord2D(seed, x0, y1), ValCoord2D(seed, x1, y1), ValCoord2D(seed, x2, y1), ValCoord2D(seed, x3, y1),
@@ -1879,7 +1879,7 @@ namespace MCClone_Core.Random
                     xs),
                 CubicLerp(ValCoord2D(seed, x0, y3), ValCoord2D(seed, x1, y3), ValCoord2D(seed, x2, y3), ValCoord2D(seed, x3, y3),
                     xs),
-                ys) * Cubic2DBounding);
+                ys) * Cubic2DBounding;
         }
 
         // Cellular Noise
@@ -2404,9 +2404,9 @@ namespace MCClone_Core.Random
             ly1X = Lerp(vec0.Y, vec1.Y, xs);
             lz1X = Lerp(vec0.Z, vec1.Z, xs);
 
-            x += (Lerp(lx0Y, Lerp(lx0X, lx1X, ys), zs) * perturbAmp);
-            y += (Lerp(ly0Y, Lerp(ly0X, ly1X, ys), zs) * perturbAmp);
-            z += (Lerp(lz0Y, Lerp(lz0X, lz1X, ys), zs) * perturbAmp);
+            x += Lerp(lx0Y, Lerp(lx0X, lx1X, ys), zs) * perturbAmp;
+            y += Lerp(ly0Y, Lerp(ly0X, ly1X, ys), zs) * perturbAmp;
+            z += Lerp(lz0Y, Lerp(lz0X, lz1X, ys), zs) * perturbAmp;
         }
 
         public void GradientPerturb(ref double x, ref double y)
@@ -2473,8 +2473,8 @@ namespace MCClone_Core.Random
             double lx1X = Lerp(vec0.X, vec1.X, xs);
             double ly1X = Lerp(vec0.Y, vec1.Y, xs);
 
-            x += (Lerp(lx0X, lx1X, ys) * perturbAmp);
-            y += (Lerp(ly0X, ly1X, ys) * perturbAmp);
+            x += Lerp(lx0X, lx1X, ys) * perturbAmp;
+            y += Lerp(ly0X, ly1X, ys) * perturbAmp;
         }
     }
 }

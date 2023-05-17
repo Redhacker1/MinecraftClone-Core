@@ -2,11 +2,10 @@
 using Engine.MathLib;
 using MCClone_Core.Random;
 using MCClone_Core.World_CS.Blocks;
-using Random = MCClone_Core.Random.Random;
 
 namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
 {
-    internal class BaseGenerator
+    public class BaseGenerator
     {
         internal const int MinTerrainHeight = 8;
 
@@ -28,7 +27,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             {
                 for (int z = 0; z < ChunkCs.MaxZ; z++)
                 {
-                    double hNoise = MathHelper.Clamp(((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z)))/2,  0, 1);
+                    double hNoise = MathHelper.Clamp((1f + HeightNoise.GetMixedNoiseSimplex(x + X, z + Z))/2,  0, 1);
                     int yHeight = (int) (hNoise * (GenHeight - 1) + 1);
                     
                     groundHeight[x,z] = yHeight;
@@ -56,7 +55,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
             }
             
             Generate_Caves(chunk, Seed, surfaceheight, X, Z);
-            generate_details(chunk,ProcWorld.WorldRandom,surfaceheight);
+            generate_details(chunk,ProcWorld.Instance.WorldRandom,surfaceheight);
         }
 
         public virtual void generate_surface(ChunkCs Chunk,int Height, int X, int Z)
@@ -99,7 +98,7 @@ namespace MCClone_Core.World_CS.Generation.Chunk_Generator_cs
         
         internal static bool IsBlockAir(ChunkCs Chunk, int X, int Y, int Z)
         {
-            return BlockHelper.BlockTypes[Chunk.BlockData[ChunkCs.GetFlattenedIndex(X, Y - 1, Z)]].Air;
+            return BlockHelper.BlockTypes[Chunk.BlockData.FullSpan[ChunkCs.GetFlattenedIndex(X, Y - 1, Z)]].Air;
         }
 
 

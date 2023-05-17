@@ -23,7 +23,8 @@ namespace ObjDemo
             Vector3 o = acceleration;
             
             
-            Aabb.Move(acceleration);
+            
+            //Aabb.Move(acceleration);
 
 
             OnGround = Math.Abs(o.Y - acceleration.Y) > 0.001f && o.Y < 0;
@@ -32,10 +33,15 @@ namespace ObjDemo
             if (Math.Abs(o.Y - acceleration.Y) > 0.001f) PosDelta.Y = 0;
             if (Math.Abs(o.Z - acceleration.Z) > 0.001f) PosDelta.Z = 0;
 
-            Pos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
-            Pos.Y = (Aabb.MinLoc.Y + EyeOffset);
-            Pos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
-            
+
+            //Vector3 tempPos = Position;
+
+            //tempPos.X = (Aabb.MinLoc.X + Aabb.MaxLoc.X) / 2.0f;
+            //tempPos.Y = (Aabb.MinLoc.Y + EyeOffset);
+            //tempPos.Z = (Aabb.MinLoc.Z + Aabb.MaxLoc.Z) / 2.0f;
+
+            Position += acceleration;
+
         }
         
         
@@ -44,11 +50,11 @@ namespace ObjDemo
         {
             PhysicsTick = true;
             Ticks = true;
-            Pos = position;
-            float w = AabbWidth / 2.0f;
-            float h = AabbHeight / 2.0f;
+            Position = position;
+            //float w = AabbWidth / 2.0f;
+            //float h = AabbHeight / 2.0f;
             
-            Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            //Aabb = new Aabb(new Vector3((Position.X - w), (Position.Y - h), (Position.Z - w)), new Vector3((Position.X + w), (Position.Y + h), (Position.Z + w)));
             
         }
         
@@ -57,10 +63,10 @@ namespace ObjDemo
             PhysicsTick = true;
             Ticks = true;
             
-            float w = AabbWidth / 2.0f;
-            float h = AabbHeight / 2.0f;
+            //float w = AabbWidth / 2.0f;
+            //float h = AabbHeight / 2.0f;
             
-            Aabb = new Aabb(new Vector3((Pos.X - w), (Pos.Y - h), (Pos.Z - w)), new Vector3((Pos.X + w), (Pos.Y + h), (Pos.Z + w)));
+            //Aabb = new Aabb(new Vector3((Position.X - w), (Position.Y - h), (Position.Z - w)), new Vector3((Position.X + w), (Position.Y + h), (Position.Z + w)));
             
         }
 
@@ -79,21 +85,21 @@ namespace ObjDemo
 
         public virtual void SetPos(Vector3 pos)
         {
-            Pos = pos;
-            float w = AabbWidth / 2.0f;
-            float h = AabbHeight / 2.0f;
+            Position = pos;
+            //float w = AabbWidth / 2.0f;
+            //float h = AabbHeight / 2.0f;
             
-            Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
-            Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
+            //Aabb.MinLoc = new Vector3((pos.X - w), (pos.Y - h), (pos.Z - w));
+            //Aabb.MaxLoc = new Vector3((pos.X + w), (pos.Y + h), (pos.Z + w));
         }
 
-        public virtual void Rotate(float rotX, float rotY)
+        /*public virtual void Rotate(float rotX, float rotY)
         {
             Rotation.X = (Rotation.Y - rotX * 0.15f);
             Rotation.Y = ((Rotation.Y + rotY * 0.15f) % 360.0f);
             
             if (Rotation.X < -90.0) Rotation.X = -90.0f;
             if (Rotation.X > 90.0) Rotation.X = 90.0f;
-        }
+        }*/
     }
 }

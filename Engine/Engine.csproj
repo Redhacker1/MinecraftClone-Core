@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFramework>net7.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>10</LangVersion>
         <OutputType>Exe</OutputType>
+        <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -16,21 +17,25 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="BepuPhysics" Version="2.4.0" />
       <PackageReference Include="DdsKtxSharp" Version="1.1.0.1" />
-      <PackageReference Include="ImGui.NET" Version="1.87.3" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-      <PackageReference Include="Pfim" Version="0.10.3" />
-      <PackageReference Include="Silk.NET.Assimp" Version="2.14.0" />
-      <PackageReference Include="Silk.NET.Input" Version="2.14.0" />
-      <PackageReference Include="Silk.NET.OpenAL" Version="2.14.0" />
-      <PackageReference Include="Silk.NET.Windowing.Extensions.Veldrid" Version="2.14.0" />
-      <PackageReference Include="SixLabors.ImageSharp" Version="2.1.0" />
-      <PackageReference Include="Veldrid" Version="4.9.0-beta1" />
-      <PackageReference Include="Veldrid.SPIRV" Version="1.0.14" />
+      <PackageReference Include="ImGui.NET" Version="1.72.0" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+      <PackageReference Include="SharpInterop.SDL2" Version="2.24.0-beta1" />
+      <PackageReference Include="SilkyNvg" Version="1.0.4" />
+      <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+      <PackageReference Include="Spirzza.Interop.Shaderc" Version="0.0.1" />
+      <PackageReference Include="Spirzza.Interop.SpirvCross" Version="0.0.1" />
+      <PackageReference Include="Veldrid" Version="4.9.0" />
+      <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="GameUI" />
       <Folder Include="Rendering\" />
+      <Folder Include="Rendering\Abstract\RenderStage\2D" />
+      <Folder Include="Rendering\Abstract\RenderStage\3D" />
+      <Folder Include="Rendering\DX11" />
       <Folder Include="VeldridDebugSymbols" />
     </ItemGroup>
 
@@ -42,6 +47,10 @@
 
     <ItemGroup>
       <Compile Remove="Agnostic\**" />
+      <None Remove="Renderable\VectorGraphics\NVGWinding" />
+      <None Update="Dependencies\Windows\x64\SDL2.dll">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
     <ItemGroup>

@@ -2,7 +2,7 @@
 
 namespace MCClone_Core.Physics
 {
-  public class Aabb
+  public struct Aabb
   {
     const float Epsilon = 0.01f;
     public Vector3 MinLoc;
@@ -33,7 +33,7 @@ namespace MCClone_Core.Physics
       return new Aabb(minLoc, maxLoc);
     }
 
-    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, (MaxLoc + size));
+    public Aabb Grow(Vector3 size) => new Aabb(MinLoc - size, MaxLoc + size);
 
     public float ClipXCollide(Aabb c, float xa)
     {

@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Numerics;
 using Engine;
-using Engine.Debug;
+using Engine.Attributes;
+using Engine.Debugging;
 using Engine.Initialization;
+using Engine.Objects.SceneSystem;
 using Engine.Renderable;
-using Engine.Windowing;
+using Engine.Rendering.Abstract;
+using Engine.Utilities.MathLib;
 using MCClone_Core.Player_CS;
 using MCClone_Core.Utility;
 using MCClone_Core.Utility.IO;
@@ -13,61 +16,94 @@ using Steamworks;
 
 namespace MCClone_Core
 {
-    internal class Program
+    static class Program
     {
-        static WindowClass window;
-
         static void Main(string[] args)
         {
-
-            Init.InitEngine( 10,10, 1600, 900, "Hello World", new MinecraftCloneCore());
+            
+            WindowParams windowParams = new WindowParams()
+            {
+                Location = Int2.Zero,
+                Size = new Int2(1600, 900),
+                Name = "Default window",
+            };
+            Init.InitEngine( ref windowParams, new MinecraftCloneCore());
 
         }
     }
+    
+    
 
-    internal class MinecraftCloneCore: Game
+    [GameDefinition("Blocky Worlds", true)]
+    internal class MinecraftCloneCore: GameEntry
     {
         WorldScript script;
         ImGUIPanel _panel;
         ConsoleText consoleBox = new ConsoleText();
         ProcWorld world;
         Player player;
+
+        public static Scene Scene;
         
-        public override void Gamestart()
+
+        protected override void GameStart()
         {
+            
+            Scene = new Scene();
+            base.GameStart();
+            
             ConsoleLibrary.InitConsole(consoleBox.SetConsoleScrollback);
             Console.WriteLine("Initializing Steam API");
             try
             {
                 SteamClient.Init(1789570);
                 Console.WriteLine("SteamAPI enabled successfully");
+
             }
             catch (Exception e)
             {
-                Console.WriteLine("Failed to load SteamAPI, some features will be unavailable (soon)");
+                Console.WriteLine("Failed to load SteamAPI, some features may be unavailable");
             }
 
-            base.Gamestart();
+
             WorldManager.FindWorlds();
             WorldData worldPath = WorldManager.CreateWorld();
-            world = new ProcWorld(1337) {World = worldPath};
             
-            player = new Player(new Vector3( 0 , 50, 0), Vector2.Zero, world);
-            player.Noclip = false;
+            world = new ProcWorld(1337) {World = worldPath};
             script = new WorldScript(world);
+            player = new Player(new Vector3( 0 , 75, 0), Vector2.Zero)
+            {
+                Noclip = false
+            };
+            
+            PinnedObject = world;
+            world.AddChild(script);
+            world.AddChild(player);
+            
             script._player = player;
             player.World = world;
+            
+            script._Ready();
+            player._Ready();
+            
+            Scene.AddStage(new DefaultRenderPass(Engine.Engine.Renderer));
+
+
+            base.GameStart();
         }
 
-        public override void GameEnded()
+        protected override void GameEnded()
         {
             Console.WriteLine("Shutting down SteamAPI");
             SteamClient.Shutdown();
-            
             world.SaveAndQuit();
+            Console.WriteLine($"Gamemode: {world.GetType().Name} Ended");
         }
-        
-        
-        
+
+        protected override void OnRender(float deltaT)
+        {
+            base.OnRender(deltaT);
+            Scene?.Render(Camera.MainCamera, Engine.Engine.MainFrameBuffer, deltaT);
+        }
     }
 }

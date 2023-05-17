@@ -25,11 +25,18 @@ namespace InputTest
 
     internal class GameClass : GameEntry
     {
+
+        BaseLevel _level;
         protected override void GameStart()
         {
             Console.WriteLine("Game started");
             base.GameStart();
             InputObject game = new InputObject();
+
+            _level = new BaseLevel();
+            
+            _level.AddEntityToLevel(game);
+            _level.Ticks = true;
 
         }
     }

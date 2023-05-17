@@ -57,7 +57,7 @@ namespace MCClone_Core.Player_CS
 
             if (InputHandler.KeyboardKeyDown(0, Keycode.Space) && pawn.OnGround)
             {
-                _velocity.Y = 6f * (float)delta;
+                _velocity.Y = 6f;
             }
             else if (!pawn.OnGround && !pawn.Noclip)
             {
@@ -65,16 +65,10 @@ namespace MCClone_Core.Player_CS
             }
             else
             {
-                if (InputHandler.KeyboardKeyDown(0, Keycode.Space))
-                {
-                    _velocity.Y = 6f * (float)delta;
-                }
-                else
-                {
-                    _velocity.Y = 0;
-                }
-
+                _velocity.Y = 0;
             }
+
+            //direction = Vector3.Normalize(direction);
 
             _velocity.X = (float)(direction.X * Player.Speed * delta);
             _velocity.Z = (float)(direction.Z * Player.Speed * delta);
